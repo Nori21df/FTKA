@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="payment-status-shell">
+    {% if order and order.status == 'paid' %}
+    <div class="payment-status-card is-success">
+        <span class="material-icons-outlined">verified</span>
+        <h2>Premium activated</h2>
+        <p>Your SePay payment has been confirmed and Premium is active on your account.</p>
+        <div class="payment-status-actions">
+            <a class="primary-cta" href="{{ url_for('account_billing') }}">View billing</a>
+            <a class="secondary-cta" href="{{ url_for('dashboard') }}">Go to dashboard</a>
+        </div>
+    </div>
+    {% elif order %}
+    <div class="payment-status-card">
+        <span class="material-icons-outlined">hourglass_top</span>
+        <h2>Payment received, waiting for confirmation</h2>
+        <p>We found order {{ order.order_code }}, but Premium will unlock only after SePay sends the webhook confirmation.</p>
+        <div class="payment-order-summary">
+            <span>Status</span><strong>{{ order.status }}</strong>
+            <span>Plan</span><strong>{{ order.plan_name }}</strong>
+            <span>Amount</span><strong>{{ order.amount }} {{ order.currency }}</strong>
+        </div>
+        <div class="payment-status-actions">
+            <a class="primary-cta" href="{{ url_for('account_billing') }}">Check billing</a>
+            <a class="secondary-cta" href="{{ url_for('pricing') }}">Back to pricing</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="payment-status-card">
+        <span class="material-icons-outlined">hourglass_empty</span>
+        <h2>Payment received, waiting for confirmation</h2>
+        <p>We could not match this return URL to an order yet. Premium activation still depends only on the SePay webhook.</p>
+        <div class="payment-status-actions">
+            <a class="primary-cta" href="{{ url_for('account_billing') }}">Check billing</a>
+            <a class="secondary-cta" href="{{ url_for('pricing') }}">Back to pricing</a>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

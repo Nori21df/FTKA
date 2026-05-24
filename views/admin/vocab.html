@@ -1,0 +1,65 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>Từ vựng</h2>
+        <p class="admin-muted">Bảng từ vựng. Tìm theo tiếng Hàn, nghĩa tiếng Việt hoặc ID.</p>
+    </div>
+</div>
+
+<section class="admin-panel">
+    <form class="admin-form-grid" method="get">
+        <label>Tìm kiếm
+            <input class="admin-input" name="q" value="{{ request.args['q'] | default('') }}" placeholder="tiếng Hàn, nghĩa, ID">
+        </label>
+        <label>Trạng thái
+            <select class="admin-select" name="learned">
+                <option value="">Tất cả</option>
+                <option value="learned" {% if request.args['learned'] == 'learned' %}selected{% endif %}>Đã học</option>
+                <option value="unlearned" {% if request.args['learned'] == 'unlearned' %}selected{% endif %}>Chưa học</option>
+            </select>
+        </label>
+        <label>Nguồn
+            <select class="admin-select" name="source">
+                <option value="">Tất cả</option>
+                {% for source in sources %}
+                <option value="{{ source }}" {% if request.args['source'] == source %}selected{% endif %}>{{ source }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Thiếu
+            <select class="admin-select" name="missing">
+                <option value="">Tất cả</option>
+                <option value="audio" {% if request.args['missing'] == 'audio' %}selected{% endif %}>Thiếu audio path</option>
+                <option value="example" {% if request.args['missing'] == 'example' %}selected{% endif %}>Thiếu example</option>
+            </select>
+        </label>
+        <button class="admin-button primary" type="submit">Lọc</button>
+    </form>
+</section>
+
+<section class="admin-panel">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>ID</th><th>Tiếng Hàn</th><th>Nghĩa</th><th>Trạng thái</th><th>Nguồn</th><th>Âm thanh</th><th>Ngày tạo</th></tr></thead>
+            <tbody>
+                {% for item in vocab %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td><a href="{{ url_for('admin.vocab_detail', vocab_id=item.id) }}">{{ item.korean or 'Chưa có tiêu đề' }}</a></td>
+                    <td>{{ item.meaning_vi or '' }}</td>
+                    <td><span class="admin-badge {% if not item.learned %}warn{% endif %}">{{ 'Đã học' if item.learned else 'Chưa học' }}</span></td>
+                    <td>{{ item.source or 'Chưa có' }}</td>
+                    <td>{{ 'Có' if item.audio_path else 'Thiếu' }}</td>
+                    <td>{{ item.created_at or 'Chưa có' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7">Không tìm thấy từ vựng.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "admin/_pagination.html" %}
+</section>
+{% endblock %}

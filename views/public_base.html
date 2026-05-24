@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="{{ ui_html_lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FTKA - Học tiếng Hàn{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    {% block head %}{% endblock %}
+</head>
+<body class="ftka-light-ui public-page {% block body_class %}{% endblock %}">
+    <div class="app-ambient" aria-hidden="true"></div>
+    <div class="public-shell">
+        <header class="public-header">
+            <a class="public-brand" href="{{ url_for('index') }}" aria-label="Trang chủ FTKA">
+                <span class="public-logo">FT</span>
+                <span>
+                    <strong>FTKA</strong>
+                    <small>Học tiếng Hàn</small>
+                </span>
+            </a>
+            <nav class="public-nav" aria-label="Điều hướng">
+                <a href="{{ url_for('login') }}">Đăng nhập</a>
+                <a class="public-nav-primary" href="{{ url_for('register') }}">Đăng ký</a>
+            </nav>
+        </header>
+
+        <main class="public-main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

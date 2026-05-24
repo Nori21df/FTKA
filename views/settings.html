@@ -1,0 +1,151 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+
+
+<div class="settings-shell">
+    <section class="settings-hero">
+        <div class="settings-status-chip {% if has_api_key %}is-ready{% else %}is-missing{% endif %}">
+            <span class="material-icons-outlined">{% if has_api_key %}verified{% else %}priority_high{% endif %}</span>
+        </div>
+        <h2 class="settings-hero-title">System settings</h2>
+        <div class="settings-hero-actions">
+            <a href="{{ url_for('generator') }}" class="settings-link">
+                <span class="material-icons-outlined">auto_awesome</span>
+                Open generator
+            </a>
+            <a href="{{ url_for('quiz') }}" class="settings-link">
+                <span class="material-icons-outlined">quiz</span>
+                Open quiz
+            </a>
+        </div>
+    </section>
+
+    <div class="settings-layout">
+        <section>
+            <article class="settings-card">
+               
+                    <div class="settings-field">
+                        <label class="settings-label" for="apiKey">API key</label>
+                        <div class="settings-input-row">
+                            <input type="text" class="settings-input" value="{% if has_api_key %}Work{% else %}Not Work{% endif %}" disabled>
+                        </div>
+                        <button type="button" class="settings-ghost-button settings-test-button" id="testApiBtn" onclick="testApiConnection()">
+                            <span class="material-icons-outlined">network_check</span>
+                            Test
+                        </button>
+                        <div id="settingsMessage" class="settings-message" aria-live="polite"></div>
+                    </div>
+            </article>
+        </section>
+
+        <aside class="settings-side-stack">
+            <section class="settings-side-card">
+                <p class="settings-kicker">Status</p>
+                <h3>Current overview</h3>
+                <ul class="settings-status-list">
+                    <li>
+                        <strong>Content API</strong>
+                        <span>{% if has_api_key %}Configured{% else %}Missing{% endif %}</span>
+                    </li>
+                    <li>
+                        <strong>Dark mode</strong>
+                        <span>{% if config["dark_theme"] | default(false) %}{{ t('settings.enabled') }}{% else %}{{ t('settings.disabled') }}{% endif %}</span>
+                    </li>
+                    <li>
+                        <strong>AI model</strong>
+                        <span>Google AI Studio / Gemma 4 31B</span>
+                    </li>
+                </ul>
+            </section>
+
+        </aside>
+    </div>
+</div>
+
+<script>
+const settingsText = {
+    show: {{ t('settings.show')|tojson }},
+    hide: {{ t('settings.hide')|tojson }},
+    save: {{ t('settings.save')|tojson }},
+    saving: {{ t('settings.saving')|tojson }},
+    saved: {{ t('settings.saved_message')|tojson }},
+    saveFailed: {{ t('settings.save_failed')|tojson }},
+    networkError: {{ t('settings.network_error')|tojson }}
+};
+
+function setSettingsMessage(message, tone) {
+    const box = document.getElementById('settingsMessage');
+    if (!box) return;
+    box.textContent = message;
+    box.className = `settings-message is-visible is-${tone}`;
+}
+
+async function testApiConnection() {
+    const button = document.getElementById('testApiBtn');
+    button.disabled = true;
+    button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Testing...';
+    setSettingsMessage('Testing GOOGLE_AI_STUDIO_API_KEY...', 'success');
+
+    try {
+        const response = await fetch('/api/settings/test_api', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({})
+        });
+        const rawText = await response.text();
+        let data = {};
+        try {
+            data = rawText ? JSON.parse(rawText) : {};
+        } catch (parseError) {
+            data = { error: rawText || `API test failed with status ${response.status}.` };
+        }
+
+        if (!response.ok || data.error) {
+            throw new Error(data.error || `API test failed with status ${response.status}.`);
+        }
+
+        setSettingsMessage(data.message || 'API works.', 'success');
+    } catch (error) {
+        setSettingsMessage(error.message || 'API test failed.', 'error');
+    } finally {
+        button.disabled = false;
+        button.innerHTML = '<span class="material-icons-outlined">network_check</span>Test API';
+    }
+}
+
+async function saveSettings() {
+    const button = document.getElementById('saveSettingsBtn');
+    const isDark = document.getElementById('darkTheme').checked;
+    const payload = {
+        dark_theme: isDark
+    };
+
+    button.disabled = true;
+    button.innerHTML = `<span class="material-icons-outlined">autorenew</span>${settingsText.saving}`;
+
+    try {
+        const response = await fetch('/api/settings', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.error || settingsText.saveFailed);
+        }
+
+        setSettingsMessage(
+            settingsText.saved,
+            'success'
+        );
+    } catch (error) {
+        setSettingsMessage(error.message || settingsText.networkError, 'error');
+    } finally {
+        button.disabled = false;
+        button.innerHTML = `<span class="material-icons-outlined">save</span>${settingsText.save}`;
+    }
+}
+</script>
+{% endblock %}

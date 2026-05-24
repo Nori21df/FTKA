@@ -1,0 +1,84 @@
+﻿{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>AI Activity Logs</h2>
+        <p class="admin-muted">Live AI request activity via Server-Sent Events. Stored in memory, latest 300 only.</p>
+    </div>
+    <div class="admin-actions">
+        <span id="sseStatus" class="admin-badge">Connecting</span>
+        <form method="post" action="{{ url_for('admin.ai_logs_clear') }}" onsubmit="return confirm('Clear AI logs?');">
+            <button class="admin-button danger" type="submit">Clear logs</button>
+        </form>
+    </div>
+</div>
+
+<section class="admin-panel">
+    <form class="admin-filters" method="get" action="{{ url_for('admin.ai_logs') }}">
+        <label>Status
+            <select class="admin-input" name="status">
+                <option value="">All</option>
+                {% for item in ['started', 'progress', 'success', 'error'] %}
+                <option value="{{ item }}" {% if request.args['status'] == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Type <input class="admin-input" name="type" value="{{ request.args['type'] or '' }}" placeholder="vocabulary, grammar..."></label>
+        <label>Limit <input class="admin-input" name="limit" value="{{ request.args['limit'] or 100 }}" type="number" min="1" max="300"></label>
+        <button class="admin-button" type="submit">Filter</button>
+    </form>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>Time</th><th>Status</th><th>Type</th><th>Message</th><th>Model</th><th>User</th><th>Duration</th><th>Error</th></tr></thead>
+            <tbody id="aiLogRows"><tr><td colspan="8">Loading AI logs...</td></tr></tbody>
+        </table>
+    </div>
+</section>
+
+<script>
+const rows = document.getElementById('aiLogRows');
+const sseStatus = document.getElementById('sseStatus');
+const params = new URLSearchParams(window.location.search);
+const maxRows = Number(params.get('limit') || 100);
+function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"]/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+}
+function statusBadge(status) {
+    return `<span class="admin-badge ${status === 'error' ? 'danger' : ''}">${escapeHtml(status)}</span>`;
+}
+function rowHtml(log) {
+    return `<tr data-ai-log-id="${escapeHtml(log.id)}"><td>${escapeHtml(log.created_at)}</td><td>${statusBadge(log.status)}</td><td>${escapeHtml(log.type)}</td><td>${escapeHtml(log.message)}</td><td>${escapeHtml(log.model)}</td><td>${escapeHtml(log.user_id || '')}</td><td>${escapeHtml(log.duration_ms || '')}</td><td>${escapeHtml(log.error || '')}</td></tr>`;
+}
+function renderLogs(logs) {
+    rows.innerHTML = logs.length ? logs.map(rowHtml).join('') : '<tr><td colspan="8">No AI logs yet.</td></tr>';
+}
+function prependLog(log) {
+    if (params.get('status') && params.get('status') !== log.status) return;
+    if (params.get('type') && params.get('type').toLowerCase() !== String(log.type || '').toLowerCase()) return;
+    if (rows.querySelector('td[colspan="8"]')) rows.innerHTML = '';
+    rows.insertAdjacentHTML('afterbegin', rowHtml(log));
+    while (rows.children.length > maxRows) rows.removeChild(rows.lastElementChild);
+}
+function setConnection(label, tone = '') {
+    sseStatus.textContent = label;
+    sseStatus.className = `admin-badge ${tone}`;
+}
+async function loadInitialLogs() {
+    const response = await fetch(`/admin/ai-logs.json?${params.toString()}`, { headers: { Accept: 'application/json' } });
+    const data = await response.json();
+    renderLogs(data.logs || []);
+}
+loadInitialLogs().catch(() => renderLogs([]));
+const events = new EventSource('/admin/ai-logs/stream');
+events.addEventListener('connected', () => setConnection('Connected'));
+events.addEventListener('open', () => setConnection('Connected'));
+events.addEventListener('ai-log', (event) => prependLog(JSON.parse(event.data)));
+events.addEventListener('ai-clear', () => renderLogs([]));
+events.addEventListener('error', () => {
+    if (events.readyState === EventSource.CLOSED) setConnection('Disconnected', 'danger');
+    else setConnection('Reconnecting', 'danger');
+});
+</script>
+{% endblock %}

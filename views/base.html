@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="{{ ui_html_lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('app.title') }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    {% block head %}{% endblock %}
+    
+    <script>
+        function playTTS(text) {
+            const audio = new Audio(`/api/tts?text=${encodeURIComponent(text)}`);
+            audio.play().catch(e => console.error("TTS playback failed", e));
+        }
+    </script>
+</head>
+<body class="{{ ui_theme_class }}">
+    <a class="skip-link" href="#mainContent">Bỏ qua điều hướng</a>
+    <div id="global-loading" class="global-loading" hidden>Đang tải...</div>
+    <div class="app-container">
+        <div class="sidebar-backdrop" data-sidebar-backdrop hidden></div>
+        <aside class="sidebar" id="appSidebar">
+            <div class="sidebar-header">
+                <a class="logo" href="{{ url_for('dashboard') }}" aria-label="FTKA">
+                    <span class="logo-icon">FT</span>
+                    <div class="logo-text">
+                        <h1>FTKA</h1>
+                        <p>{{ t('brand.subtitle') }}</p>
+                    </div>
+                </a>
+            </div>
+            <nav class="sidebar-nav" aria-label="Điều hướng chính">
+                <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <span class="material-icons-outlined">dashboard</span>
+                    <span class="nav-label">{{ t('nav.dashboard') }}</span>
+                </a>
+                <a href="{{ url_for('generator') }}" class="nav-item {% if request.endpoint == 'generator' %}active{% endif %}">
+                    <span class="material-icons-outlined">auto_awesome</span>
+                    <span class="nav-label">Tạo / Thêm từ vựng</span>
+                </a>
+                <a href="{{ url_for('vocab') }}" class="nav-item {% if request.endpoint == 'vocab' %}active{% endif %}">
+                    <span class="material-icons-outlined">translate</span>
+                    <span class="nav-label">{{ t('nav.vocabulary') }}</span>
+                </a>
+                <a href="{{ url_for('grammar') }}" class="nav-item {% if request.endpoint == 'grammar' %}active{% endif %}">
+                    <span class="material-icons-outlined">menu_book</span>
+                    <span class="nav-label">{{ t('nav.grammar') }}</span>
+                </a>
+                <a href="{{ url_for('grammar_quiz') }}" class="nav-item {% if request.endpoint == 'grammar_quiz' %}active{% endif %}">
+                    <span class="material-icons-outlined">school</span>
+                    <span class="nav-label">Câu hỏi ngữ pháp</span>
+                </a>
+                <a href="{{ url_for('listening_practice') }}" class="nav-item {% if request.endpoint in ['listening_practice', 'generate_listening_practice'] %}active{% endif %}">
+                    <span class="material-icons-outlined">headphones</span>
+                    <span class="nav-label">Luyện nghe</span>
+                </a>
+                <a href="{{ url_for('quiz') }}" class="nav-item {% if request.endpoint == 'quiz' %}active{% endif %}">
+                    <span class="material-icons-outlined">quiz</span>
+                    <span class="nav-label">{{ t('nav.quiz') }}</span>
+                </a>
+                <a href="{{ url_for('pricing') }}" class="nav-item {% if request.endpoint == 'pricing' %}active{% endif %}">
+                    <span class="material-icons-outlined">workspace_premium</span>
+                    <span class="nav-label">Premium</span>
+                </a>
+                {% if current_user and current_user.role == 'admin' %}
+                <a href="{{ url_for('settings') }}" class="nav-item {% if request.endpoint == 'settings' %}active{% endif %}">
+                    <span class="material-icons-outlined">settings</span>
+                    <span class="nav-label">{{ t('nav.settings') }}</span>
+                </a>
+                <a href="{{ url_for('admin.dashboard') }}" class="nav-item {% if request.endpoint and (request.endpoint|startsWith('admin.')) %}active{% endif %}">
+                    <span class="material-icons-outlined">admin_panel_settings</span>
+                    <span class="nav-label">Quản trị</span>
+                </a>
+                {% endif %}
+                {% if current_user %}
+                <a href="{{ url_for('account_billing') }}" class="nav-item {% if request.endpoint == 'account_billing' %}active{% endif %}">
+                    <span class="material-icons-outlined">receipt_long</span>
+                    <span class="nav-label">Thanh toán</span>
+                </a>
+                <a href="{{ url_for('preferences') }}" class="nav-item {% if request.endpoint == 'preferences' %}active{% endif %}">
+                    <span class="material-icons-outlined">palette</span>
+                    <span class="nav-label">Giao diện</span>
+                </a>
+                {% endif %}
+                {% if not current_user %}
+                <a href="{{ url_for('login') }}" class="nav-item {% if request.endpoint == 'login' %}active{% endif %}">
+                    <span class="material-icons-outlined">login</span>
+                    <span class="nav-label">Đăng nhập</span>
+                </a>
+                <a href="{{ url_for('register') }}" class="nav-item {% if request.endpoint == 'register' %}active{% endif %}">
+                    <span class="material-icons-outlined">person_add</span>
+                    <span class="nav-label">Đăng ký</span>
+                </a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <main class="main-content" id="mainContent" tabindex="-1">
+            <header class="mobile-header">
+                <a href="{{ url_for('dashboard') }}" class="mobile-brand" aria-label="Trang chính FTKA">
+                    <span class="logo-icon">FT</span>
+                    <span>FTKA</span>
+                </a>
+                <button type="button" class="mobile-menu-button" aria-label="Mở menu" aria-controls="appSidebar" aria-expanded="false" data-sidebar-toggle>
+                    <span class="material-icons-outlined" aria-hidden="true">menu</span>
+                </button>
+            </header>
+            <header class="topbar">
+                <div class="topbar-context">
+                    <span class="topbar-context-icon material-icons-outlined" aria-hidden="true">school</span>
+                    <div>
+                        <p>FTKA</p>
+                        <strong>{{ t('app.title') }}</strong>
+                    </div>
+                </div>
+                <div class="topbar-status">
+                    <span class="status-dot" aria-hidden="true"></span>
+                    <span>Học với AI</span>
+                </div>
+                <div class="user-profile">
+                    {% if current_user %}
+                    <a class="topbar-user-link" href="{{ url_for('profile') }}" title="Hồ sơ">
+                        {% if current_user.avatar_url %}
+                        <img class="avatar avatar-image" src="{{ current_user.avatar_url }}" alt="">
+                        {% else %}
+                        <span class="avatar">{{ current_user.username|first|upper }}</span>
+                        {% endif %}
+                        <span class="topbar-username">{{ current_user.username }}</span>
+                    </a>
+                    <form method="post" action="{{ url_for('logout') }}">
+                        <button type="submit" class="logout-button" title="Đăng xuất">
+                            <span class="material-icons-outlined">logout</span>
+                        </button>
+                    </form>
+                    {% else %}
+                    <a class="topbar-auth-link" href="{{ url_for('login') }}">Đăng nhập</a>
+                    <a class="topbar-auth-link topbar-auth-primary" href="{{ url_for('register') }}">Đăng ký</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('appSidebar');
+            const toggle = document.querySelector('[data-sidebar-toggle]');
+            const backdrop = document.querySelector('[data-sidebar-backdrop]');
+            const mobileQuery = window.matchMedia('(max-width: 768px)');
+
+            if (!sidebar || !toggle || !backdrop) {
+                return;
+            }
+
+            function setSidebarOpen(isOpen) {
+                document.body.classList.toggle('sidebar-open', isOpen);
+                sidebar.classList.toggle('is-open', isOpen);
+                toggle.setAttribute('aria-expanded', String(isOpen));
+                toggle.setAttribute('aria-label', isOpen ? 'Đóng menu' : 'Mở menu');
+                backdrop.hidden = !isOpen;
+            }
+
+            toggle.addEventListener('click', () => {
+                setSidebarOpen(!sidebar.classList.contains('is-open'));
+            });
+
+            backdrop.addEventListener('click', () => setSidebarOpen(false));
+
+            sidebar.querySelectorAll('.nav-item').forEach((link) => {
+                link.addEventListener('click', () => {
+                    if (mobileQuery.matches) {
+                        setSidebarOpen(false);
+                    }
+                });
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                    setSidebarOpen(false);
+                }
+            });
+
+            mobileQuery.addEventListener('change', (event) => {
+                if (!event.matches) {
+                    setSidebarOpen(false);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

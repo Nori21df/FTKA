@@ -1,0 +1,107 @@
+{% extends "public_base.html" %}
+
+{% block title %}FTKA - Học tiếng Hàn{% endblock %}
+{% block body_class %}public-index-page{% endblock %}
+
+{% block content %}
+<section class="public-hero">
+    <div class="public-hero-copy">
+        <p class="public-kicker">FTKA</p>
+        <h1>Học tiếng Hàn thông minh hơn với FTKA</h1>
+        <p>
+            Học từ vựng, ngữ pháp, luyện nghe, ôn tập và tạo nội dung học bằng AI trong một không gian gọn gàng.
+        </p>
+        <div class="public-hero-actions">
+            <a class="public-primary-button" href="{{ url_for('register') }}">Bắt đầu học</a>
+            <a class="public-secondary-button" href="{{ url_for('login') }}">Đăng nhập</a>
+        </div>
+    </div>
+    <div class="public-study-preview" aria-label="Xem nhanh FTKA">
+        <div class="public-preview-card is-main">
+            <span class="material-icons-outlined">auto_awesome</span>
+            <strong>Học với AI</strong>
+            <p>Tạo từ vựng, ngữ pháp, ví dụ, quiz và bài nghe.</p>
+        </div>
+        <div class="public-preview-grid">
+            <span>Từ vựng</span>
+            <span>Ngữ pháp</span>
+            <span>Luyện nghe</span>
+            <span>Ôn tập</span>
+        </div>
+    </div>
+</section>
+
+<section class="public-features" aria-label="Tính năng FTKA">
+    <article class="public-feature-card">
+        <span class="material-icons-outlined">translate</span>
+        <h2>Học từ vựng</h2>
+        <p>Lưu từ tiếng Hàn, nghĩa tiếng Việt, ví dụ và âm thanh.</p>
+    </article>
+    <article class="public-feature-card">
+        <span class="material-icons-outlined">menu_book</span>
+        <h2>Luyện ngữ pháp</h2>
+        <p>Học mẫu câu, giải thích và ví dụ theo cấp độ.</p>
+    </article>
+    <article class="public-feature-card">
+        <span class="material-icons-outlined">headphones</span>
+        <h2>Luyện nghe</h2>
+        <p>Tạo bài nghe ngắn với transcript, dịch nghĩa và câu hỏi.</p>
+    </article>
+    <article class="public-feature-card">
+        <span class="material-icons-outlined">auto_awesome</span>
+        <h2>Học tiếng Hàn bằng AI</h2>
+        <p>Tạo nội dung học phù hợp với mục tiêu của bạn.</p>
+    </article>
+    <article class="public-feature-card">
+        <span class="material-icons-outlined">quiz</span>
+        <h2>Ôn tập / Kiểm tra</h2>
+        <p>Ôn từ vựng và ngữ pháp bằng các phiên quiz ngắn.</p>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+    const page = document.body;
+    if (!page.classList.contains('public-index-page')) {
+        return;
+    }
+
+    let targetX = 50;
+    let targetY = 38;
+    let currentX = targetX;
+    let currentY = targetY;
+    let frameId = null;
+
+    function writePosition() {
+        currentX += (targetX - currentX) * 0.14;
+        currentY += (targetY - currentY) * 0.14;
+
+        page.style.setProperty('--mx', `${currentX.toFixed(2)}%`);
+        page.style.setProperty('--my', `${currentY.toFixed(2)}%`);
+
+        if (Math.abs(targetX - currentX) > 0.02 || Math.abs(targetY - currentY) > 0.02) {
+            frameId = requestAnimationFrame(writePosition);
+            return;
+        }
+
+        page.style.setProperty('--mx', `${targetX.toFixed(2)}%`);
+        page.style.setProperty('--my', `${targetY.toFixed(2)}%`);
+        frameId = null;
+    }
+
+    function queuePositionUpdate() {
+        if (frameId === null) {
+            frameId = requestAnimationFrame(writePosition);
+        }
+    }
+
+    window.addEventListener('mousemove', (event) => {
+        targetX = (event.clientX / window.innerWidth) * 100;
+        targetY = (event.clientY / window.innerHeight) * 100;
+        queuePositionUpdate();
+    }, { passive: true });
+})();
+</script>
+{% endblock %}

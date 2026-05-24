@@ -1,0 +1,54 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>Bài luyện nghe</h2>
+        <p class="admin-muted">Bảng bài luyện nghe đang có trong hệ thống.</p>
+    </div>
+</div>
+
+<section class="admin-panel">
+    <form class="admin-form-grid" method="get">
+        <label>Tìm kiếm
+            <input class="admin-input" name="q" value="{{ request.args['q'] | default('') }}" placeholder="tiêu đề, chủ đề, cấp độ">
+        </label>
+        <label>Cấp độ
+            <select class="admin-select" name="level">
+                <option value="">Tất cả</option>
+                {% for level in ['beginner', 'intermediate', 'advanced'] %}
+                <option value="{{ level }}" {% if request.args['level'] == level %}selected{% endif %}>{{ level|title }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <input type="checkbox" name="missing_audio" value="1" {% if request.args['missing_audio'] == '1' %}checked{% endif %}>
+            Thiếu audio
+        </label>
+        <button class="admin-button primary" type="submit">Lọc</button>
+    </form>
+</section>
+
+<section class="admin-panel">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>ID</th><th>Tiêu đề</th><th>Chủ đề</th><th>Cấp độ</th><th>Âm thanh</th><th>Ngày tạo</th></tr></thead>
+            <tbody>
+                {% for lesson in lessons %}
+                <tr>
+                    <td>{{ lesson.id }}</td>
+                    <td><a href="{{ url_for('admin.listening_detail', lesson_id=lesson.id) }}">{{ lesson.title or 'Chưa có tiêu đề' }}</a></td>
+                    <td>{{ lesson.topic or 'Chưa có' }}</td>
+                    <td><span class="admin-badge">{{ lesson.level or 'Chưa có' }}</span></td>
+                    <td>{{ 'Có' if lesson.audio_path else 'Thiếu' }}</td>
+                    <td>{{ lesson.created_at or 'Chưa có' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6">Chưa có bài luyện nghe.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "admin/_pagination.html" %}
+</section>
+{% endblock %}

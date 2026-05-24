@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<div class="listening-shell">
+    <section class="listening-hero">
+        <h2 class="listening-hero-title">Luyện nghe tiếng Hàn</h2>
+    </section>
+
+    <div class="listening-layout">
+        <aside class="listening-sidebar">
+            <section class="listening-panel">
+                <div class="listening-panel-head">
+                    <div>
+                        <h3>Thiết lập</h3>  
+                    </div>
+                </div>
+
+                <form class="listening-form" method="post" action="{{ url_for('generate_listening_practice') }}">
+                    <div class="listening-field">
+                        <label for="levelInput">Cấp độ</label>
+                        <select id="levelInput" name="level" class="listening-select" required>
+                            {% for level in levels %}
+                            <option value="{{ level }}">
+                                {% if level == 'beginner' %}Sơ cấp
+                                {% elif level == 'intermediate' %}Trung cấp
+                                {% elif level == 'advanced' %}Cao cấp
+                                {% else %}{{ level|replace('_', ' ')|title }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="listening-field">
+                        <label for="topicInput">Chủ đề</label>
+                        <select id="topicInput" name="topic" class="listening-select" required>
+                            {% for topic in topics %}
+                            <option value="{{ topic }}">
+                                {% if topic == 'daily_life' %}Đời sống hàng ngày
+                                {% elif topic == 'school' %}Trường học
+                                {% elif topic == 'work' %}Công việc
+                                {% elif topic == 'travel' %}Du lịch
+                                {% elif topic == 'shopping' %}Mua sắm
+                                {% elif topic == 'food' %}Ẩm thực
+                                {% elif topic == 'weather' %}Thời tiết
+                                {% elif topic == 'culture' %}Văn hóa
+                                {% else %}{{ topic|replace('_', ' ')|title }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="listening-field">
+                        <label for="lengthInput">Độ dài</label>
+                        <select id="lengthInput" name="length" class="listening-select" required>
+                            {% for length in lengths %}
+                            <option value="{{ length }}">
+                                {% if length == 'short' %}Ngắn
+                                {% elif length == 'medium' %}Vừa
+                                {% else %}{{ length|title }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button class="listening-generate-button" type="submit">
+                        <span class="material-icons-outlined">auto_awesome</span>
+                        Tạo
+                    </button>
+                    {% if request.args["message"] %}
+                    <div class="listening-status success" aria-live="polite">{{ request.args["message"] }}</div>
+                    {% endif %}
+                    {% if generation_error %}
+                    <div class="listening-status" aria-live="polite">{{ generation_error }}</div>
+                    {% endif %}
+                </form>
+            </section>
+
+            <section class="saved-lessons-card">
+                <details open>
+                    <summary class="saved-lessons-summary">
+                        <div>
+                            <h3>Bài đã lưu</h3>
+                        </div>
+                        <span class="saved-lessons-count">{{ saved_lessons|length }} bài</span>
+                    </summary>
+
+                    {% if saved_lessons %}
+                    <div class="saved-lessons-list">
+                        {% for lesson in saved_lessons %}
+                        <div class="saved-lesson-row">
+                            <a
+                                class="saved-lesson-item {% if lesson.id == selected_lesson_id %}active{% endif %}"
+                                href="{{ url_for('listening_practice', lesson_id=lesson.id) }}"
+                            >
+                                <span class="saved-lesson-title">{{ lesson.title }}</span>
+                                <span class="saved-lesson-meta">
+                                    <span class="listening-chip">
+                                        {% if lesson.level == 'beginner' %}Sơ cấp
+                                        {% elif lesson.level == 'intermediate' %}Trung cấp
+                                        {% elif lesson.level == 'advanced' %}Cao cấp
+                                        {% else %}{{ lesson.level|replace('_', ' ')|title }}{% endif %}
+                                    </span>
+                                    <span class="listening-chip">
+                                        {% if lesson.topic == 'daily_life' %}Đời sống hàng ngày
+                                        {% elif lesson.topic == 'school' %}Trường học
+                                        {% elif lesson.topic == 'work' %}Công việc
+                                        {% elif lesson.topic == 'travel' %}Du lịch
+                                        {% elif lesson.topic == 'shopping' %}Mua sắm
+                                        {% elif lesson.topic == 'food' %}Ẩm thực
+                                        {% elif lesson.topic == 'weather' %}Thời tiết
+                                        {% elif lesson.topic == 'culture' %}Văn hóa
+                                        {% else %}{{ lesson.topic|replace('_', ' ')|title }}{% endif %}
+                                    </span>
+                                    <span class="listening-chip">
+                                        {% if lesson.length == 'short' %}Ngắn
+                                        {% elif lesson.length == 'medium' %}Vừa
+                                        {% else %}{{ lesson.length|title }}{% endif %}
+                                    </span>
+                                </span>
+                                <span class="saved-lesson-date">{{ lesson.created_label or lesson.created_at }}</span>
+                            </a>
+                            <form
+                                class="saved-lesson-delete-form"
+                                method="post"
+                                action="{{ url_for('delete_listening_practice_lesson', lesson_id=lesson.id) }}"
+                                onsubmit="return confirm('Xoá bài nghe đã lưu này?');"
+                            >
+                                <button class="saved-lesson-delete-button" type="submit" title="Xoá bài nghe" aria-label="Xoá bài nghe">
+                                    <span class="material-icons-outlined">delete_outline</span>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="listening-empty-state" style="margin-top: 12px;">
+                        Chưa có bài nghe đã lưu.
+                    </div>
+                    {% endif %}
+                </details>
+            </section>
+        </aside>
+
+        <main class="listening-main">
+            {% if selected_lesson %}
+            <article class="lesson-detail-card">
+                <div class="lesson-detail-head">
+                    <div>
+                        <div class="lesson-meta">
+                            <span class="listening-chip">
+                                {% if selected_lesson.level == 'beginner' %}Sơ cấp
+                                {% elif selected_lesson.level == 'intermediate' %}Trung cấp
+                                {% elif selected_lesson.level == 'advanced' %}Cao cấp
+                                {% else %}{{ selected_lesson.level|replace('_', ' ')|title }}{% endif %}
+                            </span>
+                            <span class="listening-chip">
+                                {% if selected_lesson.topic == 'daily_life' %}Đời sống hàng ngày
+                                {% elif selected_lesson.topic == 'school' %}Trường học
+                                {% elif selected_lesson.topic == 'work' %}Công việc
+                                {% elif selected_lesson.topic == 'travel' %}Du lịch
+                                {% elif selected_lesson.topic == 'shopping' %}Mua sắm
+                                {% elif selected_lesson.topic == 'food' %}Ẩm thực
+                                {% elif selected_lesson.topic == 'weather' %}Thời tiết
+                                {% elif selected_lesson.topic == 'culture' %}Văn hóa
+                                {% else %}{{ selected_lesson.topic|replace('_', ' ')|title }}{% endif %}
+                            </span>
+                            <span class="listening-chip">
+                                {% if selected_lesson.length == 'short' %}Ngắn
+                                {% elif selected_lesson.length == 'medium' %}Vừa
+                                {% else %}{{ selected_lesson.length|title }}{% endif %}
+                            </span>
+                        </div>
+                        <h3 class="lesson-title">{{ selected_lesson.title }}</h3>
+                    </div>
+                    <span class="lesson-date">{{ selected_lesson.created_at }}</span>
+                </div>
+
+                {% if selected_lesson.audio_path %}
+                <audio class="listening-audio" controls src="{{ selected_lesson.audio_path }}"></audio>
+                {% elif selected_lesson.audio_warning %}
+                <div class="listening-warning">{{ selected_lesson.audio_warning }}</div>
+                {% endif %}
+
+                <section class="lesson-section">
+                    <h4>Transcript tiếng Hàn</h4>
+                    <div class="listening-text-block listening-korean">{{ selected_lesson.korean_text }}</div>
+                </section>
+
+                {% if selected_lesson.sentences %}
+                <section class="lesson-section">
+                    <h4>Phát từng câu</h4>
+                    <div class="sentence-player" data-sentence-player>
+                        <div class="sentence-controls">
+                            <button type="button" class="sentence-control-button" data-sentence-action="play">
+                                <span class="material-icons-outlined">play_arrow</span>
+                                Phát
+                            </button>
+                            <button type="button" class="sentence-control-button" data-sentence-action="pause">
+                                <span class="material-icons-outlined">pause</span>
+                                Tạm dừng
+                            </button>
+                            <button type="button" class="sentence-control-button" data-sentence-action="stop">
+                                <span class="material-icons-outlined">stop</span>
+                                Dừng
+                            </button>
+                            <button type="button" class="sentence-control-button" data-sentence-action="next">
+                                <span class="material-icons-outlined">skip_next</span>
+                                Tiếp theo
+                            </button>
+                        </div>
+                        <div class="sentence-status" data-sentence-status aria-live="polite"></div>
+                        <div class="sentence-list">
+                            {% for sentence in selected_lesson.sentences %}
+                            <div class="sentence-line" data-sentence-line data-audio-path="{{ sentence.audio_path }}" data-sentence-index="{{ sentence.index }}">
+                                <span class="sentence-number">{{ sentence.index }}</span>
+                                <span>{{ sentence.text }}</span>
+                                {% if not sentence.audio_path %}
+                                <span class="sentence-error">{{ sentence.audio_error or 'Chưa có âm thanh cho câu này.' }}</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+
+                <section class="lesson-section">
+                    <h4>Bản dịch tiếng Việt</h4>
+                    <div class="listening-text-block">{{ selected_lesson.vietnamese_translation }}</div>
+                </section>
+
+                {% if selected_lesson.vocabulary %}
+                <section class="lesson-section">
+                    <h4>Từ vựng</h4>
+                    <div class="lesson-grid">
+                        {% for item in selected_lesson.vocabulary %}
+                        <div class="lesson-mini-card">
+                            <strong>{{ item.korean }}</strong>
+                            <span>{{ item.meaning_vi }}</span>
+                            {% if item.example_kr %}<span>{{ item.example_kr }}</span>{% endif %}
+                            {% if item.example_vi %}<span>{{ item.example_vi }}</span>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if selected_lesson.questions %}
+                <section class="lesson-section">
+                    <h4>Câu hỏi luyện nghe</h4>
+                    <div class="lesson-grid">
+                        {% for item in selected_lesson.questions %}
+                        <div class="lesson-mini-card">
+                            <strong>{{ loop.index }}. {{ item.question }}</strong>
+                            <ul class="choice-list">
+                                {% for choice in item.choices %}
+                                <li class="{% if choice == item.answer %}is-answer{% endif %}">{{ choice }}</li>
+                                {% endfor %}
+                            </ul>
+                            <span>Đáp án: {{ item.answer }}</span>
+                            {% if item.explanation_vi %}<span>{{ item.explanation_vi }}</span>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+            </article>
+            {% else %}
+            <div class="listening-empty-state">
+                Hãy tạo hoặc chọn một bài nghe.
+            </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+
+<script>
+function initializeSentencePlayers(scope = document) {
+    scope.querySelectorAll('[data-sentence-player]').forEach((player) => {
+        if (player.dataset.initialized === 'true') {
+            return;
+        }
+        player.dataset.initialized = 'true';
+
+        const lines = Array.from(player.querySelectorAll('[data-sentence-line]'));
+        const status = player.querySelector('[data-sentence-status]');
+        const audio = new Audio();
+        let currentIndex = 0;
+
+        function setStatus(message) {
+            if (!status) {
+                return;
+            }
+            status.textContent = message || '';
+            status.classList.toggle('is-visible', Boolean(message));
+        }
+
+        function setActive(index) {
+            lines.forEach((line, lineIndex) => {
+                line.classList.toggle('active', lineIndex === index);
+            });
+        }
+
+        function clearActive() {
+            lines.forEach((line) => line.classList.remove('active'));
+        }
+
+        function playAt(index) {
+            if (!lines.length) {
+                setStatus('Chưa có âm thanh cho câu này.');
+                return;
+            }
+            if (index < 0 || index >= lines.length) {
+                audio.pause();
+                clearActive();
+                setStatus('');
+                currentIndex = 0;
+                return;
+            }
+
+            const line = lines[index];
+            const audioPath = line.dataset.audioPath || '';
+            currentIndex = index;
+            setActive(index);
+
+            if (!audioPath) {
+                audio.pause();
+                setStatus('Chưa có âm thanh cho câu này.');
+                return;
+            }
+
+            setStatus('');
+            audio.src = audioPath;
+            audio.currentTime = 0;
+            audio.play().catch(() => {
+                setStatus('Không phát được âm thanh cho câu này.');
+            });
+        }
+
+        audio.addEventListener('ended', () => {
+            if (currentIndex + 1 < lines.length) {
+                playAt(currentIndex + 1);
+                return;
+            }
+            clearActive();
+            currentIndex = 0;
+            setStatus('');
+        });
+
+        audio.addEventListener('error', () => {
+            setStatus('Không tải được âm thanh cho câu này.');
+        });
+
+        player.querySelector('[data-sentence-action="play"]')?.addEventListener('click', () => {
+            const currentLine = lines[currentIndex];
+            if (audio.src && audio.paused && currentLine?.dataset.audioPath) {
+                audio.play().catch(() => setStatus('Không phát tiếp được âm thanh cho câu này.'));
+                setActive(currentIndex);
+                return;
+            }
+            playAt(currentIndex);
+        });
+
+        player.querySelector('[data-sentence-action="pause"]')?.addEventListener('click', () => {
+            audio.pause();
+        });
+
+        player.querySelector('[data-sentence-action="stop"]')?.addEventListener('click', () => {
+            audio.pause();
+            audio.removeAttribute('src');
+            audio.load();
+            currentIndex = 0;
+            clearActive();
+            setStatus('');
+        });
+
+        player.querySelector('[data-sentence-action="next"]')?.addEventListener('click', () => {
+            audio.pause();
+            playAt(currentIndex + 1);
+        });
+    });
+}
+
+initializeSentencePlayers();
+</script>
+{% endblock %}

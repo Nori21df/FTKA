@@ -1,0 +1,37 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>Tệp âm thanh</h2>
+        <p class="admin-muted">Chỉ kiểm tra các tham chiếu âm thanh đã biết của bài luyện nghe. Đường dẫn máy chủ không được hiển thị.</p>
+    </div>
+</div>
+
+<section class="admin-panel">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>Tham chiếu</th><th>Bản ghi liên quan</th><th>Trạng thái</th><th>Dung lượng</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>{{ record.display_reference }}</td>
+                    <td>{{ record.related_type }} · {{ record.related_label }}</td>
+                    <td><span class="admin-badge {% if not record.exists %}danger{% endif %}">{{ 'Có' if record.exists else 'Thiếu' }}</span></td>
+                    <td>{{ record.size }}</td>
+                    <td>{{ record.created_at or 'Chưa có' }}</td>
+                    <td>
+                        <form method="post" action="{{ url_for('admin.delete_audio', audio_reference=record.reference) }}" onsubmit="return confirm('Xoá tệp hoặc tham chiếu âm thanh này?');">
+                            <input type="hidden" name="reason" value="Xoá âm thanh từ trang quản trị">
+                            <button class="admin-button danger" type="submit">Xoá</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6">Chưa có bản ghi âm thanh.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

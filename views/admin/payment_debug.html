@@ -1,0 +1,108 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>SePay payment debug</h2>
+        <p class="admin-muted">Latest orders and webhook events. Premium activation is performed only by valid SePay webhooks.</p>
+    </div>
+</div>
+
+<section class="admin-panel">
+    <h3>Latest orders</h3>
+    {% if orders %}
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr><th>Order</th><th>User</th><th>Plan</th><th>Amount</th><th>Status</th><th>Created</th><th>Paid</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr data-order-row="{{ order.id }}">
+                    <td>{{ order.order_code }}</td>
+                    <td>{{ order.username }}<br><span class="admin-muted">{{ order.email }}</span></td>
+                    <td>{{ order.plan_name }}</td>
+                    <td>{{ order.amount }} {{ order.currency }}</td>
+                    <td><span class="payment-badge {{ order.status }}">{{ order.status }}</span></td>
+                    <td>{{ order.created_at }}</td>
+                    <td>{{ order.paid_at or '-' }}</td>
+                    <td>
+                        {% if order.status == 'pending' %}
+                        <button type="button" class="secondary-cta admin-payment-action" data-action="cancel" data-url="{{ url_for('admin.cancel_purchase', { orderId: order.id }) }}">Dừng</button>
+                        <button type="button" class="danger-cta admin-payment-action" data-action="delete" data-url="{{ url_for('admin.delete_purchase', { orderId: order.id }) }}">Xoá</button>
+                        {% else %}
+                        <span class="admin-muted">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="admin-muted">No orders yet.</p>
+    {% endif %}
+</section>
+
+<section class="admin-panel">
+    <h3>Latest webhook events</h3>
+    {% if webhook_events %}
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr><th>Event</th><th>Order</th><th>Status</th><th>Failure reason</th><th>Attempts</th><th>Created</th><th>Processed</th></tr>
+            </thead>
+            <tbody>
+                {% for event in webhook_events %}
+                <tr>
+                    <td>{{ event.event_key }}</td>
+                    <td>{{ event.order_code or '-' }}</td>
+                    <td><span class="payment-badge {{ event.status }}">{{ event.status }}</span></td>
+                    <td>{{ event.failure_reason or '-' }}</td>
+                    <td>{{ event.attempts }}</td>
+                    <td>{{ event.created_at }}</td>
+                    <td>{{ event.processed_at or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="admin-muted">No webhook events yet.</p>
+    {% endif %}
+</section>
+
+<script>
+(() => {
+    const buttons = Array.from(document.querySelectorAll('.admin-payment-action'));
+
+    buttons.forEach((button) => {
+        button.addEventListener('click', async () => {
+            const isDelete = button.dataset.action === 'delete';
+            const message = isDelete
+                ? 'Xoá mềm đơn thanh toán đang chờ này?'
+                : 'Dừng đơn thanh toán đang chờ này?';
+            if (!window.confirm(message)) return;
+
+            const reason = isDelete ? '' : window.prompt('Lý do dừng đơn thanh toán:', 'Stopped by admin') || '';
+            button.disabled = true;
+            try {
+                const response = await fetch(button.dataset.url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Không thể cập nhật đơn thanh toán.');
+                }
+                window.location.reload();
+            } catch (error) {
+                window.alert(error.message || 'Không thể cập nhật đơn thanh toán.');
+                button.disabled = false;
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}

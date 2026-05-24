@@ -1,0 +1,32 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>Hoạt động học</h2>
+        <p class="admin-muted">Các dòng hoạt động được tạo khi từ vựng được đánh dấu đã học.</p>
+    </div>
+</div>
+
+<section class="admin-panel">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>ID</th><th>ID từ vựng</th><th>Tiếng Hàn</th><th>Hoạt động</th><th>Ngày tạo</th></tr></thead>
+            <tbody>
+                {% for item in activities %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.vocab_id }}</td>
+                    <td>{{ item.korean or 'Thiếu vocab record' }}</td>
+                    <td>{{ item.activity_type }}</td>
+                    <td>{{ item.created_at }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">Chưa có hoạt động học.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "admin/_pagination.html" %}
+</section>
+{% endblock %}

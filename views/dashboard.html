@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="dashboard-shell">
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-main">
+            <h2 class="dashboard-hero-title">Tổng quan học tập</h2>
+            <p class="dashboard-hero-copy">
+                {% if unlearned == 0 %}
+                    
+                {% elif learning_streak.status == 'at_risk' %}
+                    
+                {% elif learning_streak.status == 'active' %}
+                    
+                {% else %}
+                    
+                {% endif %}
+            </p>
+            <div class="dashboard-hero-actions">
+                {% if dashboard_summary.focus_count > 0 %}
+                <a href="{{ url_for('quiz') }}" class="dashboard-primary-action">
+                    <span class="material-icons-outlined">bolt</span>
+                    Bắt đầu ôn tập
+                </a>
+                {% else %}
+                <a href="{{ url_for('generator') }}" class="dashboard-primary-action">
+                    <span class="material-icons-outlined">auto_awesome</span>
+                    Học với AI
+                </a>
+                {% endif %}
+                <a href="{{ url_for('vocab') }}" class="dashboard-secondary-action">
+                    <span class="material-icons-outlined">menu_book</span>
+                    Mở từ vựng
+                </a>
+                <a href="{{ url_for('grammar') }}" class="dashboard-secondary-action">
+                    <span class="material-icons-outlined">inventory_2</span>
+                    Xem ngữ pháp
+                </a>
+            </div>
+        </div>
+
+        <div class="dashboard-hero-side">
+            <div class="dashboard-status-badge dashboard-status-{{ learning_streak.status }}">
+                {{ streak_status_labels[learning_streak.status] | default('Chưa hoạt động') }}
+            </div>
+            <div class="dashboard-streak-orb">
+                <strong>{{ learning_streak.days }} Ngày</strong>
+
+            </div>
+            
+
+            <div class="dashboard-goal-stack">
+                <div class="dashboard-goal-row">
+                    <div class="dashboard-goal-copy">
+                        <strong>Mục tiêu hôm nay: </strong>
+                        <span>{{ learning_streak.today_count }} / {{ dashboard_summary.today_goal }}</span>
+                    </div>
+                    <div class="dashboard-progress-track">
+                        <span style="width: {{ dashboard_summary.today_goal_progress }}%;"></span>
+                    </div>
+                </div>
+
+                <div class="dashboard-goal-row">
+                    <div class="dashboard-goal-copy">
+                        <strong>Đã học</strong>
+                        <span>{{ dashboard_summary.learned_count }} trên {{ vocab_count }} từ</span>
+                    </div>
+                    <div class="dashboard-progress-track dashboard-progress-track-alt">
+                        <span style="width: {{ dashboard_summary.mastery_rate }}%;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-metrics">
+        <article class="dashboard-metric-card">
+            <span class="dashboard-metric-label">Đang chờ học</span>
+            <strong>{{ unlearned }}</strong>
+        </article>
+        <article class="dashboard-metric-card">
+            <span class="dashboard-metric-label">Từ đã thuộc</span>
+            <strong>{{ dashboard_summary.learned_count }}</strong>
+        </article>
+        <article class="dashboard-metric-card">
+            <span class="dashboard-metric-label">Từ chưa học</span>
+            <strong>{{ dashboard_summary.new_words_this_week }}</strong>
+        </article>
+        <article class="dashboard-metric-card">
+            <span class="dashboard-metric-label">Ngữ pháp</span>
+            <strong>{{ grammar_count }}</strong>
+        </article>
+    </section>
+
+    <section class="dashboard-panel dashboard-chart-panel">
+        <div class="dashboard-panel-head">
+            <div>
+                <p class="dashboard-kicker">Tiến độ học tập</p>
+            </div>
+        </div>
+        <div id="learningChartFrame" class="dashboard-chart-frame">
+            <canvas id="learningChart"></canvas>
+            <div id="learningChartEmpty" class="dashboard-chart-empty">
+                Chưa có dữ liệu tiến độ. Hoàn thành một phiên ôn tập để bắt đầu theo dõi.
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="dashboard-panel">
+            <div class="dashboard-panel-head">
+                <div>
+                <p class="dashboard-kicker">Weekly Streak</p>
+                <h3>7 ngày gần đây</h3>
+            </div>
+            </div>
+
+            <div class="dashboard-momentum-layout">
+                <div class="dashboard-momentum-chart">
+                    {% for day in learning_timeline %}
+                    <div class="dashboard-momentum-day {% if day.is_today %}is-today{% endif %}" title="{{ day.short_date }}: {{ day.count }} từ">
+                        <strong>{{ day.count }}</strong>
+                        <div class="dashboard-momentum-rail">
+                            <div class="dashboard-momentum-bar {% if day.active %}is-active{% endif %}" style="height: {{ day.height }}%;"></div>
+                        </div>
+                        <span class="dashboard-momentum-label">{{ day.label }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="dashboard-feed">
+                    <h4>Vừa hoàn thành</h4>
+                    {% if recent_learning %}
+                    <ul class="dashboard-feed-list">
+                        {% for item in recent_learning %}
+                        <li class="dashboard-feed-item">
+                            <div class="dashboard-feed-copy">
+                                <strong>{{ item.korean }}</strong>
+                                <span>{{ item.meaning_vi }}</span>
+                            </div>
+                            <span class="dashboard-feed-date">{{ item.date_label }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="dashboard-empty-state">
+                        Chưa có từ nào được đánh dấu đã học.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+
+        <aside class="dashboard-side-stack">
+            <article class="dashboard-panel">
+                <div class="dashboard-stack-block">
+                    <div class="dashboard-stack-block-header">
+                        <h4>Đang chờ ôn</h4>
+                        <a href="{{ url_for('quiz') }}" class="dashboard-stack-link">Bắt đầu ôn tập</a>
+                    </div>
+                    {% if focus_words %}
+                    <ul class="dashboard-focus-list">
+                        {% for item in focus_words %}
+                        <li class="dashboard-focus-item">
+                            <div class="dashboard-focus-copy">
+                                <strong>{{ item.korean }}</strong>
+                                <span>{{ item.meaning_vi }}</span>
+                            </div>
+                            <span class="dashboard-chip">{{ item.created_label }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="dashboard-empty-state">
+                    Hiện chưa có mục cần ôn. Hãy tạo từ mới hoặc mở từ vựng khi bạn muốn học tiếp.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="dashboard-stack-block" style="margin-top: 18px;">
+                    <div class="dashboard-stack-block-header">
+                        <h4>Tổng quan thư viện</h4>
+                        <span class="dashboard-panel-note">{{ vocab_count }} từ</span>
+                    </div>
+                    {% if source_breakdown %}
+                    <div class="dashboard-source-list">
+                        {% for item in source_breakdown %}
+                        <div class="dashboard-source-row">
+                            <div class="dashboard-source-head">
+                                <strong>{{ item.label }}</strong>
+                                <span>{{ item.count }} từ</span>
+                            </div>
+                            <div class="dashboard-source-bar">
+                                <span style="width: {{ item.percent }}%;"></span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="dashboard-empty-state">
+                        Dữ liệu nguồn sẽ hiển thị khi bạn thêm từ vựng.
+                    </div>
+                    {% endif %}
+                </div>
+            </article>
+        </aside>
+    </section>
+
+    <section class="dashboard-lower-grid">
+        <article class="dashboard-panel">
+            <div class="dashboard-panel-head">
+                <div>
+                    <p class="dashboard-kicker">Từ mới</p>
+                    <h3>Mới thêm gần đây</h3>
+                </div>
+                <a href="{{ url_for('vocab') }}" class="dashboard-stack-link">Xem tất cả</a>
+            </div>
+
+            {% if vocab %}
+            <div class="dashboard-shelf-grid">
+                {% for item in vocab %}
+                <div class="dashboard-vocab-card">
+                    <div class="dashboard-card-top">
+                        <div>
+                            <h4 class="dashboard-card-title">{{ item.korean }}</h4>
+                            <p class="dashboard-card-copy">{{ item.meaning_vi }}</p>
+                        </div>
+                        <span class="dashboard-chip">{{ item.source_label }}</span>
+                    </div>
+                    <div class="dashboard-shelf-meta">{{ item.created_label }}{% if item.learned %} &middot; Đã học{% endif %}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="dashboard-empty-state">
+                Chưa có từ vựng nào. Hãy dùng AI hoặc thêm thủ công để bắt đầu.
+            </div>
+            {% endif %}
+        </article>
+
+        <article class="dashboard-panel">
+            <div class="dashboard-panel-head">
+                <div>
+                    <p class="dashboard-kicker">Kho ngữ pháp</p>
+                    <h3>Mẫu mới nhất</h3>
+                </div>
+                <a href="{{ url_for('grammar') }}" class="dashboard-stack-link">Xem tất cả</a>
+            </div>
+
+            {% if grammar %}
+            <ul class="dashboard-shelf-list">
+                {% for item in grammar %}
+                <li class="dashboard-grammar-card">
+                    <div class="dashboard-shelf-item">
+                        <div class="dashboard-shelf-copy">
+                            <strong>{{ item.grammar }}</strong>
+                            <span>{{ item.meaning_vi }}</span>
+                        </div>
+                        <span class="dashboard-chip">{{ item.level }}</span>
+                    </div>
+                    <div class="dashboard-shelf-meta">{{ item.created_label }}</div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="dashboard-empty-state">
+                Chưa có mẫu ngữ pháp nào. Thêm mẫu mới để luyện tập.
+            </div>
+            {% endif %}
+        </article>
+    </section>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chartCanvas = document.getElementById('learningChart');
+        const chartFrame = document.getElementById('learningChartFrame');
+
+        if (!chartCanvas || !chartFrame) {
+            return;
+        }
+
+        const ctx = chartCanvas.getContext('2d');
+
+        fetch('/api/learning_activity/chart_data')
+            .then(response => response.json())
+            .then(data => {
+                const values = Array.isArray(data.data) ? data.data.map(Number) : [];
+                const hasProgressData = values.some(value => value > 0);
+
+                chartFrame.classList.toggle('is-empty', !hasProgressData);
+                if (!hasProgressData) {
+                    return;
+                }
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.isArray(data.labels) ? data.labels : [],
+                        datasets: [{
+                            label: {{ 'Từ đã học'|tojson }},
+                            data: values,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#2563eb',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: true,
+                            tension: 0.35
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                                titleColor: '#ffffff',
+                                bodyColor: '#cbd5e1',
+                                borderColor: 'rgba(15, 23, 42, 0.1)',
+                                borderWidth: 1,
+                                padding: 12,
+                                cornerRadius: 8,
+                                displayColors: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#64748b',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(15, 23, 42, 0.05)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#64748b',
+                                    font: {
+                                        size: 12
+                                    },
+                                    callback: function(value) {
+                                        return value > 0 ? value : '';
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Không tải được dữ liệu biểu đồ:', error);
+                chartFrame.classList.add('is-empty');
+            });
+    });
+</script>
+{% endblock %}

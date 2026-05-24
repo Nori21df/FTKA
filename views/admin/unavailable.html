@@ -1,0 +1,13 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<section class="admin-panel">
+    <div class="admin-header">
+        <div>
+            <h2>{{ title }}</h2>
+            <p class="admin-muted">Tính năng chưa khả dụng</p>
+        </div>
+    </div>
+    <p class="admin-muted">{{ explanation }}</p>
+</section>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="billing-shell">
+    <div class="pricing-head">
+        <p class="dashboard-kicker">Billing</p>
+        <h2 class="page-title">Account billing</h2>
+        <p class="page-subtitle">Your Premium status is based on confirmed SePay webhook payments only.</p>
+    </div>
+
+    <div class="billing-summary-grid">
+        <article class="billing-summary-card">
+            <span>Current plan</span>
+            <strong>{{ 'Premium' if is_premium else 'Free' }}</strong>
+        </article>
+        <article class="billing-summary-card">
+            <span>Premium until</span>
+            <strong>{{ user.premium_until or 'Not active' }}</strong>
+        </article>
+    </div>
+
+    <section class="billing-panel">
+        <div class="billing-panel-head">
+            <h3>Orders</h3>
+            <a class="secondary-cta" href="{{ url_for('pricing') }}">Buy Premium</a>
+        </div>
+        {% if orders %}
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr><th>Order</th><th>Plan</th><th>Amount</th><th>Status</th><th>Created</th><th>Paid</th></tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.order_code }}</td>
+                        <td>{{ order.plan_name }}</td>
+                        <td>{{ order.amount }} {{ order.currency }}</td>
+                        <td><span class="payment-badge {{ order.status }}">{{ order.status }}</span></td>
+                        <td>{{ order.created_at }}</td>
+                        <td>{{ order.paid_at or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="admin-muted">No orders yet.</p>
+        {% endif %}
+    </section>
+
+    <section class="billing-panel">
+        <div class="billing-panel-head">
+            <h3>Payment history</h3>
+        </div>
+        {% if payments %}
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr><th>Order</th><th>Plan</th><th>Amount</th><th>Status</th><th>Transaction</th><th>Paid</th></tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td>{{ payment.order_code }}</td>
+                        <td>{{ payment.plan_name }}</td>
+                        <td>{{ payment.amount }} {{ payment.currency }}</td>
+                        <td><span class="payment-badge {{ payment.status }}">{{ payment.status }}</span></td>
+                        <td>{{ payment.provider_transaction_id }}</td>
+                        <td>{{ payment.paid_at or payment.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="admin-muted">No confirmed payments yet.</p>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}

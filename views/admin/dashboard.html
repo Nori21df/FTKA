@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>Bảng quản trị</h2>
+        <p class="admin-muted">Dữ liệu học được hiển thị theo đúng cấu trúc hiện tại.</p>
+    </div>
+</div>
+
+<section class="admin-grid">
+    <article class="admin-card"><span>Tổng người dùng</span><strong>{{ stats.total_users }}</strong></article>
+    <article class="admin-card"><span>Mới hôm nay</span><strong>{{ stats.new_users_today }}</strong></article>
+    <article class="admin-card"><span>Mới trong tuần</span><strong>{{ stats.new_users_this_week }}</strong></article>
+    <article class="admin-card"><span>Từ vựng</span><strong>{{ stats.total_vocabulary }}</strong></article>
+    <article class="admin-card"><span>Bài viết</span><strong>{{ stats.total_writing_submissions }}</strong></article>
+    <article class="admin-card"><span>Luyện nghe</span><strong>{{ stats.total_listening_lessons }}</strong></article>
+    <article class="admin-card"><span>Tham chiếu âm thanh</span><strong>{{ stats.total_audio_files }}</strong></article>
+    <article class="admin-card"><span>Lượt tạo AI</span><strong>{{ stats.total_ai_generations }}</strong></article>
+    <article class="admin-card"><span>Số dư năng lượng</span><strong>0</strong><p class="admin-muted">Tính năng chưa khả dụng</p></article>
+    <article class="admin-card"><span>Năng lượng đã dùng</span><strong>0</strong><p class="admin-muted">Tính năng chưa khả dụng</p></article>
+    <article class="admin-card"><span>Ngữ pháp</span><strong>{{ stats.grammar_count }}</strong></article>
+    <article class="admin-card"><span>Dòng hoạt động</span><strong>{{ stats.learning_activity_count }}</strong></article>
+</section>
+
+<section class="admin-panel">
+    <h3>Lỗi gần đây</h3>
+    {% if recent_errors %}
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>Nguồn</th><th>Tham chiếu</th><th>Thông báo</th><th>Ngày tạo</th></tr></thead>
+            <tbody>
+                {% for error in recent_errors %}
+                <tr><td>{{ error.source }}</td><td>{{ error.reference }}</td><td>{{ error.message }}</td><td>{{ error.created_at }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="admin-muted">Chưa có lỗi được lưu gần đây.</p>
+    {% endif %}
+</section>
+{% endblock %}

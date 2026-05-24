@@ -1,0 +1,73 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>{{ lesson.title or 'Bài luyện nghe' }}</h2>
+        <p class="admin-muted">ID {{ lesson.id }}</p>
+    </div>
+    <div class="admin-actions">
+        <form method="post" action="{{ url_for('admin.regenerate_listening_audio', lesson_id=lesson.id) }}" onsubmit="return confirm('Tạo lại âm thanh cho bài nghe này?');">
+            <input type="hidden" name="reason" value="Tạo lại âm thanh từ trang quản trị">
+            <button class="admin-button primary" type="submit">Tạo lại âm thanh</button>
+        </form>
+        <form method="post" action="{{ url_for('admin.delete_listening', lesson_id=lesson.id) }}" onsubmit="return confirm('Xoá bài nghe này? Không thể hoàn tác.');">
+            <input type="hidden" name="reason" value="Xoá từ trang quản trị">
+            <button class="admin-button danger" type="submit">Xoá</button>
+        </form>
+    </div>
+</div>
+
+<section class="admin-detail-grid">
+    <article class="admin-panel">
+        <h3>Metadata</h3>
+        <table class="admin-table">
+            <tbody>
+                <tr><th>Tiêu đề</th><td>{{ lesson.title }}</td></tr>
+                <tr><th>Chủ đề</th><td>{{ lesson.topic }}</td></tr>
+                <tr><th>Cấp độ</th><td>{{ lesson.level }}</td></tr>
+                <tr><th>Độ dài</th><td>{{ lesson.length }}</td></tr>
+                <tr><th>Nguồn</th><td>{{ lesson.source or 'Chưa có' }}</td></tr>
+                <tr><th>Ngày tạo</th><td>{{ lesson.created_at or 'Chưa có' }}</td></tr>
+                <tr><th>Updated</th><td>Chưa có</td></tr>
+                <tr><th>TTS voice</th><td>Configured service default</td></tr>
+                <tr><th>TTS speed</th><td>Configured service default</td></tr>
+                <tr><th>Ngày tạo by</th><td>Chưa có</td></tr>
+            </tbody>
+        </table>
+    </article>
+    <article class="admin-panel">
+        <h3>Âm thanh</h3>
+        {% if lesson.audio_url and audio_exists %}
+        <audio controls style="width: 100%;" src="{{ lesson.audio_url }}"></audio>
+        <p class="admin-muted">Dung lượng: {{ audio_size }} byte</p>
+        {% elif lesson.audio_path %}
+        <p><span class="admin-badge danger">Thiếu file</span></p>
+        <p class="admin-muted">Bài nghe có tham chiếu âm thanh, nhưng tệp không tồn tại trong thư mục âm thanh đã cấu hình.</p>
+        {% else %}
+        <p class="admin-muted">Bài nghe này chưa lưu tham chiếu âm thanh.</p>
+        {% endif %}
+    </article>
+</section>
+
+<section class="admin-panel">
+    <h3>Văn bản tiếng Hàn</h3>
+    <div class="admin-pre">{{ lesson.korean_text or 'Chưa có' }}</div>
+</section>
+
+<section class="admin-panel">
+    <h3>Vietnamese Translation</h3>
+    <div class="admin-pre">{{ lesson.vietnamese_translation or 'Chưa có' }}</div>
+</section>
+
+<section class="admin-detail-grid">
+    <article class="admin-panel">
+        <h3>Từ vựng JSON</h3>
+        <pre class="admin-pre">{{ lesson.vocabulary_items|tojson(indent=2) }}</pre>
+    </article>
+    <article class="admin-panel">
+        <h3>JSON câu hỏi</h3>
+        <pre class="admin-pre">{{ lesson.question_items|tojson(indent=2) }}</pre>
+    </article>
+</section>
+{% endblock %}

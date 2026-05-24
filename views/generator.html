@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<div class="studio-shell">
+    <section class="studio-hero">
+        <h2 class="studio-hero-title">Tạo từ vựng tiếng Hàn bằng AI</h2>
+
+        <div class="studio-hero-actions">
+            <a href="{{ url_for('vocab') }}" class="studio-link-button">
+                <span class="material-icons-outlined">menu_book</span>
+                Mở từ vựng
+            </a>
+            <a href="{{ url_for('quiz') }}" class="studio-link-button">
+                <span class="material-icons-outlined">bolt</span>
+                Ôn danh sách hiện tại
+            </a>
+        </div>
+    </section>
+
+    <div class="studio-layout">
+        <section class="studio-main-card">
+            <div class="studio-card-head">
+                <div>
+                    <p class="studio-kicker">Tạo từ vựng</p>
+                    <h3>Mô tả tình huống</h3>
+                </div>
+                <span class="studio-card-note">Nhấn Ctrl + Enter để tạo nhanh</span>
+            </div>
+
+            <div class="studio-compose">
+                <textarea id="topicInput" class="studio-topic-input" placeholder="Ví dụ: nhận phòng khách sạn, gọi cà phê, phỏng vấn xin việc, nói về sở thích"></textarea>
+
+                <div class="studio-compose-footer">
+                    <div class="studio-count-picker">
+                        <span>Số lượng từ</span>
+                        <select id="countInput" class="studio-select">
+                            <option value="3">3 từ</option>
+                            <option value="5" selected>5 từ</option>
+                            <option value="10">10 từ</option>
+                        </select>
+                    </div>
+                    <div class="studio-count-picker">
+                        <span>Lưu vào thư mục</span>
+                        <select id="groupInput" class="studio-select">
+                            <option value="">Chỉ lưu vào thư viện chính</option>
+                            {% for group in vocab_groups %}
+                            <option value="{{ group.id }}">{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button id="generateBtn" class="studio-generate-button" type="button" onclick="generateVocab()">
+                        <span class="material-icons-outlined">auto_awesome</span>
+                        Tạo từ vựng
+                    </button>
+                </div>
+            </div>
+
+            <div class="studio-chip-row">
+                <button type="button" class="studio-chip" onclick="setSuggestion('Gọi món ăn đường phố sau giờ học')">Ăn đường phố</button>
+                <button type="button" class="studio-chip" onclick="setSuggestion('Trò chuyện với đồng nghiệp trong ngày đầu đi làm')">Ngày đầu đi làm</button>
+                <button type="button" class="studio-chip" onclick="setSuggestion('Hỏi đường trong ga tàu điện ngầm ở Seoul')">Hỏi đường tàu điện</button>
+                <button type="button" class="studio-chip" onclick="setSuggestion('Bàn kế hoạch cuối tuần với bạn thân')">Kế hoạch cuối tuần</button>
+                <button type="button" class="studio-chip" onclick="setSuggestion('Đi khám bác sĩ vì cảm nhẹ')">Đi khám bệnh</button>
+            </div>
+
+            <div id="loading" class="studio-loading">
+                <span class="material-icons-outlined">autorenew</span>
+                <div>
+                    <strong style="display:block; color: var(--text-main);">Đang tạo từ vựng</strong>
+                    <span>FTKA đang tạo từ vựng.</span>
+                </div>
+            </div>
+
+            <div id="results" class="studio-results">
+                <div class="studio-empty-state">
+                    Nhập một tình huống cụ thể, kết quả sẽ hiện ở đây.
+                </div>
+            </div>
+        </section>
+        <aside class="studio-side-stack">
+        </aside>
+    </div>
+</div>
+
+<script>
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function setSuggestion(topic) {
+    const input = document.getElementById('topicInput');
+    input.value = topic;
+    input.focus();
+}
+
+function setLoading(isLoading) {
+    const loading = document.getElementById('loading');
+    const button = document.getElementById('generateBtn');
+    loading.classList.toggle('is-visible', isLoading);
+    button.disabled = isLoading;
+    button.innerHTML = isLoading
+        ? '<span class="material-icons-outlined">autorenew</span>Đang tạo...'
+        : '<span class="material-icons-outlined">auto_awesome</span>Tạo bộ từ';
+}
+
+function renderEmptyState(message) {
+    document.getElementById('results').innerHTML = `
+        <div class="studio-empty-state">${escapeHtml(message)}</div>
+    `;
+}
+
+async function readGeneratorResponse(response) {
+    const raw = await response.text();
+    if (!raw) {a
+        return {};
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch (error) {
+        if (!response.ok) {
+            throw new Error(`Yêu cầu tạo nội dung thất bại với mã ${response.status}.`);
+        }
+        throw new Error('Máy chủ trả về phản hồi không đọc được.');
+    }
+}
+
+function buildResultNote(message, groupName) {
+    const parts = [];
+    if (message) {
+        parts.push(message);
+    }
+    if (groupName) {
+        parts.push(`Đã lưu vào thư mục: ${groupName}.`);
+    }
+    return parts.join(' ');
+}
+
+function renderResults(items, topic, message = '', groupName = '') {
+    if (!items || items.length === 0) {
+        renderEmptyState('Chưa thêm từ mới. Hãy thử chủ đề cụ thể hơn.');
+        return;
+    }
+
+    const summary = `
+        <div class="studio-results-summary">
+            <strong>Đã thêm ${items.length} từ mới</strong>
+            <p>Đã lưu vào từ điển từ chủ đề: ${escapeHtml(topic)}</p>
+            ${buildResultNote(message, groupName) ? `<p class="studio-results-note">${escapeHtml(buildResultNote(message, groupName))}</p>` : ''}
+        </div>
+    `;
+
+    const cards = items.map((item) => {
+        const korean = escapeHtml(item.korean || '');
+        const meaning = escapeHtml(item.meaning_vi || 'Chưa có nghĩa.');
+        const explanation = escapeHtml(item.explanation_vi || 'Chưa có giải thích.');
+        const exampleKr = escapeHtml(item.example_kr || '');
+        const exampleVi = escapeHtml(item.example_vi || '');
+        const ttsText = escapeHtml(item.tts_text || item.korean || '');
+
+        return `
+            <article class="studio-result-card">
+                <div class="studio-result-head">
+                    <div>
+                        <h4 class="studio-result-title">${korean}</h4>
+                        <p class="studio-result-meaning">${meaning}</p>
+                    </div>
+                    <span class="studio-result-tag">Đã lưu</span>
+                </div>
+
+                <p class="studio-result-meaning">${explanation}</p>
+
+                <div class="studio-result-example">
+                    <strong>${exampleKr || 'Chưa có ví dụ tiếng Hàn.'}</strong>
+                    <span>${exampleVi || 'Chưa có bản dịch ví dụ.'}</span>
+                </div>
+
+                <div class="studio-result-actions">
+                    <button type="button" class="studio-result-audio" onclick="playTTS('${ttsText}')">
+                        <span class="material-icons-outlined">volume_up</span>
+                        Nghe
+                    </button>
+                    <a href="{{ url_for('vocab') }}" class="studio-inline-link">
+                        <span class="material-icons-outlined">north_east</span>
+                        Xem trong từ điển
+                    </a>
+                </div>
+            </article>
+        `;
+    }).join('');
+
+    document.getElementById('results').innerHTML = summary + `<div class="studio-results-grid">${cards}</div>`;
+}
+
+async function generateVocab() {
+    const topic = document.getElementById('topicInput').value.trim();
+    const count = parseInt(document.getElementById('countInput').value, 10);
+    const groupSelect = document.getElementById('groupInput');
+    const groupId = groupSelect ? groupSelect.value : '';
+
+    if (!topic) {
+        alert('Vui lòng nhập chủ đề hoặc tình huống trước.');
+        return;
+    }
+
+    setLoading(true);
+    renderEmptyState('Đang chuẩn bị bộ từ vựng mới của bạn...');
+
+    try {
+        const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                topic,
+                count,
+                group_id: groupId || null
+            })
+        });
+
+        const data = await readGeneratorResponse(response);
+        if (!response.ok || data.error) {
+            throw new Error(data.error || 'Tạo nội dung thất bại.');
+        }
+
+        renderResults(data.items || [], topic, data.message || '', data.group_name || '');
+    } catch (error) {
+        renderEmptyState(error.message || 'Không kết nối được API tạo nội dung.');
+    } finally {
+        setLoading(false);
+    }
+}
+
+document.getElementById('topicInput').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        generateVocab();
+    }
+});
+</script>
+{% endblock %}

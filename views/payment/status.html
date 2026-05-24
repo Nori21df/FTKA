@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="payment-status-shell">
+    <div class="payment-status-card">
+        <span class="material-icons-outlined">info</span>
+        <h2>{{ title }}</h2>
+        <p>{{ message }}</p>
+        {% if order %}
+        <div class="payment-order-summary">
+            <span>Order</span><strong>{{ order.order_code }}</strong>
+            <span>Status</span><strong>{{ order.status }}</strong>
+            <span>Plan</span><strong>{{ order.plan_name }}</strong>
+        </div>
+        {% endif %}
+        <div class="payment-status-actions">
+            <a class="primary-cta" href="{{ url_for('pricing') }}">Choose a plan</a>
+            <a class="secondary-cta" href="{{ url_for('account_billing') }}">View billing</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

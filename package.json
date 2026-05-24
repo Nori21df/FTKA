@@ -1,0 +1,29 @@
+{
+  "name": "ftka-node-express-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Node.js + Express.js migration of the existing FTKA Flask app.",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js",
+    "check": "node --check src/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.8",
+    "nunjucks": "^3.2.4",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "pg": "^8.13.1",
+    "sepay-pg-node": "^1.0.0",
+    "uuid": "^11.0.5"
+  }
+}

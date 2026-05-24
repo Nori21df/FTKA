@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+{% set selected_theme = (user.ui_theme or ui_theme or 'dark')|lower %}
+
+<section class="prefs-panel">
+    <h2>Giao diện</h2>
+    <form class="prefs-form" id="preferencesForm">
+        <div class="prefs-field">
+            <div class="prefs-label">Chế độ hiển thị</div>
+            <span>Chọn giao diện sáng hoặc tối.</span>
+            <div class="prefs-segment">
+                <input id="themeDark" type="radio" name="theme" value="dark" {% if selected_theme != 'light' %}checked{% endif %}>
+                <label for="themeDark">Tối</label>
+                <input id="themeLight" type="radio" name="theme" value="light" {% if selected_theme == 'light' %}checked{% endif %}>
+                <label for="themeLight">Sáng</label>
+            </div>
+        </div>
+
+        <div id="preferencesMessage" class="prefs-message" aria-live="polite"></div>
+        <button class="prefs-button" type="submit">Lưu</button>
+    </form>
+</section>
+
+<script>
+document.getElementById('preferencesForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const message = document.getElementById('preferencesMessage');
+    const payload = {
+        theme: document.querySelector('input[name="theme"]:checked').value
+    };
+
+    message.className = 'prefs-message';
+    message.textContent = '';
+
+    try {
+        const response = await fetch({{ url_for('api_update_preferences')|tojson }}, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.error) {
+            throw new Error(data.error || 'Không lưu được cài đặt.');
+        }
+        window.location.reload();
+    } catch (error) {
+        message.textContent = error.message || 'Không lưu được cài đặt.';
+        message.className = 'prefs-message visible error';
+    }
+});
+</script>
+{% endblock %}

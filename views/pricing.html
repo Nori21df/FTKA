@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="pricing-shell">
+    <div class="pricing-head">
+        <p class="dashboard-kicker">Premium</p>
+        <h2 class="page-title">Choose your FTKA Premium plan</h2>
+        <p class="page-subtitle">Pay by VietQR bank transfer through SePay. Premium is activated only after SePay confirms the payment by webhook.</p>
+    </div>
+
+    <div class="pricing-plan-grid">
+        {% for plan in plans %}
+        <article class="pricing-plan-card">
+            <div>
+                <span class="pricing-plan-duration">{{ plan.duration_days }} days</span>
+                <h3>{{ plan.name }}</h3>
+                <strong>{{ plan.price_label }}</strong>
+            </div>
+            {% if current_user %}
+            <button type="button" class="pricing-buy-button" data-plan-id="{{ plan.id }}">Buy with VietQR</button>
+            {% else %}
+            <a class="pricing-buy-button" href="{{ url_for('login', { next: url_for('pricing') }) }}">Buy with VietQR</a>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+
+    <p id="pricing-payment-status" class="pricing-payment-status" aria-live="polite"></p>
+</section>
+
+{% if current_user %}
+<script>
+(() => {
+    const status = document.getElementById('pricing-payment-status');
+    const buttons = Array.from(document.querySelectorAll('[data-plan-id]'));
+
+    function setStatus(message, isError = false) {
+        status.textContent = message || '';
+        status.classList.toggle('is-error', Boolean(isError));
+    }
+
+    function submitCheckout(payload) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = payload.checkout_url;
+        form.className = 'payment-submit-form';
+
+        Object.entries(payload.checkout_fields || {}).forEach(([name, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value != null && typeof value === 'object' ? JSON.stringify(value) : String(value ?? '');
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    buttons.forEach((button) => {
+        button.addEventListener('click', async () => {
+            const planId = button.dataset.planId;
+            const originalText = button.textContent;
+            buttons.forEach((item) => { item.disabled = true; });
+            button.textContent = 'Creating VietQR...';
+            setStatus('Creating a secure SePay checkout...');
+
+            try {
+                const response = await fetch('{{ url_for("api_create_sepay_order") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plan_id: planId })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Could not create payment order.');
+                }
+                if (!data.checkout_url) {
+                    throw new Error('SePay checkout URL was not returned.');
+                }
+                if (!data.checkout_fields || !Object.keys(data.checkout_fields).length) {
+                    throw new Error('SePay checkout fields were not returned.');
+                }
+                setStatus('Redirecting to SePay...');
+                submitCheckout(data);
+            } catch (error) {
+                setStatus(error.message || 'Payment setup failed.', true);
+                buttons.forEach((item) => { item.disabled = false; });
+                button.textContent = originalText;
+            }
+        });
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

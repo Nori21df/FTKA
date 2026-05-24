@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>Ngữ pháp</h2>
+        <p class="admin-muted">Bảng ngữ pháp hiện có trong hệ thống.</p>
+    </div>
+</div>
+
+<section class="admin-panel">
+    <form class="admin-form-grid" method="get">
+        <label>Tìm kiếm
+            <input class="admin-input" name="q" value="{{ request.args['q'] | default('') }}" placeholder="ngữ pháp, nghĩa, ID">
+        </label>
+        <button class="admin-button primary" type="submit">Lọc</button>
+    </form>
+</section>
+
+<section class="admin-panel">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>ID</th><th>Ngữ pháp</th><th>Nghĩa</th><th>Cấp độ</th><th>Đã học</th><th>Nguồn</th><th>Ngày tạo</th></tr></thead>
+            <tbody>
+                {% for item in grammar %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.grammar or 'Chưa có tiêu đề' }}</td>
+                    <td>{{ item.meaning_vi or '' }}</td>
+                    <td>{{ item.level or 'Chưa có' }}</td>
+                    <td>{{ 'Có' if item.learned else 'Không' }}</td>
+                    <td>{{ item.source or 'Chưa có' }}</td>
+                    <td>{{ item.created_at or 'Chưa có' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7">Chưa có mẫu ngữ pháp.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "admin/_pagination.html" %}
+</section>
+{% endblock %}

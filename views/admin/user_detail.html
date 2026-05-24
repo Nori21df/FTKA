@@ -1,0 +1,64 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>{{ user.username }}</h2>
+        <p class="admin-muted">Người dùng id {{ user.id }}</p>
+    </div>
+    <div class="admin-actions">
+        {% if user.status == 'active' %}
+        <form method="post" action="{{ url_for('admin.ban_user', user_id=user.id) }}" onsubmit="return confirm('Khoá người dùng này? Dữ liệu sẽ không bị xoá.');">
+            <button class="admin-button danger" type="submit">Khoá</button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('admin.unban_user', user_id=user.id) }}" onsubmit="return confirm('Mở khoá người dùng này?');">
+            <button class="admin-button primary" type="submit">Mở khoá</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<section class="admin-detail-grid">
+    <article class="admin-panel">
+        <h3>Hồ sơ</h3>
+        <table class="admin-table">
+            <tbody>
+                <tr><th>ID</th><td>{{ user.id }}</td></tr>
+                <tr><th>Người dùngname</th><td>{{ user.username }}</td></tr>
+                <tr><th>Email</th><td>{{ user.email }}</td></tr>
+                <tr><th>Vai trò</th><td><span class="admin-badge">{{ user.role }}</span></td></tr>
+                <tr><th>Trạng thái</th><td><span class="admin-badge {% if user.status != 'active' %}danger{% endif %}">{{ user.status }}</span></td></tr>
+                <tr><th>Ngày tạo</th><td>{{ user.created_at }}</td></tr>
+                <tr><th>Đăng nhập gần nhất</th><td>{{ user.last_login or 'Chưa có' }}</td></tr>
+            </tbody>
+        </table>
+    </article>
+    <article class="admin-panel">
+        <h3>Dữ liệu học</h3>
+        <p class="admin-muted">Từ vựng, bài nghe và hoạt động học hiện là dữ liệu toàn cục trong cấu trúc hiện tại, chưa gắn riêng theo từng người dùng.</p>
+        <div class="admin-actions" style="margin-top: 12px;">
+            <a class="admin-button" href="{{ url_for('admin.user_vocab', user_id=user.id) }}">Từ vựng người dùng</a>
+            <a class="admin-button" href="{{ url_for('admin.user_listening', user_id=user.id) }}">Bài nghe người dùng</a>
+            <a class="admin-button" href="{{ url_for('admin.user_streak', user_id=user.id) }}">Chuỗi học người dùng</a>
+            <a class="admin-button" href="{{ url_for('admin.user_energy', user_id=user.id) }}">Năng lượng người dùng</a>
+        </div>
+    </article>
+</section>
+
+<section class="admin-panel">
+    <h3>Thao tác chưa khả dụng</h3>
+    <p class="admin-muted">Hệ thống năng lượng và chuỗi học riêng theo người dùng chưa tồn tại, nên các thao tác này hiện không làm thay đổi dữ liệu.</p>
+    <div class="admin-actions">
+        <form method="post" action="{{ url_for('admin.add_user_energy', user_id=user.id) }}" onsubmit="return confirm('Hệ thống năng lượng chưa khả dụng. Tiếp tục?');">
+            <button class="admin-button" type="submit">Cộng năng lượng</button>
+        </form>
+        <form method="post" action="{{ url_for('admin.subtract_user_energy', user_id=user.id) }}" onsubmit="return confirm('Hệ thống năng lượng chưa khả dụng. Tiếp tục?');">
+            <button class="admin-button" type="submit">Trừ năng lượng</button>
+        </form>
+        <form method="post" action="{{ url_for('admin.reset_user_streak', user_id=user.id) }}" onsubmit="return confirm('Hệ thống chuỗi học chưa khả dụng. Tiếp tục?');">
+            <button class="admin-button" type="submit">Đặt lại chuỗi học</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

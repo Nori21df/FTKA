@@ -1,0 +1,57 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>Người dùng</h2>
+        <p class="admin-muted">Tìm theo tên đăng nhập, email hoặc ID. Thao tác quản trị dùng POST.</p>
+    </div>
+</div>
+
+<section class="admin-panel">
+    <form class="admin-form-grid" method="get">
+        <label>Tìm kiếm
+            <input class="admin-input" name="q" value="{{ request.args['q'] | default('') }}" placeholder="tên đăng nhập, email, ID">
+        </label>
+        <label>Vai trò
+            <select class="admin-select" name="role">
+                <option value="">Tất cả</option>
+                <option value="admin" {% if request.args['role'] == 'admin' %}selected{% endif %}>Quản trị</option>
+                <option value="user" {% if request.args['role'] == 'user' %}selected{% endif %}>Người dùng</option>
+            </select>
+        </label>
+        <label>Trạng thái
+            <select class="admin-select" name="status">
+                <option value="">Tất cả</option>
+                <option value="active" {% if request.args['status'] == 'active' %}selected{% endif %}>Hoạt động</option>
+                <option value="banned" {% if request.args['status'] == 'banned' %}selected{% endif %}>Bị khoá</option>
+            </select>
+        </label>
+        <button class="admin-button primary" type="submit">Lọc</button>
+    </form>
+</section>
+
+<section class="admin-panel">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>ID</th><th>Người dùng</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Ngày tạo</th><th>Đăng nhập gần nhất</th></tr></thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td><a href="{{ url_for('admin.user_detail', user_id=user.id) }}">{{ user.username }}</a></td>
+                    <td>{{ user.email }}</td>
+                    <td><span class="admin-badge">{{ user.role }}</span></td>
+                    <td><span class="admin-badge {% if user.status != 'active' %}danger{% endif %}">{{ user.status }}</span></td>
+                    <td>{{ user.created_at }}</td>
+                    <td>{{ user.last_login or 'Chưa có' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7">Không tìm thấy người dùng.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "admin/_pagination.html" %}
+</section>
+{% endblock %}

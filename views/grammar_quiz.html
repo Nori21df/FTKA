@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<div class="grammar-quiz-shell">
+    <section class="grammar-quiz-hero">
+        <h2 class="grammar-quiz-title">Câu hỏi ngữ pháp</h2>
+        <div class="grammar-quiz-stats">
+            <span class="grammar-quiz-pill">{{ total_items }} câu hỏi</span>
+            <span class="grammar-quiz-pill">{{ total_grammar }} ngữ pháp</span>
+        </div>
+    </section>
+
+    {% if quiz_items %}
+    <section class="grammar-quiz-card">
+        <div class="grammar-quiz-topline">
+            <span id="grammarQuizProgress">Câu 1 / {{ quiz_items|length }}</span>
+            <span id="grammarQuizScore">Điểm 0</span>
+        </div>
+        <h3 id="grammarQuizQuestion" class="grammar-quiz-question"></h3>
+        <p id="grammarQuizTranslation" class="grammar-quiz-translation"></p>
+        <div id="grammarQuizOptions" class="grammar-quiz-options"></div>
+        <div id="grammarQuizFeedback" class="grammar-quiz-feedback"></div>
+        <div class="grammar-quiz-actions">
+            <button type="button" id="grammarQuizNext" class="grammar-quiz-action" onclick="nextGrammarQuestion()">Câu tiếp theo</button>
+            <a href="{{ url_for('grammar') }}" class="grammar-quiz-action secondary">Thêm ngữ pháp</a>
+        </div>
+    </section>
+    {% else %}
+    <section class="grammar-quiz-empty">
+        Chưa có câu quiz ngữ pháp. Hãy tạo thẻ ngữ pháp rồi quay lại.
+    </section>
+    {% endif %}
+</div>
+
+{% if quiz_items %}
+<script>
+const grammarQuizDeck = {{ quiz_items|tojson }};
+let grammarQuizIndex = 0;
+let grammarQuizScore = 0;
+let grammarQuizAnswered = false;
+
+function currentGrammarQuestion() {
+    return grammarQuizDeck[grammarQuizIndex];
+}
+
+function renderGrammarQuestion() {
+    const item = currentGrammarQuestion();
+    grammarQuizAnswered = false;
+    document.getElementById('grammarQuizProgress').textContent = `Câu ${grammarQuizIndex + 1} / ${grammarQuizDeck.length}`;
+    document.getElementById('grammarQuizScore').textContent = `Điểm ${grammarQuizScore}`;
+    document.getElementById('grammarQuizQuestion').textContent = item.question_kr;
+    document.getElementById('grammarQuizTranslation').textContent = item.question_vi || '';
+    document.getElementById('grammarQuizFeedback').classList.remove('is-visible');
+    document.getElementById('grammarQuizFeedback').textContent = '';
+
+    const optionsEl = document.getElementById('grammarQuizOptions');
+    optionsEl.innerHTML = '';
+    item.options.forEach((option, optionIndex) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'grammar-quiz-option';
+        button.textContent = option;
+        button.onclick = () => answerGrammarQuestion(optionIndex);
+        optionsEl.appendChild(button);
+    });
+}
+
+function answerGrammarQuestion(optionIndex) {
+    if (grammarQuizAnswered) {
+        return;
+    }
+    grammarQuizAnswered = true;
+    const item = currentGrammarQuestion();
+    const buttons = Array.from(document.querySelectorAll('.grammar-quiz-option'));
+    const correctIndex = Number(item.correct_index);
+    buttons.forEach((button, index) => {
+        if (index === correctIndex) {
+            button.classList.add('is-correct');
+        } else if (index === optionIndex) {
+            button.classList.add('is-wrong');
+        }
+    });
+    if (optionIndex === correctIndex) {
+        grammarQuizScore += 1;
+    }
+        document.getElementById('grammarQuizScore').textContent = `Điểm ${grammarQuizScore}`;
+    const feedback = document.getElementById('grammarQuizFeedback');
+    feedback.textContent = item.explanation_vi || `Đáp án đúng: ${item.correct_answer || item.options[correctIndex]}`;
+    feedback.classList.add('is-visible');
+}
+
+function nextGrammarQuestion() {
+    if (grammarQuizIndex >= grammarQuizDeck.length - 1) {
+        document.getElementById('grammarQuizQuestion').textContent = 'Hoàn thành';
+        document.getElementById('grammarQuizTranslation').textContent = `Điểm cuối: ${grammarQuizScore} / ${grammarQuizDeck.length}`;
+        document.getElementById('grammarQuizOptions').innerHTML = '';
+        document.getElementById('grammarQuizFeedback').classList.remove('is-visible');
+        document.getElementById('grammarQuizNext').textContent = 'Làm lại';
+        document.getElementById('grammarQuizNext').onclick = () => window.location.reload();
+        return;
+    }
+    grammarQuizIndex += 1;
+    renderGrammarQuestion();
+}
+
+renderGrammarQuestion();
+</script>
+{% endif %}
+{% endblock %}

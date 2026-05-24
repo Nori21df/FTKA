@@ -1,0 +1,22 @@
+node_modules/
+.env
+.env.local
+.env.production
+
+# logs
+*.log
+server.err.log
+server.out.log
+tmp.err
+tmp.out
+
+# temp/cache
+tmp/
+.cache/
+
+# local data/database
+data/
+
+# OS/editor
+.DS_Store
+.vscode/

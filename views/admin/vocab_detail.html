@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <h2>{{ item.korean or 'Mục từ vựng' }}</h2>
+        <p class="admin-muted">ID {{ item.id }}</p>
+    </div>
+</div>
+
+<section class="admin-panel">
+    <form class="admin-detail-form" method="post" action="{{ url_for('admin.update_vocab', vocab_id=item.id) }}" onsubmit="return confirm('Cập nhật từ vựng này?');">
+        <label>Tiếng Hàn <input class="admin-input" name="korean" value="{{ item.korean or '' }}"></label>
+        <label>Nghĩa tiếng Việt <input class="admin-input" name="meaning_vi" value="{{ item.meaning_vi or '' }}"></label>
+        <label>Giải thích tiếng Việt <textarea class="admin-textarea" name="explanation_vi">{{ item.explanation_vi or '' }}</textarea></label>
+        <label>Ví dụ tiếng Hàn <textarea class="admin-textarea" name="example_kr">{{ item.example_kr or '' }}</textarea></label>
+        <label>Ví dụ tiếng Việt <textarea class="admin-textarea" name="example_vi">{{ item.example_vi or '' }}</textarea></label>
+        <label>Văn bản TTS <input class="admin-input" name="tts_text" value="{{ item.tts_text or '' }}"></label>
+        <label>Tham chiếu âm thanh <input class="admin-input" name="audio_path" value="{{ item.audio_reference_display or '' }}"></label>
+        <label>Loại quiz <input class="admin-input" name="quiz_type" value="{{ item.quiz_type or '' }}"></label>
+        <label>Nguồn <input class="admin-input" name="source" value="{{ item.source or '' }}"></label>
+        <label><input type="checkbox" name="learned" {% if item.learned %}checked{% endif %}> Đã học</label>
+        <label>Lý do <input class="admin-input" name="reason" placeholder="Lý do ghi nhật ký, nếu cần"></label>
+        <div class="admin-actions">
+            <button class="admin-button primary" type="submit">Lưu</button>
+        </div>
+    </form>
+</section>
+
+<section class="admin-panel">
+    <form method="post" action="{{ url_for('admin.delete_vocab', vocab_id=item.id) }}" onsubmit="return confirm('Xoá từ vựng này? Không thể hoàn tác.');">
+        <label class="admin-muted">Reason
+            <input class="admin-input" name="reason" placeholder="Optional audit reason">
+        </label>
+        <button class="admin-button danger" type="submit">Xoá từ vựng</button>
+    </form>
+</section>
+{% endblock %}

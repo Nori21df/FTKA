@@ -1,0 +1,33 @@
+{% extends "public_base.html" %}
+
+{% block content %}
+
+
+<section class="auth-panel">
+    <h2>Đăng ký</h2>
+    <p class="auth-copy">Tạo tài khoản để lưu tiến độ học.</p>
+    {% if error %}<div class="auth-error">{{ error }}</div>{% endif %}
+
+    <form class="auth-form" method="post" action="{{ url_for('register') }}">
+        <input type="hidden" name="next" value="{{ next_url }}">
+        <label>Tên đăng nhập
+            <input name="username" maxlength="80" autocomplete="username" required>
+        </label>
+        <label>Email
+            <input name="email" type="email" maxlength="255" autocomplete="email" required>
+        </label>
+        <label>Mật khẩu
+            <input name="password" type="password" minlength="10" autocomplete="new-password" required>
+        </label>
+        <button class="auth-button" type="submit">Tạo tài khoản</button>
+    </form>
+
+    <div class="auth-divider">hoặc</div>
+    <a class="auth-button secondary" href="{{ url_for('google_login', next=next_url) }}">Tiếp tục với Google</a>
+    {% if not google_configured %}
+    <p class="auth-copy" style="margin-top: 10px;">Chưa cấu hình đăng nhập Google.</p>
+    {% endif %}
+
+    <p class="auth-link-row">Đã có tài khoản? <a href="{{ url_for('login', next=next_url) }}">Đăng nhập</a></p>
+</section>
+{% endblock %}
