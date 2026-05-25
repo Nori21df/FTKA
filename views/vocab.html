@@ -344,9 +344,33 @@
         const cards = Array.from(document.querySelectorAll('.dictionary-card'));
         const visibleCards = cards.filter((card) => !card.classList.contains('is-hidden'));
         const visibleCount = visibleCards.length;
-        document.getElementById('visibleCount').textContent = `${visibleCount} đang hiển thị`;
-        document.getElementById('dictionaryShelfCount').textContent = `${visibleCount} thẻ`;
-        document.getElementById('dictionaryEmptyFiltered').style.display = visibleCount === 0 ? 'block' : 'none';
+        const visibleCountEl = document.getElementById('visibleCount');
+        if (visibleCountEl) visibleCountEl.textContent = `${visibleCount} đang hiển thị`;
+
+        const shelfCountEl = document.getElementById('dictionaryShelfCount');
+        if (shelfCountEl) shelfCountEl.textContent = `${visibleCount} thẻ`;
+
+        const emptyFilteredEl = document.getElementById('dictionaryEmptyFiltered');
+        if (emptyFilteredEl) emptyFilteredEl.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    async function readApiError(response, fallback) {
+        try {
+            const data = await response.json();
+            return data && data.error ? data.error : fallback;
+        } catch (error) {
+            return fallback;
+        }
+    }
+
+    function playTTS(text) {
+        const value = String(text || '').trim();
+        if (!value) return;
+
+        const audio = new Audio(`/api/tts?text=${encodeURIComponent(value)}`);
+        audio.play().catch(() => {
+            alert('Không phát được âm thanh.');
+        });
     }
 
     function applyFilters() {
@@ -402,11 +426,16 @@
         });
     });
 
-    document.getElementById('dictionarySearch').addEventListener('input', applyFilters);
-    document.getElementById('dictionaryGroupFilter').addEventListener('change', function (event) {
-        currentGroupFilter = event.target.value;
-        applyFilters();
-    });
+    const dictionarySearchEl = document.getElementById('dictionarySearch');
+    if (dictionarySearchEl) dictionarySearchEl.addEventListener('input', applyFilters);
+
+    const dictionaryGroupFilterEl = document.getElementById('dictionaryGroupFilter');
+    if (dictionaryGroupFilterEl) {
+        dictionaryGroupFilterEl.addEventListener('change', function (event) {
+            currentGroupFilter = event.target.value;
+            applyFilters();
+        });
+    }
 
     async function toggleLearned(id, status, reload = true) {
         try {
@@ -417,15 +446,17 @@
             });
 
             if (!response.ok) {
-                throw new Error('Thao tác thất bại.');
+                throw new Error(await readApiError(response, 'Thao tác thất bại.'));
             }
 
             if (reload) {
                 window.location.reload();
                 return;
             }
+            return true;
         } catch (error) {
             alert(error.message || 'Thao tác thất bại.');
+            return false;
         }
     }
 
@@ -456,14 +487,23 @@
         }
     }
 
-    function checkLearn(event, inputElem, expectedWord, id) {
-        if (inputElem.value.trim() !== expectedWord) {
+    async function checkLearn(event, inputElem, expectedWord, id) {
+        const typedWord = inputElem.value.trim();
+        const normalizedExpected = String(expectedWord || '').trim();
+        if (typedWord !== normalizedExpected) {
             return;
         }
 
         inputElem.disabled = true;
         inputElem.classList.add('is-success');
-        toggleLearned(id, true, false);
+
+        const saved = await toggleLearned(id, true, false);
+        if (!saved) {
+            inputElem.disabled = false;
+            inputElem.classList.remove('is-success');
+            return;
+        }
+
         markCardLearnedUI(id);
         revealExample(id);
         applyFilters();
@@ -491,7 +531,7 @@
             if (response.ok) {
                 window.location.reload();
             } else {
-                throw new Error('Xoá từ thất bại.');
+                throw new Error(await readApiError(response, 'Xoá từ thất bại.'));
             }
         } catch (error) {
             alert(error.message || 'Xoá từ thất bại.');
@@ -508,7 +548,7 @@
             if (response.ok) {
                 window.location.reload();
             } else {
-                throw new Error('Đặt lại tiến độ thất bại.');
+                throw new Error(await readApiError(response, 'Đặt lại tiến độ thất bại.'));
             }
         } catch (error) {
             alert(error.message || 'Đặt lại tiến độ thất bại.');
@@ -535,8 +575,12 @@
                 body: JSON.stringify({ name })
             });
 
+            if (!response.ok) {
+                throw new Error(await readApiError(response, 'Tạo thư mục thất bại.'));
+            }
+
             const data = await response.json();
-            if (!response.ok || !data.success) {
+            if (!data.success) {
                 throw new Error(data.error || 'Tạo thư mục thất bại.');
             }
 
@@ -565,8 +609,12 @@
                 body: JSON.stringify({ vocab_id: id, group_id: groupId })
             });
 
+            if (!response.ok) {
+                throw new Error(await readApiError(response, 'Lưu từ vào thư mục thất bại.'));
+            }
+
             const data = await response.json();
-            if (!response.ok || !data.success) {
+            if (!data.success) {
                 throw new Error(data.error || 'Lưu từ vào thư mục thất bại.');
             }
 
@@ -588,8 +636,12 @@
                 body: JSON.stringify({ group_id: groupId })
             });
 
+            if (!response.ok) {
+                throw new Error(await readApiError(response, 'Xoá thư mục thất bại.'));
+            }
+
             const data = await response.json();
-            if (!response.ok || !data.success) {
+            if (!data.success) {
                 throw new Error(data.error || 'Xoá thư mục thất bại.');
             }
 
@@ -622,8 +674,12 @@
                 })
             });
 
+            if (!response.ok) {
+                throw new Error(await readApiError(response, 'Thêm từ thất bại.'));
+            }
+
             const data = await response.json();
-            if (!response.ok || !data.success) {
+            if (!data.success) {
                 throw new Error(data.error || 'Thêm từ thất bại.');
             }
 
@@ -632,7 +688,7 @@
             alert(error.message || 'Lỗi mạng.');
         } finally {
             button.disabled = false;
-            button.innerHTML = '<span class="material-icons-outlined">add_circle</span>Thêm thủ công';
+            button.innerHTML = '<span class="material-icons-outlined">add_circle</span>Thêm';
         }
     }
 
@@ -658,8 +714,12 @@
                 body: formData
             });
 
+            if (!response.ok) {
+                throw new Error(await readApiError(response, 'Nhập JSON thất bại.'));
+            }
+
             const data = await response.json();
-            if (!response.ok || !data.success) {
+            if (!data.success) {
                 throw new Error(data.error || 'Nhập JSON thất bại.');
             }
 
@@ -673,18 +733,40 @@
         }
     }
 
-    document.getElementById('manualWord').addEventListener('keydown', function (event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            manualAdd();
-        }
-    });
+    const manualWordEl = document.getElementById('manualWord');
+    if (manualWordEl) {
+        manualWordEl.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                manualAdd();
+            }
+        });
+    }
 
-    document.getElementById('groupNameInput').addEventListener('keydown', function (event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            createGroup();
-        }
+    const groupNameInputEl = document.getElementById('groupNameInput');
+    if (groupNameInputEl) {
+        groupNameInputEl.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                createGroup();
+            }
+        });
+    }
+
+    Object.assign(window, {
+        revealWord,
+        reshuffleWords,
+        resetLearned,
+        toggleLearned,
+        checkLearn,
+        revealExample,
+        deleteWord,
+        createGroup,
+        assignWordToGroup,
+        deleteGroup,
+        manualAdd,
+        importJson,
+        playTTS
     });
 
     applyFilters();
