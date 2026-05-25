@@ -1,4 +1,4 @@
-const crypto = require("crypto");
+/const crypto = require("crypto");
 const ai = require("./aiService");
 const tts = require("./ttsService");
 const { currentTimestamp, compactCreatedAt } = require("../utils/time");
@@ -117,7 +117,7 @@ async function createLesson(db, payload, ownerUserId) {
   const raw = await ai.generateJsonObject(
     "Bạn là giáo viên tiếng Hàn tạo bài luyện nghe ngắn cho người Việt. Chỉ trả về JSON object hợp lệ.",
     buildPrompt(level, topic, length, questionCount),
-    { temperature: 0.35 }
+    { temperature: 0.3, maxTokens: 8192, type: "listening" }
   );
   const lesson = {
     id: crypto.randomUUID().replace(/-/g, ""),

@@ -16,7 +16,7 @@
         <a href="{{ url_for('admin.purchases') }}" class="{% if request.endpoint == 'admin.purchases' %}active{% endif %}">Thanh toán</a>
         <a href="{{ url_for('admin.streaks') }}">Chuỗi học</a>
         <a href="{{ url_for('admin.ai_usage') }}">Sử dụng AI</a>
-        <a href="{{ url_for('admin.ai_logs') }}" class="{% if request.endpoint and request.endpoint|startsWith('admin.ai_logs') %}active{% endif %}">AI Logs</a>
+        <a href="{{ url_for('admin.ai_logs') }}" class="{% if request.endpoint and request.endpoint|startsWith('admin.ai_logs') %}active{% endif %}">AI Activity</a>
         <a href="{{ url_for('admin.logs') }}" class="{% if request.endpoint == 'admin.logs' %}active{% endif %}">Nhật ký quản trị</a>
     </nav>
     <main class="admin-main">

@@ -264,20 +264,39 @@ router.get("/ai-logs.json", ...named("admin.ai_logs_json", (req, res) => {
 
 router.get("/ai-logs/stream", ...named("admin.ai_logs_stream", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  req.socket?.setTimeout(0);
+  req.socket?.setNoDelay?.(true);
   res.flushHeaders?.();
-  const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data || {})}\n\n`);
-  send("connected", { ok: true });
+  let closed = false;
+  const safeWrite = (chunk) => {
+    if (closed || res.destroyed || res.writableEnded) return false;
+    try { return res.write(chunk); } catch { closed = true; return false; }
+  };
+  const send = (event, data) => safeWrite(`event: ${event}\ndata: ${JSON.stringify(data || {})}\n\n`);
+  safeWrite(": connected\n\n");
   const unsubscribe = aiLogService.subscribeAiLogs((payload) => {
     if (payload.event === "log") send("ai-log", payload.log);
     if (payload.event === "clear") send("ai-clear", {});
   });
-  const heartbeat = setInterval(() => res.write(": heartbeat\n\n"), 25000);
+  const heartbeat = setInterval(() => safeWrite(": heartbeat\n\n"), 15000);
   req.on("close", () => {
+    closed = true;
     clearInterval(heartbeat);
     unsubscribe();
   });
+}));
+
+router.post("/ai-logs/test", ...named("admin.ai_logs_test", (req, res) => {
+  const log = aiLogService.addAiLog({
+    type: "test",
+    status: "progress",
+    message: "Realtime SSE test log",
+    model: "manual-test"
+  });
+  res.json({ success: true, log });
 }));
 
 router.post("/ai-logs/clear", ...named("admin.ai_logs_clear", (req, res) => {

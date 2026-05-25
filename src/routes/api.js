@@ -19,6 +19,40 @@ function normalizeTopic(value) {
   return String(value || "").trim();
 }
 
+function normalizeWordKey(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
+function parseBooleanInput(value) {
+  if (value === true || value === 1) return true;
+  if (value === false || value === 0 || value === null || value === undefined || value === "") return false;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1") return true;
+    if (normalized === "false" || normalized === "0") return false;
+  }
+  return Boolean(value);
+}
+
+function parseOptionalGroupId(value) {
+  if (value === null || value === undefined || value === "") return { ok: true, groupId: null };
+  if (typeof value === "string" && value.trim() === "") return { ok: true, groupId: null };
+  if (typeof value === "string" && value.trim().toLowerCase() === "null") return { ok: true, groupId: null };
+  const groupId = Number(value);
+  if (!Number.isInteger(groupId) || groupId <= 0) return { ok: false, groupId: null };
+  return { ok: true, groupId };
+}
+
+async function getOwnedGroupOrRespond(res, groupId, ownerId) {
+  if (!groupId) return null;
+  const group = await db.one("SELECT id, name FROM vocab_groups WHERE id=? AND owner_user_id=?", [groupId, ownerId]);
+  if (!group) {
+    res.status(400).json({ error: "Vui lòng chọn thư mục hợp lệ." });
+    return false;
+  }
+  return group;
+}
+
 function parseGeneratorCount(value) {
   const count = Number.parseInt(value || "3", 10);
   if (!Number.isFinite(count)) throw new Error("Vui lòng chọn số lượng từ hợp lệ.");
@@ -108,19 +142,21 @@ router.post("/generate", loginRequired, asyncHandler(async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
   const ownerId = req.currentUser.id;
-  const groupId = req.body.group_id && req.body.group_id !== "null" ? Number.parseInt(req.body.group_id, 10) : null;
+  const parsedGroup = parseOptionalGroupId(req.body.group_id);
+  if (!parsedGroup.ok) return res.status(400).json({ error: "Vui lòng chọn thư mục hợp lệ." });
+  const groupId = parsedGroup.groupId;
   let targetGroupName = "";
-  if (groupId) {
-    const group = await db.one("SELECT id, name FROM vocab_groups WHERE id=? AND owner_user_id=?", [groupId, ownerId]);
-    if (!group) return res.status(404).json({ error: "Custom folder not found." });
+  if (groupId !== null) {
+    const group = await getOwnedGroupOrRespond(res, groupId, ownerId);
+    if (group === false) return;
     targetGroupName = group.name;
   }
   const existingRows = await db.query("SELECT korean FROM vocab WHERE owner_user_id=?", [ownerId]);
-  const existingWords = existingRows.map((r) => r.korean).filter(Boolean);
+  const existingWords = existingRows.map((r) => normalizeWordKey(r.korean)).filter(Boolean);
   const generated = await ai.generateVocabularyBatch(count, existingWords, topic);
   const newItems = [];
   for (const item of Array.isArray(generated) ? generated : []) {
-    const korean = normalizeTopic(item.korean);
+    const korean = normalizeWordKey(item.korean);
     if (!korean || existingWords.includes(korean) || newItems.length >= count) continue;
     const id = await learning.makeUniqueRecordId("vocab", item.id);
     const saved = { ...item, id, korean, tts_text: item.tts_text || korean };
@@ -145,7 +181,7 @@ router.post("/mark_learned", loginRequired, asyncHandler(async (req, res) => {
   if (!itemId) return res.status(400).json({ error: "Word id is required" });
   const row = await db.one("SELECT learned FROM vocab WHERE id=? AND owner_user_id=?", [itemId, req.currentUser.id]);
   if (!row) return res.status(404).json({ error: "Word not found" });
-  const should = Boolean(req.body.learned);
+  const should = parseBooleanInput(req.body.learned);
   await db.run("UPDATE vocab SET learned=? WHERE id=? AND owner_user_id=?", [should, itemId, req.currentUser.id]);
   if (should && !row.learned) await learning.recordLearningActivity(itemId, req.currentUser.id);
   await groups.exportGroupsForVocab(itemId);
@@ -207,23 +243,32 @@ router.post("/add_grammar", loginRequired, asyncHandler(async (req, res) => {
 }));
 
 router.post("/manual_add", loginRequired, asyncHandler(async (req, res) => {
-  const word = normalizeTopic(req.body.word);
+  const word = normalizeWordKey(req.body.word);
   if (!word) return res.status(400).json({ error: "Vui lòng nhập từ tiếng Hàn." });
+  const parsedGroup = parseOptionalGroupId(req.body.group_id);
+  if (!parsedGroup.ok) return res.status(400).json({ error: "Vui lòng chọn thư mục hợp lệ." });
+  const groupId = parsedGroup.groupId;
+  if (groupId !== null) {
+    const group = await getOwnedGroupOrRespond(res, groupId, req.currentUser.id);
+    if (group === false) return;
+  }
   const existing = await db.one("SELECT id FROM vocab WHERE owner_user_id=? AND korean=?", [req.currentUser.id, word]);
   if (existing) return res.status(400).json({ error: `Từ '${word}' đã có trong từ điển.` });
   const item = await ai.translateSpecificWord(word);
+  const korean = normalizeWordKey(item.korean || word);
+  const translatedExisting = await db.one("SELECT id FROM vocab WHERE owner_user_id=? AND korean=?", [req.currentUser.id, korean]);
+  if (translatedExisting) return res.status(400).json({ error: `Từ '${korean}' đã có trong từ điển.` });
   const id = await learning.makeUniqueRecordId("vocab", item.id);
   await db.run(
     `INSERT INTO vocab (id, korean, meaning_vi, explanation_vi, example_kr, example_vi, tts_text, audio_path, quiz_type, learned, created_at, source, owner_user_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, item.korean || word, item.meaning_vi || "", item.explanation_vi || "", item.example_kr || "", item.example_vi || "", item.tts_text || word, "", "word", false, new Date().toISOString(), "manual", req.currentUser.id]
+    [id, korean, item.meaning_vi || "", item.explanation_vi || "", item.example_kr || "", item.example_vi || "", item.tts_text || korean, "", "word", false, new Date().toISOString(), "manual", req.currentUser.id]
   );
-  const groupId = req.body.group_id && req.body.group_id !== "null" ? Number.parseInt(req.body.group_id, 10) : null;
-  if (groupId) {
+  if (groupId !== null) {
     await db.run("INSERT OR IGNORE INTO vocab_group_items (group_id, vocab_id, created_at) VALUES (?, ?, ?)", [groupId, id, new Date().toISOString()]);
     await groups.exportSnapshot(groupId);
   }
-  res.json({ success: true, item: { ...item, id } });
+  res.json({ success: true, item: { ...item, id, korean } });
 }));
 
 router.get("/tts", asyncHandler(async (req, res) => {

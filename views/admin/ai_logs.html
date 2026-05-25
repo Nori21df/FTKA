@@ -8,7 +8,8 @@
     </div>
     <div class="admin-actions">
         <span id="sseStatus" class="admin-badge">Connecting</span>
-        <form method="post" action="{{ url_for('admin.ai_logs_clear') }}" onsubmit="return confirm('Clear AI logs?');">
+        <button id="testAiLogButton" class="admin-button" type="button">Test realtime log</button>
+        <form id="clearAiLogsForm" method="post" action="{{ url_for('admin.ai_logs_clear') }}">
             <button class="admin-button danger" type="submit">Clear logs</button>
         </form>
     </div>
@@ -40,6 +41,8 @@
 <script>
 const rows = document.getElementById('aiLogRows');
 const sseStatus = document.getElementById('sseStatus');
+const clearAiLogsForm = document.getElementById('clearAiLogsForm');
+const testAiLogButton = document.getElementById('testAiLogButton');
 const params = new URLSearchParams(window.location.search);
 const maxRows = Number(params.get('limit') || 100);
 function escapeHtml(value) {
@@ -72,13 +75,22 @@ async function loadInitialLogs() {
 }
 loadInitialLogs().catch(() => renderLogs([]));
 const events = new EventSource('/admin/ai-logs/stream');
-events.addEventListener('connected', () => setConnection('Connected'));
-events.addEventListener('open', () => setConnection('Connected'));
-events.addEventListener('ai-log', (event) => prependLog(JSON.parse(event.data)));
+events.onopen = () => setConnection('Connected');
+events.onerror = () => setConnection('Reconnecting', 'danger');
+events.addEventListener('ai-log', (event) => {
+    const log = JSON.parse(event.data);
+    if (['localhost', '127.0.0.1'].includes(window.location.hostname)) console.log('SSE ai-log', log);
+    prependLog(log);
+});
 events.addEventListener('ai-clear', () => renderLogs([]));
-events.addEventListener('error', () => {
-    if (events.readyState === EventSource.CLOSED) setConnection('Disconnected', 'danger');
-    else setConnection('Reconnecting', 'danger');
+testAiLogButton.addEventListener('click', async () => {
+    await fetch('/admin/ai-logs/test', { method: 'POST', headers: { Accept: 'application/json' } });
+});
+clearAiLogsForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!confirm('Clear AI logs?')) return;
+    await fetch(clearAiLogsForm.action, { method: 'POST' });
+    renderLogs([]);
 });
 </script>
 {% endblock %}
