@@ -138,7 +138,7 @@
                             </td>
                             <td>
                                 <button type="button" class="dictionary-group-delete-button"
-                                    onclick="deleteGroup({{ group.id|tojson|forceescape }}, {{ group.name|tojson|forceescape }})"
+                                    onclick='deleteGroup({{ group.id|tojson }}, {{ group.name|tojson }})'
                                     title="Xoá thư mục">
                                     <span class="material-icons-outlined">delete_outline</span>
                                 </button>
@@ -182,7 +182,7 @@
                         </div>
                         <h4 id="kr-text-{{ v.id }}"
                             class="dictionary-card-title {% if not v.learned %}is-concealed{% endif %}"
-                            onclick="revealWord({{ v.id|tojson|forceescape }})">{{ v.korean }}</h4>
+                            onclick='revealWord({{ v.id|tojson }})'>{{ v.korean }}</h4>
                         <p class="dictionary-card-meaning">{{ v.meaning_vi }}</p>
                         {% if v.explanation_vi %}
                         <p class="dictionary-card-copy">{{ v.explanation_vi }}</p>
@@ -191,16 +191,16 @@
 
                     <div class="dictionary-card-actions" aria-label="Thao tác từ vựng">
                         <button type="button" class="dictionary-icon-button"
-                            onclick="playTTS({{ (v.korean or '')|tojson|forceescape }})" title="Nghe">
+                            onclick='playTTS({{ (v.korean or '')|tojson }})' title="Nghe">
                             <span class="material-icons-outlined">volume_up</span>
                         </button>
                         <button type="button"
                             class="dictionary-status-button {% if v.learned %}is-learned{% else %}is-unlearned{% endif %}"
                             id="status-btn-{{ v.id }}"
-                            onclick="toggleLearned({{ v.id|tojson|forceescape }}, {{ (not v.learned)|tojson|forceescape }})">
+                            onclick='toggleLearned({{ v.id|tojson }}, {{ (not v.learned)|tojson }})'>
                             {% if v.learned %}Đã học{% else %}Chưa học{% endif %}
                         </button>
-                        <button type="button" class="dictionary-icon-button" onclick="deleteWord({{ v.id|tojson|forceescape }})"
+                        <button type="button" class="dictionary-icon-button" onclick='deleteWord({{ v.id|tojson }})'
                             title="Xoá">
                             <span class="material-icons-outlined">delete_outline</span>
                         </button>
@@ -213,7 +213,7 @@
                     <label for="practice-input-{{ v.id }}">Gõ đúng từ tiếng Hàn để đánh dấu đã học</label>
                     <input id="practice-input-{{ v.id }}" type="text" class="dictionary-practice-input"
                         placeholder="Nhập tại đây"
-                        onkeyup='checkLearn(event, this, {{ v.korean|tojson|forceescape }}, {{ v.id|tojson|forceescape }})'>
+                        onkeyup='checkLearn(event, this, {{ v.korean|tojson }}, {{ v.id|tojson }})'>
                 </div>
                 {% endif %}
 
@@ -241,7 +241,7 @@
                             {% endfor %}
                         </select>
                         <button type="button" class="dictionary-inline-button"
-                            onclick="assignWordToGroup({{ v.id|tojson|forceescape }})">
+                            onclick='assignWordToGroup({{ v.id|tojson }})'>
                             <span class="material-icons-outlined">drive_file_move</span>
                             Lưu vào thư mục
                         </button>
@@ -255,7 +255,7 @@
                 <div id="example-box-{{ v.id }}" class="dictionary-example {% if v.learned %}is-revealed{% endif %}">
                     {% if not v.learned %}
                     <button type="button" class="dictionary-example-toggle" id="example-overlay-{{ v.id }}"
-                        onclick="revealExample({{ v.id|tojson|forceescape }})">
+                        onclick='revealExample({{ v.id|tojson }})'>
                         <span class="material-icons-outlined">visibility</span>
                         Hiện ví dụ
                     </button>
@@ -267,7 +267,7 @@
                             <p class="dictionary-card-copy">{{ v.example_vi }}</p>
                         </div>
                         <button type="button" class="dictionary-inline-button"
-                            onclick="playTTS({{ (v.example_kr or '')|tojson|forceescape }})">
+                            onclick='playTTS({{ (v.example_kr or '')|tojson }})'>
                             <span class="material-icons-outlined">volume_up</span>
                             Ví dụ
                         </button>
@@ -374,10 +374,10 @@
     }
 
     function applyFilters() {
-        const query = document.getElementById('dictionarySearch').value.trim().toLowerCase();
-        const selectedGroupId = document.getElementById('dictionaryGroupFilter')
-            ? document.getElementById('dictionaryGroupFilter').value
-            : 'all';
+        const searchEl = document.getElementById('dictionarySearch');
+        const groupFilterEl = document.getElementById('dictionaryGroupFilter');
+        const query = searchEl ? searchEl.value.trim().toLowerCase() : '';
+        const selectedGroupId = groupFilterEl ? groupFilterEl.value : 'all';
         const cards = document.querySelectorAll('.dictionary-card');
 
         cards.forEach((card) => {
@@ -415,26 +415,6 @@
 
         cards.forEach((card) => grid.appendChild(card));
         applyFilters();
-    }
-
-    document.querySelectorAll('.dictionary-filter-button').forEach((button) => {
-        button.addEventListener('click', () => {
-            currentFilter = button.dataset.filter;
-            document.querySelectorAll('.dictionary-filter-button').forEach((item) => item.classList.remove('is-active'));
-            button.classList.add('is-active');
-            applyFilters();
-        });
-    });
-
-    const dictionarySearchEl = document.getElementById('dictionarySearch');
-    if (dictionarySearchEl) dictionarySearchEl.addEventListener('input', applyFilters);
-
-    const dictionaryGroupFilterEl = document.getElementById('dictionaryGroupFilter');
-    if (dictionaryGroupFilterEl) {
-        dictionaryGroupFilterEl.addEventListener('change', function (event) {
-            currentGroupFilter = event.target.value;
-            applyFilters();
-        });
     }
 
     async function toggleLearned(id, status, reload = true) {
@@ -733,26 +713,6 @@
         }
     }
 
-    const manualWordEl = document.getElementById('manualWord');
-    if (manualWordEl) {
-        manualWordEl.addEventListener('keydown', function (event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                manualAdd();
-            }
-        });
-    }
-
-    const groupNameInputEl = document.getElementById('groupNameInput');
-    if (groupNameInputEl) {
-        groupNameInputEl.addEventListener('keydown', function (event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                createGroup();
-            }
-        });
-    }
-
     Object.assign(window, {
         revealWord,
         reshuffleWords,
@@ -769,6 +729,54 @@
         playTTS
     });
 
-    applyFilters();
+    function initVocabPage() {
+        document.querySelectorAll('.dictionary-filter-button').forEach((button) => {
+            button.addEventListener('click', () => {
+                currentFilter = button.dataset.filter;
+                document.querySelectorAll('.dictionary-filter-button').forEach((item) => item.classList.remove('is-active'));
+                button.classList.add('is-active');
+                applyFilters();
+            });
+        });
+
+        const dictionarySearchEl = document.getElementById('dictionarySearch');
+        if (dictionarySearchEl) dictionarySearchEl.addEventListener('input', applyFilters);
+
+        const dictionaryGroupFilterEl = document.getElementById('dictionaryGroupFilter');
+        if (dictionaryGroupFilterEl) {
+            dictionaryGroupFilterEl.addEventListener('change', function (event) {
+                currentGroupFilter = event.target.value;
+                applyFilters();
+            });
+        }
+
+        const manualWordEl = document.getElementById('manualWord');
+        if (manualWordEl) {
+            manualWordEl.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    manualAdd();
+                }
+            });
+        }
+
+        const groupNameInputEl = document.getElementById('groupNameInput');
+        if (groupNameInputEl) {
+            groupNameInputEl.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    createGroup();
+                }
+            });
+        }
+
+        applyFilters();
+    }
+
+    try {
+        initVocabPage();
+    } catch (error) {
+        console.error('Vocabulary page initialization failed:', error);
+    }
 </script>
 {% endblock %}

@@ -11,6 +11,7 @@ const settings = require("../services/settingsService");
 const tts = require("../services/ttsService");
 const learning = require("../services/learningService");
 const groups = require("../services/vocabGroupService");
+const energy = require("../services/energyService");
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024 } });
 const router = express.Router();
 
@@ -57,6 +58,33 @@ function parseGeneratorCount(value) {
   if (!Number.isFinite(count)) throw new Error("Vui lòng chọn số lượng từ hợp lệ.");
   return Math.max(1, Math.min(count, 10));
 }
+
+function wordCount(items) {
+  return Math.max(1, (Array.isArray(items) ? items : []).filter((item) => item && item.korean).length);
+}
+
+async function spendOr402(res, userId, amount, reason, ref) {
+  const result = await energy.spendEnergy(userId, amount, reason, ref);
+  if (result.ok) return true;
+  res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: result.status, required_energy: amount });
+  return false;
+}
+
+async function requireEnergyOr402(res, userId, amount) {
+  const status = await energy.getEnergyStatus(userId);
+  if (Number(status.current_energy) >= Number(amount)) return true;
+  res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: status, required_energy: amount });
+  return false;
+}
+
+router.get("/energy", loginRequired, asyncHandler(async (req, res) => {
+  res.json({ success: true, energy: await energy.getEnergyStatus(req.currentUser.id) });
+}));
+
+router.post("/energy/claim-daily", loginRequired, asyncHandler(async (req, res) => {
+  const result = await energy.claimDailyEnergy(req.currentUser.id);
+  res.status(result.ok ? 200 : 400).json({ success: result.ok, already_claimed: Boolean(result.already_claimed), energy: result.status, error: result.ok ? "" : "Bạn đã nhận thưởng năng lượng hôm nay." });
+}));
 
 router.post("/preferences", ...named("api_update_preferences", loginRequired, asyncHandler(async (req, res) => {
   try {
@@ -141,6 +169,7 @@ router.post("/generate", loginRequired, asyncHandler(async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
   const ownerId = req.currentUser.id;
+  if (!(await requireEnergyOr402(res, ownerId, count))) return;
   const parsedGroup = parseOptionalGroupId(req.body.group_id);
   if (!parsedGroup.ok) return res.status(400).json({ error: "Vui lòng chọn thư mục hợp lệ." });
   const groupId = parsedGroup.groupId;
@@ -172,6 +201,8 @@ router.post("/generate", loginRequired, asyncHandler(async (req, res) => {
   }
   if (groupId && newItems.length) await groups.exportSnapshot(groupId);
   if (!newItems.length) return res.status(400).json({ error: "Không tìm thấy từ mới cho chủ đề này. Hãy thử tình huống cụ thể hơn." });
+  const cost = wordCount(newItems);
+  if (!(await spendOr402(res, ownerId, cost, "generate_vocab", `topic:${topic}`))) return;
   res.json({ success: true, items: newItems, ...(targetGroupName ? { group_name: targetGroupName } : {}) });
 }));
 
@@ -220,8 +251,10 @@ router.post("/regenerate_grammar_quiz_items", loginRequired, asyncHandler(async 
   const itemId = String(req.body.id || "").trim();
   const existing = await db.one("SELECT * FROM grammar WHERE id=? AND owner_user_id=?", [itemId, req.currentUser.id]);
   if (!existing) return res.status(404).json({ error: "Không tìm thấy ngữ pháp" });
+  if (!(await requireEnergyOr402(res, req.currentUser.id, 2))) return;
   const quizItems = await ai.generateGrammarQuizzesBatch(existing.grammar, 3);
   await db.run("UPDATE grammar SET quiz_items=? WHERE id=? AND owner_user_id=?", [JSON.stringify(quizItems), itemId, req.currentUser.id]);
+  if (!(await spendOr402(res, req.currentUser.id, 2, "regenerate_grammar_quiz_items", itemId))) return;
   res.json({ success: true, item: learning.serializeGrammarApiItem({ ...existing, quiz_items: quizItems }), quiz_count: quizItems.length });
 }));
 
@@ -230,6 +263,7 @@ router.post("/add_grammar", loginRequired, asyncHandler(async (req, res) => {
   if (!pattern) return res.status(400).json({ error: "Vui lòng nhập mẫu ngữ pháp tiếng Hàn trước." });
   const duplicate = await db.one("SELECT id FROM grammar WHERE owner_user_id=? AND LOWER(grammar)=LOWER(?)", [req.currentUser.id, pattern]);
   if (duplicate) return res.status(400).json({ error: `Mẫu ngữ pháp '${pattern}' đã tồn tại.` });
+  if (!(await requireEnergyOr402(res, req.currentUser.id, 3))) return;
   const item = await ai.generateGrammarData(pattern);
   const id = await learning.makeUniqueRecordId("grammar", item.id);
   const saved = { ...item, id, grammar: item.grammar || pattern, quiz_items: item.quiz_items || [] };
@@ -238,6 +272,7 @@ router.post("/add_grammar", loginRequired, asyncHandler(async (req, res) => {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, saved.grammar, saved.meaning_vi || "", saved.explanation_vi || "", saved.example_kr || "", saved.example_vi || "", saved.level || "general", saved.usage_notes_vi || "", saved.common_mistakes_vi || "", JSON.stringify(saved.quiz_items), false, new Date().toISOString(), "ai_generated", req.currentUser.id]
   );
+  if (!(await spendOr402(res, req.currentUser.id, 3, "add_grammar", id))) return;
   res.json({ success: true, item: learning.serializeGrammarApiItem(saved) });
 }));
 

@@ -116,6 +116,9 @@
                     </div>
                 </div>
                 <div class="topbar-status">
+                    {% if energy_status %}
+                    <button type="button" class="energy-pill" id="energyPill" title="Năng lượng AI">⚡ <span id="energyCurrent">{{ energy_status.current_energy }}</span>/<span id="energyMax">{{ energy_status.max_energy }}</span></button>
+                    {% endif %}
                     <span class="status-dot" aria-hidden="true"></span>
                     <span>Học với AI</span>
                 </div>
@@ -148,6 +151,21 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const energyPill = document.getElementById('energyPill');
+            if (energyPill) {
+                energyPill.addEventListener('click', async () => {
+                    try {
+                        const res = await fetch('/api/energy/claim-daily', { method: 'POST', headers: { 'Accept': 'application/json' } });
+                        const data = await res.json();
+                        if (data.energy) {
+                            document.getElementById('energyCurrent').textContent = data.energy.current_energy;
+                            document.getElementById('energyMax').textContent = data.energy.max_energy;
+                        }
+                        alert(data.success ? 'Đã nhận thưởng năng lượng hằng ngày!' : (data.error || 'Không thể nhận thưởng.'));
+                    } catch (e) { alert('Không thể cập nhật năng lượng.'); }
+                });
+            }
+            window.showEnergyError = function(message) { alert(message || 'Không đủ năng lượng cho thao tác AI này.'); };
             const sidebar = document.getElementById('appSidebar');
             const toggle = document.querySelector('[data-sidebar-toggle]');
             const backdrop = document.querySelector('[data-sidebar-backdrop]');

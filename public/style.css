@@ -327,6 +327,29 @@ body.ftka-dark-ui .topbar {
     font-weight: 700;
 }
 
+.energy-pill {
+    border: 1px solid rgba(245, 158, 11, .35);
+    border-radius: 999px;
+    padding: 7px 12px;
+    color: #92400e;
+    background: rgba(251, 191, 36, .16);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+body.ftka-dark-ui .energy-pill {
+    color: #fde68a;
+    background: rgba(245, 158, 11, .14);
+}
+
+.energy-card small {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+}
+
 .status-dot {
     width: 9px;
     height: 9px;

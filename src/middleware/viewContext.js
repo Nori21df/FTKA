@@ -1,5 +1,6 @@
 const settingsService = require("../services/settingsService");
 const { urlFor } = require("../utils/urls");
+const energyService = require("../services/energyService");
 
 const VI_TRANSLATIONS = {
   "app.title": "FTKA - Học tiếng Hàn",
@@ -55,7 +56,7 @@ function pageUrl(req, targetPage) {
   return `${req.path}?${query.toString()}`;
 }
 
-function viewContext(req, res, next) {
+async function viewContext(req, res, next) {
   const config = settingsService.getConfig();
   const userTheme = req.currentUser && ["dark", "light"].includes(String(req.currentUser.ui_theme || "").toLowerCase())
     ? String(req.currentUser.ui_theme).toLowerCase()
@@ -76,6 +77,10 @@ function viewContext(req, res, next) {
   res.locals.max = Math.max;
   res.locals.min = Math.min;
   res.locals.admin_page_url = (targetPage) => pageUrl(req, targetPage);
+  res.locals.energy_status = null;
+  if (req.currentUser) {
+    try { res.locals.energy_status = await energyService.getEnergyStatus(req.currentUser.id); } catch (error) { res.locals.energy_status = null; }
+  }
   next();
 }
 

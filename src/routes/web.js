@@ -9,6 +9,7 @@ const settings = require("../services/settingsService");
 const learning = require("../services/learningService");
 const groups = require("../services/vocabGroupService");
 const listening = require("../services/listeningService");
+const energy = require("../services/energyService");
 
 const router = express.Router();
 
@@ -188,6 +189,7 @@ router.get("/dashboard", ...named("dashboard", loginRequired, asyncHandler(async
   const recentLearning = await learning.getRecentLearningActivity(ownerId);
   const sourceBreakdown = await learning.getSourceBreakdown(ownerId, vocabCount);
   const newWordsThisWeek = await learning.countRecentVocabEntries(ownerId);
+  const energyStatus = await energy.getEnergyStatus(ownerId);
   res.render("dashboard.html", {
     vocab: learning.serializeRecentVocab(vocabRows),
     grammar: learning.serializeRecentGrammar(grammarRows),
@@ -207,6 +209,7 @@ router.get("/dashboard", ...named("dashboard", loginRequired, asyncHandler(async
     learning_timeline: timeline,
     recent_learning: recentLearning,
     source_breakdown: sourceBreakdown,
+    energy_status: energyStatus,
     dashboard_summary: {
       learned_count: learnedCount,
       mastery_rate: vocabCount ? Math.round((learnedCount / vocabCount) * 100) : 0,
@@ -287,7 +290,11 @@ router.get("/listening-practice", ...named("listening_practice", loginRequired, 
 router.post("/listening-practice/generate", ...named("generate_listening_practice", loginRequired, asyncHandler(async (req, res) => {
   const wantsJson = req.is("application/json");
   try {
+    const status = await energy.getEnergyStatus(req.currentUser.id);
+    if (Number(status.current_energy) < 3) return wantsJson ? res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: status, required_energy: 3 }) : res.redirect(`/listening-practice?error=${encodeURIComponent("Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.")}`);
     const lesson = await listening.createLesson(db, wantsJson ? req.body : req.body, req.currentUser.id);
+    const spent = await energy.spendEnergy(req.currentUser.id, 3, "generate_listening_practice", lesson.id);
+    if (!spent.ok) return wantsJson ? res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: spent.status, required_energy: 3 }) : res.redirect(`/listening-practice?error=${encodeURIComponent("Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.")}`);
     const detailUrl = `/listening-practice?lesson_id=${encodeURIComponent(lesson.id)}`;
     return wantsJson ? res.json({ success: true, lesson, redirect_url: detailUrl }) : res.redirect(detailUrl);
   } catch (error) {
