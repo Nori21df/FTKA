@@ -1,8 +1,8 @@
 const db = require("../db");
 const { isPremiumUser } = require("../middleware/requirePremium");
 
-const FREE = { max: 50, refillMinutes: 30, dailyBonus: 5 };
-const PREMIUM = { max: 600, refillMinutes: 10, dailyBonus: 15 };
+const FREE = { max: 50, refillMinutes: 30, dailyBonus: 10 };
+const PREMIUM = { max: 600, refillMinutes: 10, dailyBonus: 50 };
 
 function now() { return new Date(); }
 function iso(date = now()) { return date.toISOString(); }

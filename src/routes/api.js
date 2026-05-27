@@ -251,10 +251,10 @@ router.post("/regenerate_grammar_quiz_items", loginRequired, asyncHandler(async 
   const itemId = String(req.body.id || "").trim();
   const existing = await db.one("SELECT * FROM grammar WHERE id=? AND owner_user_id=?", [itemId, req.currentUser.id]);
   if (!existing) return res.status(404).json({ error: "Không tìm thấy ngữ pháp" });
-  if (!(await requireEnergyOr402(res, req.currentUser.id, 2))) return;
+  if (!(await requireEnergyOr402(res, req.currentUser.id, 3))) return;
   const quizItems = await ai.generateGrammarQuizzesBatch(existing.grammar, 3);
   await db.run("UPDATE grammar SET quiz_items=? WHERE id=? AND owner_user_id=?", [JSON.stringify(quizItems), itemId, req.currentUser.id]);
-  if (!(await spendOr402(res, req.currentUser.id, 2, "regenerate_grammar_quiz_items", itemId))) return;
+  if (!(await spendOr402(res, req.currentUser.id, 3, "regenerate_grammar_quiz_items", itemId))) return;
   res.json({ success: true, item: learning.serializeGrammarApiItem({ ...existing, quiz_items: quizItems }), quiz_count: quizItems.length });
 }));
 
@@ -263,7 +263,7 @@ router.post("/add_grammar", loginRequired, asyncHandler(async (req, res) => {
   if (!pattern) return res.status(400).json({ error: "Vui lòng nhập mẫu ngữ pháp tiếng Hàn trước." });
   const duplicate = await db.one("SELECT id FROM grammar WHERE owner_user_id=? AND LOWER(grammar)=LOWER(?)", [req.currentUser.id, pattern]);
   if (duplicate) return res.status(400).json({ error: `Mẫu ngữ pháp '${pattern}' đã tồn tại.` });
-  if (!(await requireEnergyOr402(res, req.currentUser.id, 3))) return;
+  if (!(await requireEnergyOr402(res, req.currentUser.id, 5))) return;
   const item = await ai.generateGrammarData(pattern);
   const id = await learning.makeUniqueRecordId("grammar", item.id);
   const saved = { ...item, id, grammar: item.grammar || pattern, quiz_items: item.quiz_items || [] };
@@ -272,7 +272,7 @@ router.post("/add_grammar", loginRequired, asyncHandler(async (req, res) => {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, saved.grammar, saved.meaning_vi || "", saved.explanation_vi || "", saved.example_kr || "", saved.example_vi || "", saved.level || "general", saved.usage_notes_vi || "", saved.common_mistakes_vi || "", JSON.stringify(saved.quiz_items), false, new Date().toISOString(), "ai_generated", req.currentUser.id]
   );
-  if (!(await spendOr402(res, req.currentUser.id, 3, "add_grammar", id))) return;
+  if (!(await spendOr402(res, req.currentUser.id, 5, "add_grammar", id))) return;
   res.json({ success: true, item: learning.serializeGrammarApiItem(saved) });
 }));
 

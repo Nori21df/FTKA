@@ -291,10 +291,10 @@ router.post("/listening-practice/generate", ...named("generate_listening_practic
   const wantsJson = req.is("application/json");
   try {
     const status = await energy.getEnergyStatus(req.currentUser.id);
-    if (Number(status.current_energy) < 3) return wantsJson ? res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: status, required_energy: 3 }) : res.redirect(`/listening-practice?error=${encodeURIComponent("Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.")}`);
+    if (Number(status.current_energy) < 10) return wantsJson ? res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: status, required_energy: 10 }) : res.redirect(`/listening-practice?error=${encodeURIComponent("Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.")}`);
     const lesson = await listening.createLesson(db, wantsJson ? req.body : req.body, req.currentUser.id);
-    const spent = await energy.spendEnergy(req.currentUser.id, 3, "generate_listening_practice", lesson.id);
-    if (!spent.ok) return wantsJson ? res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: spent.status, required_energy: 3 }) : res.redirect(`/listening-practice?error=${encodeURIComponent("Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.")}`);
+    const spent = await energy.spendEnergy(req.currentUser.id, 10, "generate_listening_practice", lesson.id);
+    if (!spent.ok) return wantsJson ? res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: spent.status, required_energy: 10 }) : res.redirect(`/listening-practice?error=${encodeURIComponent("Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.")}`);
     const detailUrl = `/listening-practice?lesson_id=${encodeURIComponent(lesson.id)}`;
     return wantsJson ? res.json({ success: true, lesson, redirect_url: detailUrl }) : res.redirect(detailUrl);
   } catch (error) {
