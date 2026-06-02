@@ -19,9 +19,9 @@
 <body class="{{ ui_theme_class }}">
     <a class="skip-link" href="#mainContent">Bỏ qua điều hướng</a>
     <div id="global-loading" class="global-loading" hidden>Đang tải...</div>
-    <div class="app-container">
+    <div class="app-container" data-component="app-layout">
         <div class="sidebar-backdrop" data-sidebar-backdrop hidden></div>
-        <aside class="sidebar" id="appSidebar">
+        <aside class="sidebar" id="appSidebar" data-component="app-sidebar">
             <div class="sidebar-header">
                 <a class="logo" href="{{ url_for('dashboard') }}" aria-label="FTKA">
                     <span class="logo-icon">FT</span>
@@ -103,7 +103,7 @@
                     <span class="logo-icon">FT</span>
                     <span>FTKA</span>
                 </a>
-                <button type="button" class="mobile-menu-button" aria-label="Mở menu" aria-controls="appSidebar" aria-expanded="false" data-sidebar-toggle>
+                <button type="button" class="mobile-menu-button" data-component="mobile-menu-button" aria-label="Mở menu" aria-controls="appSidebar" aria-expanded="false" data-sidebar-toggle>
                     <span class="material-icons-outlined" aria-hidden="true">menu</span>
                 </button>
             </header>

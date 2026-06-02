@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="admin-shell">
+<div class="admin-shell" data-component="admin-layout">
     <nav class="admin-nav" aria-label="Điều hướng quản trị">
         <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">Tổng quan</a>
         <a href="{{ url_for('admin.users') }}" class="{% if request.endpoint|startsWith('admin.user') %}active{% endif %}">Người dùng</a>
@@ -19,7 +19,7 @@
         <a href="{{ url_for('admin.ai_logs') }}" class="{% if request.endpoint and request.endpoint|startsWith('admin.ai_logs') %}active{% endif %}">AI Activity</a>
         <a href="{{ url_for('admin.logs') }}" class="{% if request.endpoint == 'admin.logs' %}active{% endif %}">Nhật ký quản trị</a>
     </nav>
-    <main class="admin-main">
+    <main class="admin-main" data-component="admin-main">
         {% for category, message in get_flashed_messages(with_categories=true) %}
         <div class="admin-flash {{ category }}">{{ message }}</div>
         {% endfor %}

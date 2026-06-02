@@ -56,7 +56,11 @@ body.ftka-dark-ui {
 
 html {
     min-height: 100%;
-    background: var(--bg);
+    background-color: #ffffff;
+    background-image:
+        linear-gradient(45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%),
+        linear-gradient(-45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%);
+    background-size: 40px 40px;
 }
 
 body {
@@ -66,15 +70,22 @@ body {
     font-size: 15px;
     line-height: 1.55;
     color: var(--text);
-    background: var(--bg);
+    background-color: transparent;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
 }
 
 body.ftka-light-ui {
-    background:
-        linear-gradient(180deg, #ffffff 0, #f6f8fb 360px),
-        var(--bg);
+    background-color: #ffffff;
+    background-image:
+        linear-gradient(45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%),
+        linear-gradient(-45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%);
+    background-size: 40px 40px;
+}
+
+body.ftka-dark-ui {
+    background-color: var(--bg);
+    background-image: none;
 }
 
 a {
@@ -147,6 +158,7 @@ canvas {
     display: grid;
     grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
     min-height: 100vh;
+    max-width: 100%;
 }
 
 .sidebar {
@@ -248,6 +260,7 @@ body.ftka-dark-ui .sidebar {
 
 .main-content {
     min-width: 0;
+    max-width: 100%;
 }
 
 .mobile-header {
@@ -430,6 +443,7 @@ body.ftka-dark-ui .energy-pill {
     width: min(100%, 1480px);
     margin: 0 auto;
     padding: 28px 30px 48px;
+    min-width: 0;
 }
 
 .public-page {
@@ -1724,9 +1738,18 @@ textarea {
 
 .dictionary-group-table-wrap,
 .admin-table-wrap {
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     border: 1px solid var(--line);
     border-radius: var(--radius);
+}
+
+.admin-table-wrap .admin-table,
+.dictionary-group-table-wrap .dictionary-group-table {
+    min-width: 760px;
 }
 
 .dictionary-group-table,
@@ -2702,6 +2725,8 @@ body.ftka-dark-ui .result-actions {
     display: grid;
     grid-template-columns: 230px minmax(0, 1fr);
     gap: 18px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .admin-nav {
@@ -2735,6 +2760,7 @@ body.ftka-dark-ui .result-actions {
     display: grid;
     gap: 16px;
     min-width: 0;
+    max-width: 100%;
 }
 
 .admin-form-grid {
@@ -2911,6 +2937,80 @@ body.ftka-dark-ui .result-actions {
     .pricing-plan-grid,
     .billing-summary-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    html,
+    body,
+    .app-container,
+    .main-content,
+    .dashboard-content,
+    .admin-shell,
+    .admin-main,
+    .admin-panel {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .app-container {
+        display: block;
+        grid-template-columns: none;
+    }
+
+    .main-content,
+    .dashboard-content {
+        min-width: 0;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .dashboard-content {
+        padding: 16px 12px 28px;
+    }
+
+    .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: min(320px, calc(100vw - 44px));
+        max-width: calc(100vw - 44px);
+        height: 100vh;
+        transform: translateX(-105%);
+    }
+
+    .sidebar.is-open {
+        transform: translateX(0);
+    }
+
+    .admin-shell {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .admin-nav {
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .admin-panel {
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .admin-table-wrap {
+        margin-inline: 0;
+    }
+
+    .admin-table-wrap .admin-table {
+        width: max-content;
+        min-width: 760px;
+    }
+
+    .topbar {
+        display: none;
     }
 }
 
