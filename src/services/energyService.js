@@ -9,8 +9,30 @@ function iso(date = now()) { return date.toISOString(); }
 function planFor(user) { return isPremiumUser(user) ? "premium" : "free"; }
 function rulesForPlan(plan) { return plan === "premium" ? PREMIUM : FREE; }
 
+function isAdminUser(user) {
+  return String(user?.role || "").toLowerCase() === "admin";
+}
+
+function payload(row, user, extra = {}) {
+  const isPremium = planFor(user) === "premium";
+  const isUnlimitedEnergy = isAdminUser(user);
+  return {
+    current_energy: Number(row.current_energy),
+    max_energy: Number(row.max_energy),
+    currentEnergy: Number(row.current_energy),
+    maxEnergy: Number(row.max_energy),
+    last_refill_at: row.last_refill_at,
+    last_daily_claim_at: row.last_daily_claim_at,
+    plan: isPremium ? "premium" : "free",
+    isPremium,
+    role: user?.role || "user",
+    isUnlimitedEnergy,
+    ...extra
+  };
+}
+
 async function getUser(userId, clientDb = db) {
-  return clientDb.one("SELECT id, plan, premium_until FROM users WHERE id=?", [userId]);
+  return clientDb.one("SELECT id, role, plan, premium_until FROM users WHERE id=?", [userId]);
 }
 
 async function ensureEnergySchema(clientDb = db) {
@@ -63,6 +85,7 @@ async function refillEnergy(userId, clientDb = db) {
   const plan = planFor(user);
   const rules = rulesForPlan(plan);
   let row = await getOrCreateEnergy(userId, clientDb);
+  if (isAdminUser(user)) return { ...row, user, plan, refill_amount: 0, refill_minutes: rules.refillMinutes, daily_bonus: rules.dailyBonus };
   const current = Number(row.current_energy || 0);
   const last = new Date(row.last_refill_at || row.created_at || Date.now());
   const elapsed = Math.max(0, now().getTime() - last.getTime());
@@ -79,7 +102,12 @@ async function refillEnergy(userId, clientDb = db) {
 
 async function getEnergyStatus(userId) {
   const row = await refillEnergy(userId);
-  return { current_energy: Number(row.current_energy), max_energy: Number(row.max_energy), last_refill_at: row.last_refill_at, last_daily_claim_at: row.last_daily_claim_at, plan: row.plan, refill_minutes: row.refill_minutes, daily_bonus: row.daily_bonus };
+  return payload(row, row.user || await getUser(userId), { refill_minutes: row.refill_minutes, daily_bonus: row.daily_bonus });
+}
+
+async function hasEnoughEnergy(userId, amount) {
+  const status = await getEnergyStatus(userId);
+  return { ok: status.isUnlimitedEnergy || Number(status.current_energy) >= Number(amount), status };
 }
 
 async function spendEnergy(userId, amount, reason, ref = "") {
@@ -87,6 +115,8 @@ async function spendEnergy(userId, amount, reason, ref = "") {
   return db.withClient(async (clientDb) => {
     await clientDb.begin();
     try {
+      const user = await getUser(userId, clientDb);
+      if (isAdminUser(user)) { await clientDb.rollback(); return { ok: true, status: await getEnergyStatus(userId), bypassed: true }; }
       await refillEnergy(userId, clientDb);
       const row = await clientDb.one("SELECT * FROM user_energy WHERE user_id=? FOR UPDATE", [userId]);
       if (Number(row.current_energy) < amount) { await clientDb.rollback(); return { ok: false, status: await getEnergyStatus(userId) }; }
@@ -116,6 +146,7 @@ async function grantEnergy(userId, amount, reason, ref = "") {
 
 async function claimDailyEnergy(userId) {
   const status = await getEnergyStatus(userId);
+  if (status.isUnlimitedEnergy) return { ok: true, already_claimed: false, status };
   const row = await db.one("SELECT last_daily_claim_at FROM user_energy WHERE user_id=?", [userId]);
   const last = row && row.last_daily_claim_at ? new Date(row.last_daily_claim_at) : null;
   const today = iso().slice(0, 10);
@@ -125,4 +156,4 @@ async function claimDailyEnergy(userId) {
   return { ok: true, status: result.status };
 }
 
-module.exports = { ensureEnergySchema, getOrCreateEnergy, refillEnergy, getEnergyStatus, spendEnergy, grantEnergy, claimDailyEnergy };
+module.exports = { ensureEnergySchema, getOrCreateEnergy, refillEnergy, getEnergyStatus, hasEnoughEnergy, spendEnergy, grantEnergy, claimDailyEnergy };

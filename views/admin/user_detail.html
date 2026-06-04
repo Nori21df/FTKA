@@ -4,7 +4,7 @@
 <div class="admin-header">
     <div>
         <h2>{{ user.username }}</h2>
-        <p class="admin-muted">Người dùng id {{ user.id }}</p>
+        <p class="admin-muted">Người dùng id {{ user.id }} · {{ user.email }}</p>
     </div>
     <div class="admin-actions">
         {% if user.status == 'active' %}
@@ -25,9 +25,11 @@
         <table class="admin-table">
             <tbody>
                 <tr><th>ID</th><td>{{ user.id }}</td></tr>
-                <tr><th>Người dùngname</th><td>{{ user.username }}</td></tr>
+                <tr><th>Tên</th><td>{{ user.username }}</td></tr>
                 <tr><th>Email</th><td>{{ user.email }}</td></tr>
                 <tr><th>Vai trò</th><td><span class="admin-badge">{{ user.role }}</span></td></tr>
+                <tr><th>Premium</th><td>{{ user.plan or 'free' }}{% if user.premium_until %} · {{ user.premium_until }}{% endif %}</td></tr>
+                <tr><th>Năng lượng</th><td>{{ user.current_energy or 0 }} / {{ user.max_energy or 0 }}</td></tr>
                 <tr><th>Trạng thái</th><td><span class="admin-badge {% if user.status != 'active' %}danger{% endif %}">{{ user.status }}</span></td></tr>
                 <tr><th>Ngày tạo</th><td>{{ user.created_at }}</td></tr>
                 <tr><th>Đăng nhập gần nhất</th><td>{{ user.last_login or 'Chưa có' }}</td></tr>
@@ -36,28 +38,24 @@
     </article>
     <article class="admin-panel">
         <h3>Dữ liệu học</h3>
-        <p class="admin-muted">Từ vựng, bài nghe và hoạt động học hiện là dữ liệu toàn cục trong cấu trúc hiện tại, chưa gắn riêng theo từng người dùng.</p>
+        <p class="admin-muted">Liên kết quản trị dữ liệu theo từng người dùng.</p>
         <div class="admin-actions" style="margin-top: 12px;">
-            <a class="admin-button" href="{{ url_for('admin.user_vocab', user_id=user.id) }}">Từ vựng người dùng</a>
-            <a class="admin-button" href="{{ url_for('admin.user_listening', user_id=user.id) }}">Bài nghe người dùng</a>
-            <a class="admin-button" href="{{ url_for('admin.user_streak', user_id=user.id) }}">Chuỗi học người dùng</a>
-            <a class="admin-button" href="{{ url_for('admin.user_energy', user_id=user.id) }}">Năng lượng người dùng</a>
+            <a class="admin-button" href="{{ url_for('admin.user_vocab', user_id=user.id) }}">Quản lý từ vựng</a>
+            <a class="admin-button" href="{{ url_for('admin.user_grammar', user_id=user.id) }}">Quản lý ngữ pháp</a>
+            <a class="admin-button" href="{{ url_for('admin.user_listening', user_id=user.id) }}">Quản lý nghe</a>
+            <a class="admin-button" href="{{ url_for('admin.user_audio', user_id=user.id) }}">Quản lý âm thanh</a>
+            <a class="admin-button" href="{{ url_for('admin.edit_user', user_id=user.id) }}">Edit User</a>
         </div>
     </article>
 </section>
 
 <section class="admin-panel">
-    <h3>Thao tác chưa khả dụng</h3>
-    <p class="admin-muted">Hệ thống năng lượng và chuỗi học riêng theo người dùng chưa tồn tại, nên các thao tác này hiện không làm thay đổi dữ liệu.</p>
+    <h3>Xoá người dùng</h3>
+    <p class="admin-muted">Cảnh báo: vocab, grammar, listening, audio liên quan có thể cũng bị xoá theo ràng buộc DB. Không thể hoàn tác.</p>
     <div class="admin-actions">
-        <form method="post" action="{{ url_for('admin.add_user_energy', user_id=user.id) }}" onsubmit="return confirm('Hệ thống năng lượng chưa khả dụng. Tiếp tục?');">
-            <button class="admin-button" type="submit">Cộng năng lượng</button>
-        </form>
-        <form method="post" action="{{ url_for('admin.subtract_user_energy', user_id=user.id) }}" onsubmit="return confirm('Hệ thống năng lượng chưa khả dụng. Tiếp tục?');">
-            <button class="admin-button" type="submit">Trừ năng lượng</button>
-        </form>
-        <form method="post" action="{{ url_for('admin.reset_user_streak', user_id=user.id) }}" onsubmit="return confirm('Hệ thống chuỗi học chưa khả dụng. Tiếp tục?');">
-            <button class="admin-button" type="submit">Đặt lại chuỗi học</button>
+        <form method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" onsubmit="return confirm('Xoá người dùng này? Vocab, grammar, listening, audio liên quan có thể cũng bị xoá. Không thể hoàn tác.');">
+            <input class="admin-input" name="reason" placeholder="Lý do">
+            <button class="admin-button danger" type="submit">Delete User</button>
         </form>
     </div>
 </section>

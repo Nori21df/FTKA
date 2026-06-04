@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
+{% block body_class %}admin-page{% endblock %}
+
 {% block content %}
+<div id="toast-root" class="toast-root" aria-live="polite" aria-atomic="true"></div>
 <div class="admin-shell" data-component="admin-layout">
     <nav class="admin-nav" aria-label="Điều hướng quản trị">
         <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">Tổng quan</a>
@@ -21,7 +24,7 @@
     </nav>
     <main class="admin-main" data-component="admin-main">
         {% for category, message in get_flashed_messages(with_categories=true) %}
-        <div class="admin-flash {{ category }}">{{ message }}</div>
+        <script type="application/json" data-toast-message data-toast-type="{{ category }}">{{ message | dump | safe }}</script>
         {% endfor %}
         {% block admin_content %}{% endblock %}
     </main>

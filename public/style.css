@@ -76,7 +76,7 @@ body {
 }
 
 body.ftka-light-ui {
-    background-color: #ffffff;
+    background-color: #f7fef1;
     background-image:
         linear-gradient(45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%),
         linear-gradient(-45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%);
@@ -152,6 +152,75 @@ canvas {
     color: #fff;
     background: var(--primary);
     box-shadow: var(--shadow-md);
+}
+
+.toast-root {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 1200;
+    display: grid;
+    gap: 10px;
+    width: min(360px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.toast {
+    display: grid;
+    grid-template-columns: 10px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    border: 1px solid rgba(148, 163, 184, .28);
+    border-radius: 14px;
+    color: #0f172a;
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, .16);
+    animation: toast-in .18s ease-out;
+    pointer-events: auto;
+}
+
+.toast-hide {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity .18s ease, transform .18s ease;
+}
+
+.toast-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--info);
+}
+
+.toast-success .toast-dot { background: var(--success); }
+.toast-error .toast-dot { background: var(--danger); }
+.toast-warning .toast-dot { background: var(--warning); }
+.toast-info .toast-dot { background: var(--info); }
+
+.toast-message {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.toast-close {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    color: #64748b;
+    background: transparent;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.toast-close:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+}
+
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .app-container {

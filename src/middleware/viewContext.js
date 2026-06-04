@@ -40,7 +40,7 @@ function argsObject(query) {
   };
 }
 
-function pageUrl(req, targetPage) {
+function pageUrl(req, targetPage, basePath) {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(req.query || {})) {
     if (value == null || value === "") continue;
@@ -53,7 +53,7 @@ function pageUrl(req, targetPage) {
     }
   }
   query.set("page", String(targetPage));
-  return `${req.path}?${query.toString()}`;
+  return `${basePath || req.path}?${query.toString()}`;
 }
 
 async function viewContext(req, res, next) {
@@ -76,7 +76,7 @@ async function viewContext(req, res, next) {
   res.locals.g = res.locals;
   res.locals.max = Math.max;
   res.locals.min = Math.min;
-  res.locals.admin_page_url = (targetPage) => pageUrl(req, targetPage);
+  res.locals.admin_page_url = (targetPage, basePath) => pageUrl(req, targetPage, basePath);
   res.locals.energy_status = null;
   if (req.currentUser) {
     try { res.locals.energy_status = await energyService.getEnergyStatus(req.currentUser.id); } catch (error) { res.locals.energy_status = null; }

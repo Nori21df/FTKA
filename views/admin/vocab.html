@@ -42,24 +42,26 @@
 <section class="admin-panel">
     <div class="admin-table-wrap">
         <table class="admin-table">
-            <thead><tr><th>ID</th><th>Tiếng Hàn</th><th>Nghĩa</th><th>Trạng thái</th><th>Nguồn</th><th>Âm thanh</th><th>Ngày tạo</th></tr></thead>
+            <thead><tr><th>ID</th><th>Tiếng Hàn</th><th>Nghĩa</th><th>Chủ sở hữu</th><th>Trạng thái</th><th>Nguồn</th><th>Âm thanh</th><th>Ngày tạo</th></tr></thead>
             <tbody>
                 {% for item in vocab %}
                 <tr>
                     <td>{{ item.id }}</td>
                     <td><a href="{{ url_for('admin.vocab_detail', vocab_id=item.id) }}">{{ item.korean or 'Chưa có tiêu đề' }}</a></td>
                     <td>{{ item.meaning_vi or '' }}</td>
+                    <td>{% if item.owner_user_id %}<a href="{{ url_for('admin.user_detail', user_id=item.owner_user_id) }}">{{ item.owner_username or item.owner_email or item.owner_user_id }}</a>{% else %}Chưa có{% endif %}</td>
                     <td><span class="admin-badge {% if not item.learned %}warn{% endif %}">{{ 'Đã học' if item.learned else 'Chưa học' }}</span></td>
                     <td>{{ item.source or 'Chưa có' }}</td>
                     <td>{{ 'Có' if item.audio_path else 'Thiếu' }}</td>
                     <td>{{ item.created_at or 'Chưa có' }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="7">Không tìm thấy từ vựng.</td></tr>
+                <tr><td colspan="8">Không tìm thấy từ vựng.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% set admin_pagination_base = '/admin/vocab' %}
     {% include "admin/_pagination.html" %}
 </section>
 {% endblock %}

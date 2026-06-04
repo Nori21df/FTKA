@@ -20,24 +20,26 @@
 <section class="admin-panel">
     <div class="admin-table-wrap">
         <table class="admin-table">
-            <thead><tr><th>ID</th><th>Ngữ pháp</th><th>Nghĩa</th><th>Cấp độ</th><th>Đã học</th><th>Nguồn</th><th>Ngày tạo</th></tr></thead>
+            <thead><tr><th>ID</th><th>Ngữ pháp</th><th>Nghĩa</th><th>Chủ sở hữu</th><th>Cấp độ</th><th>Đã học</th><th>Nguồn</th><th>Ngày tạo</th></tr></thead>
             <tbody>
                 {% for item in grammar %}
                 <tr>
                     <td>{{ item.id }}</td>
                     <td>{{ item.grammar or 'Chưa có tiêu đề' }}</td>
                     <td>{{ item.meaning_vi or '' }}</td>
+                    <td>{% if item.owner_user_id %}<a href="{{ url_for('admin.user_detail', user_id=item.owner_user_id) }}">{{ item.owner_username or item.owner_email or item.owner_user_id }}</a>{% else %}Chưa có{% endif %}</td>
                     <td>{{ item.level or 'Chưa có' }}</td>
                     <td>{{ 'Có' if item.learned else 'Không' }}</td>
                     <td>{{ item.source or 'Chưa có' }}</td>
                     <td>{{ item.created_at or 'Chưa có' }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="7">Chưa có mẫu ngữ pháp.</td></tr>
+                <tr><td colspan="8">Chưa có mẫu ngữ pháp.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% set admin_pagination_base = '/admin/grammar' %}
     {% include "admin/_pagination.html" %}
 </section>
 {% endblock %}

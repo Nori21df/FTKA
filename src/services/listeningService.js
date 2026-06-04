@@ -13,6 +13,22 @@ function clean(value) {
   return String(value || "").trim();
 }
 
+function normalizeTopic(value) {
+  const raw = clean(value);
+  const key = raw.toLowerCase();
+  const labels = {
+    daily_life: "Đời sống hàng ngày",
+    school: "Trường học",
+    work: "Công việc",
+    travel: "Du lịch",
+    shopping: "Mua sắm",
+    food: "Ẩm thực",
+    weather: "Thời tiết",
+    culture: "Văn hóa"
+  };
+  return labels[key] || raw;
+}
+
 function audioUrlForFile(file) {
   const filename = clean(file).split("/").pop();
   return filename ? `${AUDIO_PREFIX}/${filename}` : "";
@@ -67,10 +83,10 @@ function serializeSummary(row) {
 
 function validatePayload(payload) {
   const level = clean(payload.level).toLowerCase();
-  const topic = clean(payload.topic).toLowerCase();
+  const topic = normalizeTopic(payload.topic);
   const length = clean(payload.length).toLowerCase();
   if (!LISTENING_LEVELS.includes(level)) throw new Error("Cấp độ không hợp lệ.");
-  if (!LISTENING_TOPICS.includes(topic)) throw new Error("Chủ đề không hợp lệ.");
+  if (!topic) throw new Error("Vui lòng nhập chủ đề.");
   if (!LISTENING_LENGTHS.includes(length)) throw new Error("Độ dài không hợp lệ.");
   return { level, topic, length };
 }

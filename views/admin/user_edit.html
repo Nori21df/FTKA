@@ -1,0 +1,14 @@
+﻿{% extends "admin/base.html" %}
+{% block admin_content %}
+<div class="admin-header"><div><h2>Chỉnh sửa người dùng</h2><p class="admin-muted">ID {{ user.id }}</p></div></div>
+<section class="admin-panel"><form class="admin-detail-form" method="post" action="{{ url_for('admin.update_user', user_id=user.id) }}" onsubmit="return confirm('Cập nhật người dùng này?');">
+<label>Tên <input class="admin-input" name="username" value="{{ user.username or '' }}"></label>
+<label>Email <input class="admin-input" name="email" value="{{ user.email or '' }}"></label>
+<label>Vai trò <select class="admin-select" name="role"><option value="user" {% if user.role == 'user' %}selected{% endif %}>Người dùng</option><option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Quản trị</option></select></label>
+<label>Trạng thái <select class="admin-select" name="status"><option value="active" {% if user.status == 'active' %}selected{% endif %}>Hoạt động</option><option value="banned" {% if user.status == 'banned' %}selected{% endif %}>Bị khoá</option></select></label>
+<label>Gói <input class="admin-input" name="plan" value="{{ user.plan or 'free' }}"></label>
+<label>Premium đến <input class="admin-input" name="premium_until" value="{{ user.premium_until or '' }}"></label>
+<label>Lý do <input class="admin-input" name="reason"></label>
+<button class="admin-button primary" type="submit">Lưu</button>
+</form></section>
+{% endblock %}

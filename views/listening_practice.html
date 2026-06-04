@@ -34,21 +34,17 @@
 
                     <div class="listening-field">
                         <label for="topicInput">Chủ đề</label>
-                        <select id="topicInput" name="topic" class="listening-select" required>
-                            {% for topic in topics %}
-                            <option value="{{ topic }}">
-                                {% if topic == 'daily_life' %}Đời sống hàng ngày
-                                {% elif topic == 'school' %}Trường học
-                                {% elif topic == 'work' %}Công việc
-                                {% elif topic == 'travel' %}Du lịch
-                                {% elif topic == 'shopping' %}Mua sắm
-                                {% elif topic == 'food' %}Ẩm thực
-                                {% elif topic == 'weather' %}Thời tiết
-                                {% elif topic == 'culture' %}Văn hóa
-                                {% else %}{{ topic|replace('_', ' ')|title }}{% endif %}
-                            </option>
-                            {% endfor %}
-                        </select>
+                        <input id="topicInput" name="topic" class="listening-select" list="topicSuggestions" placeholder="Nhập chủ đề hoặc chọn gợi ý" required>
+                        <datalist id="topicSuggestions">
+                            <option value="Đời sống hàng ngày"></option>
+                            <option value="Trường học"></option>
+                            <option value="Công việc"></option>
+                            <option value="Du lịch"></option>
+                            <option value="Mua sắm"></option>
+                            <option value="Ẩm thực"></option>
+                            <option value="Thời tiết"></option>
+                            <option value="Văn hóa"></option>
+                        </datalist>
                     </div>
 
                     <div class="listening-field">

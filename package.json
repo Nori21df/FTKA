@@ -24,6 +24,7 @@
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.13.1",
     "sepay-pg-node": "^1.0.0",
+    "socket.io": "^4.8.3",
     "uuid": "^11.0.5"
   }
 }

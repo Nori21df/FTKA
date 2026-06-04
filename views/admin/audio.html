@@ -11,12 +11,13 @@
 <section class="admin-panel">
     <div class="admin-table-wrap">
         <table class="admin-table">
-            <thead><tr><th>Tham chiếu</th><th>Bản ghi liên quan</th><th>Trạng thái</th><th>Dung lượng</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead>
+            <thead><tr><th>Tham chiếu</th><th>Bản ghi liên quan</th><th>Chủ sở hữu</th><th>Trạng thái</th><th>Dung lượng</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead>
             <tbody>
                 {% for record in records %}
                 <tr>
                     <td>{{ record.display_reference }}</td>
                     <td>{{ record.related_type }} · {{ record.related_label }}</td>
+                    <td>{% if record.owner_user_id %}<a href="{{ url_for('admin.user_detail', user_id=record.owner_user_id) }}">{{ record.owner_username or record.owner_user_id }}</a>{% else %}Chưa có{% endif %}</td>
                     <td><span class="admin-badge {% if not record.exists %}danger{% endif %}">{{ 'Có' if record.exists else 'Thiếu' }}</span></td>
                     <td>{{ record.size }}</td>
                     <td>{{ record.created_at or 'Chưa có' }}</td>
@@ -28,7 +29,7 @@
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="6">Chưa có bản ghi âm thanh.</td></tr>
+                <tr><td colspan="7">Chưa có bản ghi âm thanh.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

@@ -32,23 +32,25 @@
 <section class="admin-panel">
     <div class="admin-table-wrap">
         <table class="admin-table">
-            <thead><tr><th>ID</th><th>Tiêu đề</th><th>Chủ đề</th><th>Cấp độ</th><th>Âm thanh</th><th>Ngày tạo</th></tr></thead>
+            <thead><tr><th>ID</th><th>Tiêu đề</th><th>Chủ sở hữu</th><th>Chủ đề</th><th>Cấp độ</th><th>Âm thanh</th><th>Ngày tạo</th></tr></thead>
             <tbody>
                 {% for lesson in lessons %}
                 <tr>
                     <td>{{ lesson.id }}</td>
                     <td><a href="{{ url_for('admin.listening_detail', lesson_id=lesson.id) }}">{{ lesson.title or 'Chưa có tiêu đề' }}</a></td>
+                    <td>{% if lesson.owner_user_id %}<a href="{{ url_for('admin.user_detail', user_id=lesson.owner_user_id) }}">{{ lesson.owner_username or lesson.owner_email or lesson.owner_user_id }}</a>{% else %}Chưa có{% endif %}</td>
                     <td>{{ lesson.topic or 'Chưa có' }}</td>
                     <td><span class="admin-badge">{{ lesson.level or 'Chưa có' }}</span></td>
                     <td>{{ 'Có' if lesson.audio_path else 'Thiếu' }}</td>
                     <td>{{ lesson.created_at or 'Chưa có' }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="6">Chưa có bài luyện nghe.</td></tr>
+                <tr><td colspan="7">Chưa có bài luyện nghe.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% set admin_pagination_base = '/admin/listening' %}
     {% include "admin/_pagination.html" %}
 </section>
 {% endblock %}

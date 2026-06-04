@@ -12,6 +12,7 @@ const tts = require("../services/ttsService");
 const learning = require("../services/learningService");
 const groups = require("../services/vocabGroupService");
 const energy = require("../services/energyService");
+const { emitEnergyUpdate } = require("../services/energySocket");
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024 } });
 const router = express.Router();
 
@@ -65,14 +66,15 @@ function wordCount(items) {
 
 async function spendOr402(res, userId, amount, reason, ref) {
   const result = await energy.spendEnergy(userId, amount, reason, ref);
-  if (result.ok) return true;
+  if (result.ok) { await emitEnergyUpdate(userId); return true; }
   res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: result.status, required_energy: amount });
   return false;
 }
 
 async function requireEnergyOr402(res, userId, amount) {
-  const status = await energy.getEnergyStatus(userId);
-  if (Number(status.current_energy) >= Number(amount)) return true;
+  const result = await energy.hasEnoughEnergy(userId, amount);
+  const status = result.status;
+  if (result.ok) return true;
   res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: status, required_energy: amount });
   return false;
 }
@@ -81,8 +83,13 @@ router.get("/energy", loginRequired, asyncHandler(async (req, res) => {
   res.json({ success: true, energy: await energy.getEnergyStatus(req.currentUser.id) });
 }));
 
+router.get("/me/energy", loginRequired, asyncHandler(async (req, res) => {
+  res.json({ success: true, energy: await energy.getEnergyStatus(req.currentUser.id) });
+}));
+
 router.post("/energy/claim-daily", loginRequired, asyncHandler(async (req, res) => {
   const result = await energy.claimDailyEnergy(req.currentUser.id);
+  await emitEnergyUpdate(req.currentUser.id);
   res.status(result.ok ? 200 : 400).json({ success: result.ok, already_claimed: Boolean(result.already_claimed), energy: result.status, error: result.ok ? "" : "Bạn đã nhận thưởng năng lượng hôm nay." });
 }));
 
@@ -308,6 +315,11 @@ router.post("/manual_add", loginRequired, asyncHandler(async (req, res) => {
 router.get("/tts", asyncHandler(async (req, res) => {
   const text = String(req.query.text || "").trim();
   if (!text) return res.status(400).send("");
+  if (req.currentUser) {
+    const result = await energy.spendEnergy(req.currentUser.id, 1, "tts", "inline");
+    if (!result.ok) return res.status(402).send("");
+    await emitEnergyUpdate(req.currentUser.id);
+  }
   const buffer = await tts.synthesizeBuffer(text);
   res.setHeader("Content-Type", "audio/mpeg");
   res.setHeader("Content-Disposition", "inline; filename=\"tts.mp3\"");

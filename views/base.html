@@ -10,13 +10,53 @@
     {% block head %}{% endblock %}
     
     <script>
+        (function() {
+            const allowedTypes = new Set(['success', 'error', 'info', 'warning']);
+            const textMap = [
+                { re: /xoá|xóa/i, message: 'Đã xoá thành công', type: 'success' },
+                { re: /cập nhật|lưu|khoá|khóa|mở khoá|mở khóa|tạo lại/i, message: 'Đã lưu thay đổi', type: 'success' },
+                { re: /không tìm thấy|not found/i, message: 'Không tìm thấy dữ liệu', type: 'warning' },
+                { re: /không.*quyền|forbidden|quản trị của chính mình|chính tài khoản quản trị/i, message: 'Bạn không có quyền thực hiện thao tác này', type: 'error' }
+            ];
+
+            function normalizeToast(message, type) {
+                const text = String(message || '').trim();
+                const hint = String(type || '').toLowerCase();
+                for (const item of textMap) {
+                    if (item.re.test(text)) return { message: item.message, type: item.type };
+                }
+                return {
+                    message: hint === 'success' ? 'Đã lưu thay đổi' : 'Có lỗi xảy ra, vui lòng thử lại',
+                    type: allowedTypes.has(hint) ? hint : (hint === 'danger' ? 'error' : 'info')
+                };
+            }
+
+            window.showToast = function(message, type) {
+                const root = document.getElementById('toast-root');
+                if (!root) return;
+                const toast = normalizeToast(message, type);
+                const item = document.createElement('div');
+                item.className = `toast toast-${allowedTypes.has(toast.type) ? toast.type : 'info'}`;
+                item.setAttribute('role', toast.type === 'error' ? 'alert' : 'status');
+                item.innerHTML = `<span class="toast-dot" aria-hidden="true"></span><span class="toast-message"></span><button type="button" class="toast-close" aria-label="Đóng thông báo">×</button>`;
+                item.querySelector('.toast-message').textContent = toast.message;
+                const close = () => {
+                    item.classList.add('toast-hide');
+                    setTimeout(() => item.remove(), 180);
+                };
+                item.querySelector('.toast-close').addEventListener('click', close);
+                root.appendChild(item);
+                setTimeout(close, 4200);
+            };
+        })();
+
         function playTTS(text) {
             const audio = new Audio(`/api/tts?text=${encodeURIComponent(text)}`);
             audio.play().catch(e => console.error("TTS playback failed", e));
         }
     </script>
 </head>
-<body class="{{ ui_theme_class }}">
+<body class="{{ ui_theme_class }} {% block body_class %}{% endblock %}" data-authenticated="{% if current_user %}true{% else %}false{% endif %}">
     <a class="skip-link" href="#mainContent">Bỏ qua điều hướng</a>
     <div id="global-loading" class="global-loading" hidden>Đang tải...</div>
     <div class="app-container" data-component="app-layout">
@@ -117,7 +157,7 @@
                 </div>
                 <div class="topbar-status">
                     {% if energy_status %}
-                    <button type="button" class="energy-pill" id="energyPill" title="Năng lượng AI">⚡ <span id="energyCurrent">{{ energy_status.current_energy }}</span>/<span id="energyMax">{{ energy_status.max_energy }}</span></button>
+                    <button type="button" class="energy-pill" id="energyPill" title="Năng lượng AI">⚡ <span id="energyLabel">{% if energy_status.isUnlimitedEnergy %}Năng lượng: Không giới hạn{% else %}<span id="energyCurrent">{{ energy_status.current_energy }}</span>/<span id="energyMax">{{ energy_status.max_energy }}</span>{% endif %}</span></button>
                     {% endif %}
                     <span class="status-dot" aria-hidden="true"></span>
                     <span>Học với AI</span>
@@ -149,18 +189,46 @@
             </div>
         </main>
     </div>
+    {% if current_user %}<script src="/socket.io/socket.io.js"></script>{% endif %}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('script[data-toast-message]').forEach((node) => {
+                try {
+                    window.showToast(JSON.parse(node.textContent || '""'), node.dataset.toastType || 'info');
+                } catch (error) {
+                    window.showToast(node.textContent || '', node.dataset.toastType || 'info');
+                }
+            });
+
+            function renderEnergyStatus(energy) {
+                const label = document.getElementById('energyLabel');
+                if (!label || !energy) return;
+                if (energy.isUnlimitedEnergy) {
+                    label.textContent = 'Năng lượng: Không giới hạn';
+                    return;
+                }
+                label.innerHTML = `<span id="energyCurrent">${energy.currentEnergy ?? energy.current_energy}</span>/<span id="energyMax">${energy.maxEnergy ?? energy.max_energy}</span>`;
+            }
+
+            if (document.body.dataset.authenticated === 'true') {
+                fetch('/api/me/energy', { headers: { 'Accept': 'application/json' } })
+                    .then((res) => res.ok ? res.json() : null)
+                    .then((data) => { if (data && data.energy) renderEnergyStatus(data.energy); })
+                    .catch(() => {});
+            }
+
+            if (document.body.dataset.authenticated === 'true' && window.io) {
+                const energySocket = window.io();
+                energySocket.on('energy:update', renderEnergyStatus);
+            }
+
             const energyPill = document.getElementById('energyPill');
             if (energyPill) {
                 energyPill.addEventListener('click', async () => {
                     try {
                         const res = await fetch('/api/energy/claim-daily', { method: 'POST', headers: { 'Accept': 'application/json' } });
                         const data = await res.json();
-                        if (data.energy) {
-                            document.getElementById('energyCurrent').textContent = data.energy.current_energy;
-                            document.getElementById('energyMax').textContent = data.energy.max_energy;
-                        }
+                        if (data.energy) renderEnergyStatus(data.energy);
                         alert(data.success ? 'Đã nhận thưởng năng lượng hằng ngày!' : (data.error || 'Không thể nhận thưởng.'));
                     } catch (e) { alert('Không thể cập nhật năng lượng.'); }
                 });

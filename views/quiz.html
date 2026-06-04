@@ -378,7 +378,7 @@ function renderStudyStage(card, turn, phase) {
                     }
                     return `
                         <button type="button" class="option-button ${extraClass}" onclick="answerQuestion(${index})" ${isDisabled ? 'disabled' : ''}>
-                            <strong>${index + 1}</strong>
+                            <strong>${index + 1}: </strong>
                             <span>${formatText(option.label)}</span>
                         </button>
                     `;
@@ -444,15 +444,15 @@ function renderStudyStage(card, turn, phase) {
             <div class="result-actions">
                 <button type="button" class="primary-button" onclick="markCurrentCardLearned()" ${state.busyAction || isWrong ? 'disabled' : ''}>
                     <span class="material-icons-outlined">task_alt</span>
-                    Đã học
+                    Đã học (F)
                 </button>
                 <button type="button" class="secondary-button" onclick="studyAgain()" ${state.busyAction ? 'disabled' : ''}>
                     <span class="material-icons-outlined">refresh</span>
-                    Ôn lại
+                    Ôn lại (A)
                 </button>
                 <button type="button" class="neutral-button" onclick="finishForToday()" ${state.busyAction ? 'disabled' : ''}>
                     <span class="material-icons-outlined">south</span>
-                    Xong hôm nay
+                    Xong hôm nay (D)
                 </button>
             </div>
         `;
@@ -488,7 +488,7 @@ function renderStudyStage(card, turn, phase) {
                     }
                     <button type="button" class="hint-button" onclick="toggleHint()" ${hasHint ? '' : 'disabled'}>
                         <span class="material-icons-outlined">tips_and_updates</span>
-                        ${state.hintOpen ? 'Ẩn gợi ý' : 'Hiện gợi ý'}
+                        ${state.hintOpen ? 'Ẩn gợi ý (H)' : 'Hiện gợi ý (H)'}
                     </button>
                 </div>
 

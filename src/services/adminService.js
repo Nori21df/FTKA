@@ -52,7 +52,26 @@ async function listUsers(filters, db = dbGlobal) {
 }
 
 async function getUserDetail(userId, db = dbGlobal) {
-  return db.one("SELECT id, username, email, role, status, created_at, last_login FROM users WHERE id=?", [Number(userId)]);
+  return db.one(`SELECT users.id, username, email, role, status, plan, premium_until, users.created_at, last_login,
+    user_energy.current_energy, user_energy.max_energy
+    FROM users LEFT JOIN user_energy ON user_energy.user_id = users.id WHERE users.id=?`, [Number(userId)]);
+}
+
+async function updateUser(userId, form, db = dbGlobal) {
+  const oldValue = await getUserDetail(userId, db);
+  if (!oldValue) return [null, null];
+  await db.run("UPDATE users SET username=?, email=?, role=?, status=?, plan=?, premium_until=? WHERE id=?", [
+    String(form.username || "").trim(), String(form.email || "").trim(), String(form.role || "user").trim(),
+    String(form.status || "active").trim(), String(form.plan || "free").trim(), String(form.premium_until || "").trim() || null, oldValue.id
+  ]);
+  return [oldValue, await getUserDetail(oldValue.id, db)];
+}
+
+async function deleteUser(userId, db = dbGlobal) {
+  const oldValue = await getUserDetail(userId, db);
+  if (!oldValue) return null;
+  await db.run("DELETE FROM users WHERE id=?", [oldValue.id]);
+  return oldValue;
 }
 
 async function updateUserStatus(userId, status, db = dbGlobal) {
@@ -78,16 +97,22 @@ async function listVocab(filters, db = dbGlobal) {
     where.push("source = ?");
     params.push(filters.source);
   }
+  if (filters.user_id) { where.push("owner_user_id = ?"); params.push(Number(filters.user_id)); }
   if (filters.missing === "audio") where.push("(audio_path IS NULL OR TRIM(audio_path) = '')");
   if (filters.missing === "example") where.push("(example_kr IS NULL OR TRIM(example_kr) = '')");
   const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
-  const [rows, pageInfo] = await paginate(db, `SELECT * FROM vocab ${whereSql} ORDER BY created_at DESC, id DESC`, `SELECT COUNT(*) FROM vocab ${whereSql}`, params, p, pp);
+  const [rows, pageInfo] = await paginate(db, `SELECT vocab.*, users.username AS owner_username, users.email AS owner_email FROM vocab LEFT JOIN users ON users.id = vocab.owner_user_id ${whereSql} ORDER BY vocab.created_at DESC, vocab.id DESC`, `SELECT COUNT(*) FROM vocab ${whereSql}`, params, p, pp);
   const sources = await db.query("SELECT DISTINCT source FROM vocab WHERE source IS NOT NULL AND TRIM(source) != '' ORDER BY source");
   return [rows, pageInfo, sources.map((r) => r.source)];
 }
 
 async function getVocab(vocabId, db = dbGlobal) {
   const row = await db.one("SELECT * FROM vocab WHERE id=?", [vocabId]);
+  return row ? { ...row, audio_reference_display: audioFilenameFromReference(row.audio_path) || row.audio_path || "" } : null;
+}
+
+async function getUserVocab(userId, vocabId, db = dbGlobal) {
+  const row = await db.one("SELECT * FROM vocab WHERE id=? AND owner_user_id=?", [vocabId, Number(userId)]);
   return row ? { ...row, audio_reference_display: audioFilenameFromReference(row.audio_path) || row.audio_path || "" } : null;
 }
 
@@ -104,6 +129,16 @@ async function updateVocab(vocabId, form, db = dbGlobal) {
   return [oldValue, await getVocab(vocabId, db)];
 }
 
+async function updateUserVocab(userId, vocabId, form, db = dbGlobal) {
+  const oldValue = await getUserVocab(userId, vocabId, db);
+  if (!oldValue) return [null, null];
+  const fields = ["korean", "meaning_vi", "explanation_vi", "example_kr", "example_vi", "tts_text", "audio_path", "quiz_type", "source"];
+  const values = fields.map((f) => String(form[f] || "").trim());
+  await db.run(`UPDATE vocab SET korean=?, meaning_vi=?, explanation_vi=?, example_kr=?, example_vi=?,
+     tts_text=?, audio_path=?, quiz_type=?, source=?, learned=? WHERE id=? AND owner_user_id=?`, [...values, form.learned === "on", vocabId, Number(userId)]);
+  return [oldValue, await getUserVocab(userId, vocabId, db)];
+}
+
 async function deleteVocab(vocabId, db = dbGlobal) {
   const oldValue = await getVocab(vocabId, db);
   if (!oldValue) return [null, []];
@@ -113,14 +148,38 @@ async function deleteVocab(vocabId, db = dbGlobal) {
   return [oldValue, groupRows.map((r) => r.group_id)];
 }
 
+async function deleteUserVocab(userId, vocabId, db = dbGlobal) {
+  const oldValue = await getUserVocab(userId, vocabId, db);
+  if (!oldValue) return [null, []];
+  const groupRows = await db.query("SELECT group_id FROM vocab_group_items WHERE vocab_id=?", [vocabId]);
+  await db.run("DELETE FROM vocab_group_items WHERE vocab_id=?", [vocabId]);
+  await db.run("DELETE FROM vocab WHERE id=? AND owner_user_id=?", [vocabId, Number(userId)]);
+  return [oldValue, groupRows.map((r) => r.group_id)];
+}
+
 async function listGrammar(filters, db = dbGlobal) {
   const p = page(filters.page);
   const pp = perPage(filters.per_page);
   const q = filtersGet(filters, "q");
   const params = [];
-  const whereSql = q ? "WHERE (LOWER(grammar) LIKE LOWER(?) OR LOWER(meaning_vi) LIKE LOWER(?) OR CAST(id AS TEXT) LIKE ?)" : "";
+  const where = [];
+  if (q) where.push("(LOWER(grammar) LIKE LOWER(?) OR LOWER(meaning_vi) LIKE LOWER(?) OR CAST(id AS TEXT) LIKE ?)");
   if (q) params.push(`%${q}%`, `%${q}%`, `%${q}%`);
-  return paginate(db, `SELECT * FROM grammar ${whereSql} ORDER BY created_at DESC, id DESC`, `SELECT COUNT(*) FROM grammar ${whereSql}`, params, p, pp);
+  if (filters.user_id) { where.push("owner_user_id = ?"); params.push(Number(filters.user_id)); }
+  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  return paginate(db, `SELECT grammar.*, users.username AS owner_username, users.email AS owner_email FROM grammar LEFT JOIN users ON users.id = grammar.owner_user_id ${whereSql} ORDER BY grammar.created_at DESC, grammar.id DESC`, `SELECT COUNT(*) FROM grammar ${whereSql}`, params, p, pp);
+}
+
+async function getUserGrammar(userId, grammarId, db = dbGlobal) { return db.one("SELECT * FROM grammar WHERE id=? AND owner_user_id=?", [grammarId, Number(userId)]); }
+async function updateUserGrammar(userId, grammarId, form, db = dbGlobal) {
+  const oldValue = await getUserGrammar(userId, grammarId, db); if (!oldValue) return [null, null];
+  await db.run(`UPDATE grammar SET grammar=?, meaning_vi=?, explanation_vi=?, example_kr=?, example_vi=?, level=?, usage_notes_vi=?, common_mistakes_vi=?, source=?, learned=? WHERE id=? AND owner_user_id=?`,
+    ["grammar", "meaning_vi", "explanation_vi", "example_kr", "example_vi", "level", "usage_notes_vi", "common_mistakes_vi", "source"].map((f) => String(form[f] || "").trim()).concat([form.learned === "on", grammarId, Number(userId)]));
+  return [oldValue, await getUserGrammar(userId, grammarId, db)];
+}
+async function deleteUserGrammar(userId, grammarId, db = dbGlobal) {
+  const oldValue = await getUserGrammar(userId, grammarId, db); if (!oldValue) return null;
+  await db.run("DELETE FROM grammar WHERE id=? AND owner_user_id=?", [grammarId, Number(userId)]); return oldValue;
 }
 
 async function listLearningActivity(filters, db = dbGlobal) {
@@ -151,8 +210,9 @@ async function listListening(filters, db = dbGlobal) {
     params.push(filters.level);
   }
   if (filters.missing_audio === "1") where.push("(audio_path IS NULL OR TRIM(audio_path) = '')");
+  if (filters.user_id) { where.push("owner_user_id = ?"); params.push(Number(filters.user_id)); }
   const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
-  return paginate(db, `SELECT * FROM listening_practice ${whereSql} ORDER BY created_at DESC, id DESC`, `SELECT COUNT(*) FROM listening_practice ${whereSql}`, params, p, pp);
+  return paginate(db, `SELECT listening_practice.*, users.username AS owner_username, users.email AS owner_email FROM listening_practice LEFT JOIN users ON users.id = listening_practice.owner_user_id ${whereSql} ORDER BY listening_practice.created_at DESC, listening_practice.id DESC`, `SELECT COUNT(*) FROM listening_practice ${whereSql}`, params, p, pp);
 }
 
 function loadsJson(value, fallback) {
@@ -183,6 +243,20 @@ async function getListeningLesson(lessonId, db = dbGlobal) {
   };
 }
 
+async function getUserListeningLesson(userId, lessonId, db = dbGlobal) {
+  const row = await db.one("SELECT * FROM listening_practice WHERE id=? AND owner_user_id=?", [lessonId, Number(userId)]);
+  if (!row) return null;
+  const filename = audioFilenameFromReference(row.audio_path);
+  return { ...row, vocabulary_items: loadsJson(row.vocabulary, []), question_items: loadsJson(row.questions, []), sentence_items: loadsJson(row.sentences, []), audio_url: filename ? `${AUDIO_PREFIX}${filename}` : "" };
+}
+
+async function updateUserListeningLesson(userId, lessonId, form, db = dbGlobal) {
+  const oldValue = await getUserListeningLesson(userId, lessonId, db); if (!oldValue) return [null, null];
+  await db.run(`UPDATE listening_practice SET title=?, level=?, topic=?, length=?, korean_text=?, vietnamese_translation=?, vocabulary=?, questions=?, audio_path=?, audio_error=? WHERE id=? AND owner_user_id=?`,
+    ["title", "level", "topic", "length", "korean_text", "vietnamese_translation", "vocabulary", "questions", "audio_path", "audio_error"].map((f) => String(form[f] || "").trim()).concat([lessonId, Number(userId)]));
+  return [oldValue, await getUserListeningLesson(userId, lessonId, db)];
+}
+
 async function deleteListeningLesson(lessonId, db = dbGlobal) {
   const oldValue = await getListeningLesson(lessonId, db);
   if (!oldValue) return null;
@@ -190,11 +264,22 @@ async function deleteListeningLesson(lessonId, db = dbGlobal) {
   return oldValue;
 }
 
+async function deleteUserListeningLesson(userId, lessonId, db = dbGlobal) {
+  const oldValue = await getUserListeningLesson(userId, lessonId, db); if (!oldValue) return null;
+  await db.run("DELETE FROM listening_practice WHERE id=? AND owner_user_id=?", [lessonId, Number(userId)]); return oldValue;
+}
+
 async function updateListeningAudio(lessonId, audioFilename, audioError = "", db = dbGlobal) {
   const oldValue = await getListeningLesson(lessonId, db);
   if (!oldValue) return [null, null];
   await db.run("UPDATE listening_practice SET audio_path=?, audio_error=? WHERE id=?", [audioFilename, audioError, lessonId]);
   return [oldValue, await getListeningLesson(lessonId, db)];
+}
+
+async function updateUserListeningAudio(userId, lessonId, audioFilename, audioError = "", db = dbGlobal) {
+  const oldValue = await getUserListeningLesson(userId, lessonId, db); if (!oldValue) return [null, null];
+  await db.run("UPDATE listening_practice SET audio_path=?, audio_error=? WHERE id=? AND owner_user_id=?", [audioFilename, audioError, lessonId, Number(userId)]);
+  return [oldValue, await getUserListeningLesson(userId, lessonId, db)];
 }
 
 function audioPathExists(audioDir, audioReference) {
@@ -207,7 +292,7 @@ function audioPathExists(audioDir, audioReference) {
 
 async function listAudioRecords(audioDir, db = dbGlobal) {
   const rows = await db.query(
-    `SELECT id, title, audio_path, created_at FROM listening_practice
+    `SELECT listening_practice.id, title, audio_path, listening_practice.created_at, owner_user_id, users.username AS owner_username FROM listening_practice LEFT JOIN users ON users.id = listening_practice.owner_user_id
      WHERE audio_path IS NOT NULL AND TRIM(audio_path) != ''
      ORDER BY created_at DESC, id DESC`
   );
@@ -216,15 +301,23 @@ async function listAudioRecords(audioDir, db = dbGlobal) {
     const filename = audioFilenameFromReference(row.audio_path);
     return {
       reference: `listening:${row.id}`,
+      lesson_id: row.id,
       display_reference: filename || "Tham chiếu âm thanh không hợp lệ",
       related_type: "Bài nghe",
       related_label: row.title || row.id,
       exists,
       size,
       created_at: row.created_at,
+      owner_user_id: row.owner_user_id,
+      owner_username: row.owner_username,
       can_delete: true
     };
   });
+}
+
+async function listUserAudioRecords(userId, audioDir, db = dbGlobal) {
+  const records = await listAudioRecords(audioDir, db);
+  return records.filter((r) => Number(r.owner_user_id) === Number(userId));
 }
 
 async function getDashboardStats(db = dbGlobal) {
@@ -280,20 +373,33 @@ async function listAdminLogs(filters, db = dbGlobal) {
 module.exports = {
   listUsers,
   getUserDetail,
+  updateUser,
+  deleteUser,
   updateUserStatus,
   listVocab,
   getVocab,
+  getUserVocab,
   updateVocab,
+  updateUserVocab,
   deleteVocab,
+  deleteUserVocab,
   listGrammar,
+  getUserGrammar,
+  updateUserGrammar,
+  deleteUserGrammar,
   listLearningActivity,
   listListening,
   getListeningLesson,
+  getUserListeningLesson,
+  updateUserListeningLesson,
   deleteListeningLesson,
+  deleteUserListeningLesson,
   updateListeningAudio,
+  updateUserListeningAudio,
   audioFilenameFromReference,
   audioPathExists,
   listAudioRecords,
+  listUserAudioRecords,
   getDashboardStats,
   getRecentErrors,
   logAdminAction,

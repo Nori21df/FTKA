@@ -64,7 +64,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/static", express.static(publicDir));
 app.use("/uploads", express.static(path.join(publicDir, "uploads")));
 
-app.use(session({
+const sessionMiddleware = session({
   name: "ftka.sid",
   secret: env.sessionSecret || "dev-only-change-me",
   resave: false,
@@ -74,7 +74,9 @@ app.use(session({
     sameSite: "lax",
     secure: env.nodeEnv === "production"
   }
-}));
+});
+
+app.use(sessionMiddleware);
 
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
@@ -144,4 +146,4 @@ app.use((error, req, res, next) => {
   return res.status(500).send(env.nodeEnv === "production" ? "Internal server error" : `<pre>${String(error.stack || error)}</pre>`);
 });
 
-module.exports = { app };
+module.exports = { app, sessionMiddleware };

@@ -1,11 +1,12 @@
 {% if page_info.total_pages > 1 %}
+{% set pagination_base = admin_pagination_base | default('') %}
 <div class="admin-actions">
     {% if page_info.has_prev %}
-    <a class="admin-button" href="{{ admin_page_url(page_info.page - 1) }}">Quay lại</a>
+    <a class="admin-button" href="{{ admin_page_url(page_info.page - 1, pagination_base) }}">Quay lại</a>
     {% endif %}
     <span class="admin-muted">Trang {{ page_info.page }} / {{ page_info.total_pages }} · tổng {{ page_info.total }}</span>
     {% if page_info.has_next %}
-    <a class="admin-button" href="{{ admin_page_url(page_info.page + 1) }}">Tiếp theo</a>
+    <a class="admin-button" href="{{ admin_page_url(page_info.page + 1, pagination_base) }}">Tiếp theo</a>
     {% endif %}
 </div>
 {% endif %}
