@@ -50,12 +50,15 @@ body.ftka-dark-ui {
     --shadow-lg: 0 18px 48px rgba(0, 0, 0, .34);
 }
 
-* {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
 html {
     min-height: 100%;
+    overflow-x: hidden;
     background-color: #ffffff;
     background-image:
         linear-gradient(45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%),
@@ -3011,10 +3014,24 @@ body.ftka-dark-ui .result-actions {
 
 @media (max-width: 768px) {
     html,
+    body.ftka-light-ui {
+        background-image: none;
+    }
+
+    html,
     body,
     .app-container,
     .main-content,
     .dashboard-content,
+    .mobile-header,
+    .dictionary-shell,
+    .dictionary-hero,
+    .dictionary-metrics,
+    .dictionary-control-grid,
+    .dictionary-group-section,
+    .dictionary-shelf,
+    .dictionary-panel,
+    .dictionary-card,
     .admin-shell,
     .admin-main,
     .admin-panel {
@@ -3036,6 +3053,111 @@ body.ftka-dark-ui .result-actions {
 
     .dashboard-content {
         padding: 16px 12px 28px;
+    }
+
+    .mobile-header {
+        left: 0;
+        right: 0;
+        margin: 0;
+        padding: 10px 12px;
+    }
+
+    .dictionary-shell {
+        gap: 14px;
+        overflow: hidden;
+    }
+
+    .dictionary-hero {
+        gap: 14px;
+        padding: 16px;
+        border-radius: 12px;
+    }
+
+    .dictionary-hero-title {
+        font-size: clamp(24px, 8vw, 34px);
+    }
+
+    .dictionary-hero-actions,
+    .dictionary-filter-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+        gap: 8px;
+        margin-top: 14px;
+    }
+
+    .dictionary-action,
+    .dictionary-secondary-action,
+    .dictionary-add-button,
+    .dictionary-filter-button,
+    .dictionary-inline-button,
+    .dictionary-input,
+    .dictionary-search-input,
+    .dictionary-select,
+    .dictionary-practice-input,
+    #importFile,
+    #importBtn,
+    #manualAddBtn,
+    #createGroupBtn {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .dictionary-control-grid,
+    .dictionary-card-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .dictionary-panel,
+    .dictionary-metric,
+    .dictionary-card,
+    .dictionary-folder-panel,
+    .dictionary-example,
+    .dictionary-practice {
+        border-radius: 12px;
+    }
+
+    .dictionary-card-main {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .dictionary-card-detail {
+        padding: 12px;
+    }
+
+    .dictionary-card-actions,
+    .dictionary-group-assign {
+        width: 100%;
+        min-width: 0;
+        justify-content: stretch;
+    }
+
+    .dictionary-card-actions {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr) 42px;
+        gap: 8px;
+    }
+
+    .dictionary-icon-button {
+        width: 42px;
+        min-width: 42px;
+    }
+
+    .dictionary-status-button {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .dictionary-example-content,
+    .dictionary-group-assign {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .dictionary-group-table-wrap .dictionary-group-table {
+        min-width: 620px;
     }
 
     .sidebar {
