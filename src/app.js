@@ -48,6 +48,7 @@ nunjucksEnv.addFilter("startsWith", (value, prefix) => String(value || "").start
 app.set("view engine", "html");
 app.set("views", viewsDir);
 app.disable("x-powered-by");
+app.set("trust proxy", 1);
 
 app.use(helmet({
   contentSecurityPolicy: false
@@ -65,6 +66,7 @@ app.use("/static", express.static(publicDir));
 app.use("/uploads", express.static(path.join(publicDir, "uploads")));
 
 const sessionMiddleware = session({
+  proxy: env.nodeEnv === "production",
   name: "ftka.sid",
   secret: env.sessionSecret || "dev-only-change-me",
   resave: false,
