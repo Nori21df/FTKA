@@ -2162,6 +2162,28 @@ textarea {
     justify-content: center;
 }
 
+.dictionary-pagination {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.dictionary-pagination-list {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.dictionary-pagination-link {
+    padding: 10px 16px;
+}
+
 .dictionary-filter-button.is-active,
 .grammar-filter-button.is-active {
     color: #fff;
@@ -3020,6 +3042,7 @@ body.ftka-dark-ui .result-actions {
 
 @media (max-width: 768px) {
     html,
+    body,
     body.ftka-light-ui {
         background-image: none;
     }
@@ -3043,13 +3066,19 @@ body.ftka-dark-ui .result-actions {
     .dictionary-control-grid,
     .dictionary-group-section,
     .dictionary-shelf,
+    .dictionary-grid,
     .dictionary-panel,
     .dictionary-card,
+    .dictionary-card-main,
+    .dictionary-card-detail,
+    .dictionary-pagination,
+    .dictionary-pagination-list,
     .admin-shell,
     .admin-main,
     .admin-panel {
         width: 100%;
         max-width: 100%;
+        min-width: 0;
     }
 
     .app-container {
@@ -3067,7 +3096,7 @@ body.ftka-dark-ui .result-actions {
     .dashboard-content {
         width: 100%;
         max-width: 100%;
-        padding: 14px 12px 26px;
+        padding: 12px 12px 26px;
         overflow-x: hidden;
     }
 
@@ -3078,12 +3107,15 @@ body.ftka-dark-ui .result-actions {
         min-height: 64px;
         padding: 8px 12px;
         overflow: hidden;
+        gap: 10px;
     }
 
     .mobile-brand {
         min-width: 0;
-        gap: 9px;
-        font-size: 16px;
+        max-width: calc(100% - 54px);
+        gap: 8px;
+        font-size: 15px;
+        line-height: 1;
     }
 
     .mobile-brand .logo-icon {
@@ -3106,18 +3138,20 @@ body.ftka-dark-ui .result-actions {
 
     .dictionary-shell {
         gap: 14px;
+        min-width: 0;
         overflow: hidden;
     }
 
     .dictionary-hero {
         gap: 14px;
-        padding: 16px;
+        padding: 14px;
         border-radius: 14px;
     }
 
     .dictionary-hero-title {
-        font-size: clamp(28px, 8vw, 34px);
-        line-height: 1.08;
+        font-size: 30px;
+        line-height: 1.1;
+        overflow-wrap: anywhere;
     }
 
     .dictionary-metrics {
@@ -3125,7 +3159,7 @@ body.ftka-dark-ui .result-actions {
     }
 
     .dictionary-metric {
-        padding: 16px;
+        padding: 14px;
     }
 
     .dictionary-metric span {
@@ -3134,7 +3168,7 @@ body.ftka-dark-ui .result-actions {
     }
 
     .dictionary-metric strong {
-        font-size: 36px;
+        font-size: 34px;
     }
 
     .dictionary-hero-actions,
@@ -3161,9 +3195,10 @@ body.ftka-dark-ui .result-actions {
     #createGroupBtn {
         width: 100%;
         max-width: 100%;
-        min-height: 48px;
+        min-height: 50px;
         padding: 10px 12px;
         font-size: 15px;
+        line-height: 1.2;
     }
 
     .dictionary-action .material-icons-outlined,
@@ -3192,10 +3227,12 @@ body.ftka-dark-ui .result-actions {
     }
 
     .dictionary-panel {
-        padding: 16px;
+        padding: 14px;
     }
 
     .dictionary-card {
+        width: 100%;
+        max-width: 100%;
         margin-bottom: 14px;
         border-radius: 16px;
         overflow: hidden;
@@ -3208,7 +3245,7 @@ body.ftka-dark-ui .result-actions {
     }
 
     .dictionary-card-title {
-        font-size: 24px;
+        font-size: 22px;
     }
 
     .dictionary-card-meaning,
@@ -3246,7 +3283,7 @@ body.ftka-dark-ui .result-actions {
     }
 
     .dictionary-icon-button .material-icons-outlined {
-        font-size: 21px;
+        font-size: 20px;
     }
 
     .dictionary-status-button {
@@ -3263,7 +3300,38 @@ body.ftka-dark-ui .result-actions {
     }
 
     .dictionary-group-table-wrap .dictionary-group-table {
-        min-width: 620px;
+        min-width: 0;
+        table-layout: fixed;
+    }
+
+    .dictionary-group-table th,
+    .dictionary-group-table td {
+        padding: 10px 8px;
+        overflow-wrap: anywhere;
+        font-size: 13px;
+    }
+
+    .dictionary-group-file,
+    .dictionary-group-name {
+        overflow-wrap: anywhere;
+    }
+
+    .dictionary-pagination {
+        margin-top: 14px;
+    }
+
+    .dictionary-pagination-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(44px, max-content));
+        justify-content: center;
+        gap: 7px;
+    }
+
+    .dictionary-pagination-link {
+        width: auto;
+        min-height: 42px;
+        padding: 8px 11px;
+        font-size: 14px;
     }
 
     .sidebar {
@@ -3384,6 +3452,14 @@ body.ftka-dark-ui .result-actions {
         max-width: 100%;
     }
 
+    .dictionary-panel {
+        padding: 14px;
+    }
+
+    .dictionary-hero-title {
+        font-size: 28px;
+    }
+
     .dictionary-manual-row,
     .dictionary-group-row,
     .studio-compose-footer,
@@ -3401,7 +3477,6 @@ body.ftka-dark-ui .result-actions {
         grid-template-columns: 1fr;
     }
 
-    .dictionary-card-actions,
     .grammar-card-actions {
         justify-content: flex-start;
         flex-wrap: wrap;

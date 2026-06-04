@@ -290,12 +290,12 @@
 
         <!-- Pagination Controls -->
         {% if total_pages > 1 %}
-        <div class="dictionary-pagination" style="margin-top: 20px; text-align: center;">
+        <div class="dictionary-pagination">
             <nav>
-                <ul style="display: inline-flex; gap: 8px; list-style: none; padding: 0; margin: 0;">
+                <ul class="dictionary-pagination-list">
                     {% if page > 1 %}
                         <li>
-                            <a href="{{ url_for('vocab', page=page-1) }}" class="dictionary-secondary-action" style="padding: 10px 16px;">
+                            <a href="{{ url_for('vocab', page=page-1) }}" class="dictionary-secondary-action dictionary-pagination-link">
                                 Quay lại
                             </a>
                         </li>
@@ -304,11 +304,11 @@
                     {% for i in range(max(1, page-2), min(total_pages+1, page+3)) %}
                         <li>
                             {% if i == page %}
-                                <span class="dictionary-action" style="padding: 10px 16px; background: var(--primary);">
+                                <span class="dictionary-action dictionary-pagination-link">
                                     {{ i }}
                                 </span>
                             {% else %}
-                                <a href="{{ url_for('vocab', page=i) }}" class="dictionary-secondary-action" style="padding: 10px 16px;">
+                                <a href="{{ url_for('vocab', page=i) }}" class="dictionary-secondary-action dictionary-pagination-link">
                                     {{ i }}
                                 </a>
                             {% endif %}
@@ -317,7 +317,7 @@
 
                     {% if page < total_pages %}
                         <li>
-                            <a href="{{ url_for('vocab', page=page+1) }}" class="dictionary-secondary-action" style="padding: 10px 16px;">
+                            <a href="{{ url_for('vocab', page=page+1) }}" class="dictionary-secondary-action dictionary-pagination-link">
                                 Tiếp theo
                             </a>
                         </li>
