@@ -57,6 +57,18 @@
     </script>
 </head>
 <body class="{{ ui_theme_class }} {% block body_class %}{% endblock %}" data-authenticated="{% if current_user %}true{% else %}false{% endif %}">
+    <div id="toast-root" class="toast-root" aria-live="polite" aria-atomic="false"></div>
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="confirm-modal-backdrop" hidden aria-modal="true" role="dialog">
+        <div class="confirm-modal-box">
+            <h3 class="confirm-modal-title" id="confirm-modal-title"></h3>
+            <p class="confirm-modal-message" id="confirm-modal-message"></p>
+            <div class="confirm-modal-actions">
+                <button type="button" class="confirm-modal-cancel" id="confirm-modal-cancel">Huỷ</button>
+                <button type="button" class="confirm-modal-confirm" id="confirm-modal-confirm">Xác nhận</button>
+            </div>
+        </div>
+    </div>
     <a class="skip-link" href="#mainContent">Bỏ qua điều hướng</a>
     <div id="global-loading" class="global-loading" hidden>Đang tải...</div>
     <div class="app-container" data-component="app-layout">
@@ -229,11 +241,46 @@
                         const res = await fetch('/api/energy/claim-daily', { method: 'POST', headers: { 'Accept': 'application/json' } });
                         const data = await res.json();
                         if (data.energy) renderEnergyStatus(data.energy);
-                        alert(data.success ? 'Đã nhận thưởng năng lượng hằng ngày!' : (data.error || 'Không thể nhận thưởng.'));
-                    } catch (e) { alert('Không thể cập nhật năng lượng.'); }
+                        window.showToast(data.success ? 'Đã nhận thưởng năng lượng hằng ngày!' : (data.error || 'Không thể nhận thưởng.'), data.success ? 'success' : 'error');
+                    } catch (e) { window.showToast('Không thể cập nhật năng lượng.', 'error'); }
                 });
             }
-            window.showEnergyError = function(message) { alert(message || 'Không đủ năng lượng cho thao tác AI này.'); };
+            window.showEnergyError = function(message) { window.showToast(message || 'Không đủ năng lượng cho thao tác AI này.', 'error'); };
+
+            // Custom confirmation modal
+            window.showConfirm = function(options) {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('confirm-modal');
+                    const titleEl = document.getElementById('confirm-modal-title');
+                    const messageEl = document.getElementById('confirm-modal-message');
+                    const cancelBtn = document.getElementById('confirm-modal-cancel');
+                    const confirmBtn = document.getElementById('confirm-modal-confirm');
+                    if (!modal) { resolve(window.confirm(options.message || '')); return; }
+                    titleEl.textContent = options.title || 'Xác nhận';
+                    messageEl.textContent = options.message || '';
+                    cancelBtn.textContent = options.cancelText || 'Huỷ';
+                    confirmBtn.textContent = options.confirmText || 'Xác nhận';
+                    confirmBtn.className = 'confirm-modal-confirm' + (options.danger ? ' is-danger' : '');
+                    modal.hidden = false;
+                    modal.classList.add('is-open');
+                    document.body.style.overflow = 'hidden';
+                    const cleanup = (result) => {
+                        modal.classList.remove('is-open');
+                        modal.hidden = true;
+                        document.body.style.overflow = '';
+                        cancelBtn.removeEventListener('click', onCancel);
+                        confirmBtn.removeEventListener('click', onConfirm);
+                        modal.removeEventListener('click', onBackdrop);
+                        resolve(result);
+                    };
+                    const onCancel = () => cleanup(false);
+                    const onConfirm = () => cleanup(true);
+                    const onBackdrop = (e) => { if (e.target === modal) cleanup(false); };
+                    cancelBtn.addEventListener('click', onCancel);
+                    confirmBtn.addEventListener('click', onConfirm);
+                    modal.addEventListener('click', onBackdrop);
+                });
+            };
             const sidebar = document.getElementById('appSidebar');
             const toggle = document.querySelector('[data-sidebar-toggle]');
             const backdrop = document.querySelector('[data-sidebar-backdrop]');

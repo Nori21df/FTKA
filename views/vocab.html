@@ -2,7 +2,6 @@
 
 {% block content %}
 
-
 <div class="dictionary-shell">
     <section class="dictionary-hero">
         <h2 class="dictionary-hero-title">Từ vựng tiếng Hàn</h2>
@@ -36,6 +35,21 @@
             <span>Cần ôn</span>
             <strong>{{ unlearned_count }}</strong>
         </article>
+    </section>
+
+    <!-- Learning Progress Bar -->
+    <section class="vocab-progress-section">
+        <div class="vocab-progress-header">
+            <span class="vocab-progress-label">
+                <span class="material-icons-outlined" aria-hidden="true">trending_up</span>
+                Tiến độ học từ vựng
+            </span>
+            <span class="vocab-progress-count">{{ learned_count }} / {{ count }} từ</span>
+        </div>
+        <div class="vocab-progress-track" role="progressbar" aria-valuenow="{{ learned_count }}" aria-valuemin="0" aria-valuemax="{{ count }}" aria-label="Tiến độ học: {{ learned_count }} trên {{ count }} từ">
+            <div class="vocab-progress-fill" style="width: {% if count > 0 %}{{ ((learned_count / count) * 100) | round(1) }}{% else %}0{% endif %}%"></div>
+        </div>
+        <p class="vocab-progress-hint">{% if count > 0 %}{{ ((learned_count / count) * 100) | round(0) | int }}% hoàn thành{% else %}Chưa có từ vựng nào.{% endif %}</p>
     </section>
 
     <section class="dictionary-control-grid">
@@ -97,63 +111,72 @@
     </section>
 
     <section class="dictionary-group-section">
-        <article class="dictionary-panel">
-            <div class="dictionary-panel-head">
-                <div>
-                    <h3>Thư mục</h3>
+        <!-- Collapsible Folder Panel -->
+        <details class="dictionary-folder-section-details" {% if vocab_groups %}open{% endif %}>
+            <summary class="dictionary-folder-section-toggle">
+                <span class="material-icons-outlined" aria-hidden="true">folder</span>
+                Thư mục
+                <span class="dictionary-folder-section-count">{{ vocab_groups | length }} thư mục</span>
+                <span class="material-icons-outlined dictionary-folder-chevron" aria-hidden="true">expand_more</span>
+            </summary>
+            <article class="dictionary-panel" style="margin-top: 12px;">
+                <div class="dictionary-panel-head">
+                    <div>
+                        <h3>Thư mục</h3>
+                    </div>
                 </div>
-            </div>
 
-            <div class="dictionary-group-row">
-                <input type="text" id="groupNameInput" class="dictionary-input"
-                    placeholder="Tên thư mục">
-                <button id="createGroupBtn" type="button" class="dictionary-add-button" onclick="createGroup()">
-                    <span class="material-icons-outlined">create_new_folder</span>
-                    Tạo thư mục
-                </button>
-            </div>
+                <div class="dictionary-group-row">
+                    <input type="text" id="groupNameInput" class="dictionary-input"
+                        placeholder="Tên thư mục">
+                    <button id="createGroupBtn" type="button" class="dictionary-add-button" onclick="createGroup()">
+                        <span class="material-icons-outlined">create_new_folder</span>
+                        Tạo thư mục
+                    </button>
+                </div>
 
-            {% if vocab_groups %}
-            <div class="dictionary-group-table-wrap">
-                <table class="dictionary-group-table">
-                    <thead>
-                        <tr>
-                            <th>Thư mục</th>
-                            <th>Tệp xuất</th>
-                            <th>Số từ</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for group in vocab_groups %}
-                        <tr>
-                            <td>
-                                <span class="dictionary-group-name">{{ group.name }}</span>
-                            </td>
-                            <td>
-                                <span class="dictionary-group-file">{{ group.file_name }}</span>
-                            </td>
-                            <td>
-                                <span class="dictionary-group-count">{{ group.count }}</span>
-                            </td>
-                            <td>
-                                <button type="button" class="dictionary-group-delete-button"
-                                    onclick='deleteGroup({{ group.id|tojson }}, {{ group.name|tojson }})'
-                                    title="Xoá thư mục">
-                                    <span class="material-icons-outlined">delete_outline</span>
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="dictionary-empty-state" style="margin-top: 18px;">
-                Chưa có thư mục. Tạo thư mục rồi lưu từ vào đó.
-            </div>
-            {% endif %}
-        </article>
+                {% if vocab_groups %}
+                <div class="dictionary-group-table-wrap" style="margin-top: 14px;">
+                    <table class="dictionary-group-table">
+                        <thead>
+                            <tr>
+                                <th>Thư mục</th>
+                                <th>Tệp xuất</th>
+                                <th>Số từ</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for group in vocab_groups %}
+                            <tr>
+                                <td>
+                                    <span class="dictionary-group-name">{{ group.name }}</span>
+                                </td>
+                                <td>
+                                    <span class="dictionary-group-file">{{ group.file_name }}</span>
+                                </td>
+                                <td>
+                                    <span class="dictionary-group-count">{{ group.count }}</span>
+                                </td>
+                                <td>
+                                    <button type="button" class="dictionary-group-delete-button"
+                                        onclick='deleteGroup({{ group.id|tojson }}, {{ group.name|tojson }})'
+                                        title="Xoá thư mục">
+                                        <span class="material-icons-outlined">delete_outline</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="dictionary-empty-state" style="margin-top: 18px;">
+                    Chưa có thư mục. Tạo thư mục rồi lưu từ vào đó.
+                </div>
+                {% endif %}
+            </article>
+        </details>
     </section>
 
     <section class="dictionary-shelf">
@@ -168,7 +191,7 @@
         <div id="dictionaryGrid" class="dictionary-grid">
             {% for v in vocab %}
             {% set card_groups = vocab_group_map[v.id] | default([]) %}
-            <article id="card-{{ v.id }}" class="dictionary-card" data-learned="{{ 'true' if v.learned else 'false' }}"
+            <article id="card-{{ v.id }}" class="dictionary-card vocab-card-accented" data-learned="{{ 'true' if v.learned else 'false' }}"
                 data-groups="{% for group in card_groups %}{{ group.id }}{% if not loop.last %},{% endif %}{% endfor %}"
                 data-search="{{ (v.korean ~ ' ' ~ v.meaning_vi ~ ' ' ~ (v.explanation_vi or '') ~ ' ' ~ (v.example_kr or '') ~ ' ' ~ (v.example_vi or ''))|lower|e }}{% for group in card_groups %} {{ group.name|lower|e }}{% endfor %}">
                 <div class="dictionary-card-main">
@@ -179,6 +202,9 @@
                             {% for group in card_groups %}
                             <span class="dictionary-chip dictionary-group-chip">{{ group.name }}</span>
                             {% endfor %}
+                            <span class="vocab-learned-badge {% if v.learned %}is-learned{% else %}is-unlearned{% endif %}">
+                                {{ 'Đã học' if v.learned else 'Chưa học' }}
+                            </span>
                         </div>
                         <h4 id="kr-text-{{ v.id }}"
                             class="dictionary-card-title {% if not v.learned %}is-concealed{% endif %}"
@@ -210,7 +236,7 @@
                 <div class="dictionary-card-detail">
                 {% if not v.learned %}
                 <div class="dictionary-practice" id="practice-{{ v.id }}">
-                    <label for="practice-input-{{ v.id }}">Gõ đúng từ tiếng Hàn để đánh dấu đã học</label>
+                    <label for="practice-input-{{ v.id }}">Nhập đúng từ để học</label>
                     <input id="practice-input-{{ v.id }}" type="text" class="dictionary-practice-input"
                         placeholder="Nhập tại đây"
                         onkeyup='checkLearn(event, this, {{ v.korean|tojson }}, {{ v.id|tojson }})'>
@@ -369,7 +395,7 @@
 
         const audio = new Audio(`/api/tts?text=${encodeURIComponent(value)}`);
         audio.play().catch(() => {
-            alert('Không phát được âm thanh.');
+            window.showToast('Không phát được âm thanh.', 'error');
         });
     }
 
@@ -435,7 +461,7 @@
             }
             return true;
         } catch (error) {
-            alert(error.message || 'Thao tác thất bại.');
+            window.showToast(error.message || 'Thao tác thất bại.', 'error');
             return false;
         }
     }
@@ -497,9 +523,14 @@
     }
 
     async function deleteWord(id) {
-        if (!confirm('Bạn có chắc chắn muốn xóa từ này không?')) {
-            return;
-        }
+        const confirmed = await window.showConfirm({
+            title: 'Xoá từ vựng',
+            message: 'Bạn có chắc chắn muốn xóa từ này không?',
+            confirmText: 'Xoá',
+            cancelText: 'Huỷ',
+            danger: true
+        });
+        if (!confirmed) return;
 
         try {
             const response = await fetch('/api/delete_word', {
@@ -514,14 +545,19 @@
                 throw new Error(await readApiError(response, 'Xoá từ thất bại.'));
             }
         } catch (error) {
-            alert(error.message || 'Xoá từ thất bại.');
+            window.showToast(error.message || 'Xoá từ thất bại.', 'error');
         }
     }
 
     async function resetLearned() {
-        if (!confirm('Đặt lại tiến độ học của tất cả từ?')) {
-            return;
-        }
+        const confirmed = await window.showConfirm({
+            title: 'Đặt lại tiến độ',
+            message: 'Đặt lại tiến độ học của tất cả từ?',
+            confirmText: 'Đặt lại',
+            cancelText: 'Huỷ',
+            danger: true
+        });
+        if (!confirmed) return;
 
         try {
             const response = await fetch('/api/reset_learned', { method: 'POST' });
@@ -531,7 +567,7 @@
                 throw new Error(await readApiError(response, 'Đặt lại tiến độ thất bại.'));
             }
         } catch (error) {
-            alert(error.message || 'Đặt lại tiến độ thất bại.');
+            window.showToast(error.message || 'Đặt lại tiến độ thất bại.', 'error');
         }
     }
 
@@ -541,7 +577,7 @@
         const name = input.value.trim();
 
         if (!name) {
-            alert('Vui lòng nhập tên thư mục trước.');
+            window.showToast('Vui lòng nhập tên thư mục trước.', 'error');
             return;
         }
 
@@ -566,7 +602,7 @@
 
             window.location.reload();
         } catch (error) {
-            alert(error.message || 'Tạo thư mục thất bại.');
+            window.showToast(error.message || 'Tạo thư mục thất bại.', 'error');
         } finally {
             button.disabled = false;
             button.innerHTML = '<span class="material-icons-outlined">create_new_folder</span>Tạo thư mục';
@@ -578,7 +614,7 @@
         const groupId = select ? select.value : '';
 
         if (!groupId) {
-            alert('Vui lòng chọn thư mục trước.');
+            window.showToast('Vui lòng chọn thư mục trước.', 'error');
             return;
         }
 
@@ -600,14 +636,19 @@
 
             window.location.reload();
         } catch (error) {
-            alert(error.message || 'Lưu từ vào thư mục thất bại.');
+            window.showToast(error.message || 'Lưu từ vào thư mục thất bại.', 'error');
         }
     }
 
     async function deleteGroup(groupId, groupName) {
-        if (!confirm(`Xoá thư mục "${groupName}" và tệp xuất riêng?`)) {
-            return;
-        }
+        const confirmed = await window.showConfirm({
+            title: 'Xoá thư mục',
+            message: `Xoá thư mục \u201c${groupName}\u201d và tệp xuất riêng?`,
+            confirmText: 'Xoá',
+            cancelText: 'Huỷ',
+            danger: true
+        });
+        if (!confirmed) return;
 
         try {
             const response = await fetch('/api/vocab_groups/delete', {
@@ -627,7 +668,7 @@
 
             window.location.reload();
         } catch (error) {
-            alert(error.message || 'Xoá thư mục thất bại.');
+            window.showToast(error.message || 'Xoá thư mục thất bại.', 'error');
         }
     }
 
@@ -665,7 +706,7 @@
 
             window.location.reload();
         } catch (error) {
-            alert(error.message || 'Lỗi mạng.');
+            window.showToast(error.message || 'Lỗi mạng.', 'error');
         } finally {
             button.disabled = false;
             button.innerHTML = '<span class="material-icons-outlined">add_circle</span>Thêm';
@@ -678,7 +719,7 @@
         const button = document.getElementById('importBtn');
 
         if (!file) {
-            alert('Vui lòng chọn một tệp JSON để nhập.');
+            window.showToast('Vui lòng chọn một tệp JSON để nhập.', 'error');
             return;
         }
 
@@ -703,10 +744,10 @@
                 throw new Error(data.error || 'Nhập JSON thất bại.');
             }
 
-            alert(`Đã nhập ${data.count} từ.`);
+            window.showToast(`Đã nhập ${data.count} từ.`, 'success');
             window.location.reload();
         } catch (error) {
-            alert(error.message || 'Lỗi kết nối mạng.');
+            window.showToast(error.message || 'Lỗi kết nối mạng.', 'error');
         } finally {
             button.disabled = false;
             button.innerHTML = '<span class="material-icons-outlined">upload_file</span>Nhập JSON';

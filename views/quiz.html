@@ -684,7 +684,7 @@ async function markCurrentCardLearned() {
         nextTurn();
     } catch (error) {
         state.busyAction = false;
-        alert(error.message || 'Chưa cập nhật được từ này.');
+        window.showToast(error.message || 'Chưa cập nhật được từ này.', 'error');
         renderStudyBody();
     }
 }
