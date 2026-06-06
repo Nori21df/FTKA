@@ -235,21 +235,23 @@ canvas {
     grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
     min-height: 100vh;
     max-width: 100%;
+    gap: 0;
 }
 
 .sidebar {
     position: sticky;
-    top: 0;
+    top: 12px;
     z-index: 50;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    padding: 18px 14px;
-    border-right: 1px solid var(--line);
+    height: calc(100dvh - 24px);
+    margin: 12px 0 12px 12px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
     background: rgba(255, 255, 255, .92);
     backdrop-filter: blur(16px);
-    height: auto;
-    align-self: flex-start;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
 }
 
 body.ftka-dark-ui .sidebar {
@@ -257,7 +259,8 @@ body.ftka-dark-ui .sidebar {
 }
 
 .sidebar-header {
-    padding: 2px 4px 18px;
+    flex: 0 0 auto;
+    padding: 18px 14px 14px;
 }
 
 .logo,
@@ -303,12 +306,13 @@ body.ftka-dark-ui .sidebar {
 
 .sidebar-nav {
     flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 6px;
-    overflow-y: visible;
+    overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 2px;
+    padding: 0 14px 18px;
     scrollbar-width: none;
 }
 
@@ -356,21 +360,24 @@ body.ftka-dark-ui .sidebar {
 
 .topbar {
     position: sticky;
-    top: 0;
+    top: 12px;
     z-index: 40;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
     min-height: var(--topbar-height);
-    padding: 14px 30px;
-    border-bottom: 1px solid var(--line);
-    background: rgba(246, 248, 251, .88);
+    margin: 12px 12px 0;
+    padding: 14px 24px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(246, 248, 251, .92);
     backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-md);
 }
 
 body.ftka-dark-ui .topbar {
-    background: rgba(15, 23, 42, .86);
+    background: rgba(15, 23, 42, .92);
 }
 
 .topbar-context {
@@ -530,7 +537,7 @@ body.ftka-dark-ui .energy-pill {
     width: min(100%, 1480px);
     max-width: 100%;
     margin: 0 auto;
-    padding: 28px 30px 48px;
+    padding: 20px 30px 48px;
     min-width: 0;
 }
 
@@ -2919,7 +2926,7 @@ body.ftka-dark-ui .result-actions {
     }
 
     .app-container {
-        grid-template-columns: var(--sidebar-compact) minmax(0, 1fr);
+        grid-template-columns: calc(var(--sidebar-compact) + 12px) minmax(0, 1fr);
     }
 
     .sidebar:hover,
@@ -2988,6 +2995,12 @@ body.ftka-dark-ui .result-actions {
 
     .topbar {
         position: static;
+        margin: 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+        box-shadow: none;
         padding: 14px 18px;
     }
 
@@ -3826,48 +3839,7 @@ body.ftka-dark-ui .result-actions {
     }
 }
 
-/* Sidebar stability fix: keep the rail continuous and let only nav scroll. */
-.app-container {
-    grid-template-columns: var(--sidebar-compact) minmax(0, 1fr);
-}
-
-.sidebar {
-    position: sticky;
-    top: 0;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-    min-height: 100dvh;
-    max-height: 100dvh;
-    overflow: hidden;
-}
-
-.sidebar-header {
-    flex: 0 0 auto;
-}
-
-.main-content {
-    min-width: 0;
-}
-
-@media (min-width: 901px) {
-    .sidebar {
-        width: var(--sidebar-compact);
-        transition: width .18s ease, box-shadow .18s ease;
-    }
-
-    .sidebar:hover,
-    .sidebar:focus-within {
-        width: var(--sidebar-width);
-    }
-
-    .main-content {
-        margin-left: 0;
-        padding-left: 0;
-    }
-}
-
+/* Sidebar: responsive overrides */
 @media (max-width: 900px) {
     .app-container {
         display: block;
@@ -3878,8 +3850,9 @@ body.ftka-dark-ui .result-actions {
         inset: 0 auto 0 0;
         width: min(320px, calc(100vw - 44px));
         height: 100dvh;
-        min-height: 100dvh;
-        max-height: 100dvh;
+        margin: 0;
+        border-radius: 0;
+        top: 0;
         transform: translateX(-105%);
     }
 
