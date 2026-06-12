@@ -25,15 +25,15 @@
     <section class="dictionary-metrics">
         <article class="dictionary-metric">
             <span>Tổng số từ</span>
-            <strong>{{ count }}</strong>
+            <strong id="metricTotal">{{ count }}</strong>
         </article>
         <article class="dictionary-metric">
             <span>Đã học</span>
-            <strong>{{ learned_count }}</strong>
+            <strong id="metricLearned">{{ learned_count }}</strong>
         </article>
         <article class="dictionary-metric">
             <span>Cần ôn</span>
-            <strong>{{ unlearned_count }}</strong>
+            <strong id="metricUnlearned">{{ unlearned_count }}</strong>
         </article>
     </section>
 
@@ -44,12 +44,12 @@
                 <span class="material-icons-outlined" aria-hidden="true">trending_up</span>
                 Tiến độ học từ vựng
             </span>
-            <span class="vocab-progress-count">{{ learned_count }} / {{ count }} từ</span>
+            <span class="vocab-progress-count" id="vocabProgressCount">{{ learned_count }} / {{ count }} từ</span>
         </div>
         <div class="vocab-progress-track" role="progressbar" aria-valuenow="{{ learned_count }}" aria-valuemin="0" aria-valuemax="{{ count }}" aria-label="Tiến độ học: {{ learned_count }} trên {{ count }} từ">
-            <div class="vocab-progress-fill" style="width: {% if count > 0 %}{{ ((learned_count / count) * 100) | round(1) }}{% else %}0{% endif %}%"></div>
+            <div class="vocab-progress-fill" id="vocabProgressFill" style="width: {% if count > 0 %}{{ ((learned_count / count) * 100) | round(1) }}{% else %}0{% endif %}%"></div>
         </div>
-        <p class="vocab-progress-hint">{% if count > 0 %}{{ ((learned_count / count) * 100) | round(0) | int }}% hoàn thành{% else %}Chưa có từ vựng nào.{% endif %}</p>
+        <p class="vocab-progress-hint" id="vocabProgressHint">{% if count > 0 %}{{ ((learned_count / count) * 100) | round(0) | int }}% hoàn thành{% else %}Chưa có từ vựng nào.{% endif %}</p>
     </section>
 
     <section class="dictionary-control-grid">
@@ -93,8 +93,12 @@
             </div>
 
             <div class="dictionary-filter-stack">
-                <input type="text" id="dictionarySearch" class="dictionary-search-input"
-                    placeholder="Tìm tiếng Hàn, nghĩa, giải thích hoặc ví dụ">
+                <form method="get" action="{{ url_for('vocab') }}">
+                    <input type="text" id="dictionarySearch" name="q" class="dictionary-search-input"
+                        value="{{ search_q }}"
+                        placeholder="Tìm tiếng Hàn, nghĩa, giải thích hoặc ví dụ">
+                    <p class="dictionary-search-hint">Gõ để lọc trang này · nhấn Enter để tìm trong toàn bộ từ điển{% if search_q %} · <a href="{{ url_for('vocab') }}">Xoá tìm kiếm</a>{% endif %}</p>
+                </form>
                 <select id="dictionaryGroupFilter" class="dictionary-select">
                     <option value="all">Tất cả thư mục</option>
                     {% for group in vocab_groups %}
@@ -184,7 +188,7 @@
             <div>
                 <h1>Tất cả từ vựng</h1>
             </div>
-            <span class="dictionary-shelf-count" id="dictionaryShelfCount">{{ count }} thẻ từ vựng</span>
+            <span class="dictionary-shelf-count" id="dictionaryShelfCount">{{ shelf_total }} thẻ từ vựng{% if search_q %} khớp “{{ search_q }}”{% endif %}</span>
         </div>
 
         {% if vocab %}
@@ -306,7 +310,11 @@
         </div>
         {% else %}
         <div class="dictionary-empty-state">
+            {% if search_q %}
+            Không tìm thấy từ nào khớp “{{ search_q }}”. <a href="{{ url_for('vocab') }}">Xoá tìm kiếm</a>
+            {% else %}
             Chưa có từ vựng. Hãy tạo bằng AI hoặc thêm thủ công.
+            {% endif %}
         </div>
         {% endif %}
 
@@ -321,7 +329,7 @@
                 <ul class="dictionary-pagination-list">
                     {% if page > 1 %}
                         <li>
-                            <a href="{{ url_for('vocab', page=page-1) }}" class="dictionary-secondary-action dictionary-pagination-link">
+                            <a href="{{ url_for('vocab', page=page-1, q=search_q) }}" class="dictionary-secondary-action dictionary-pagination-link">
                                 Quay lại
                             </a>
                         </li>
@@ -334,7 +342,7 @@
                                     {{ i }}
                                 </span>
                             {% else %}
-                                <a href="{{ url_for('vocab', page=i) }}" class="dictionary-secondary-action dictionary-pagination-link">
+                                <a href="{{ url_for('vocab', page=i, q=search_q) }}" class="dictionary-secondary-action dictionary-pagination-link">
                                     {{ i }}
                                 </a>
                             {% endif %}
@@ -343,7 +351,7 @@
 
                     {% if page < total_pages %}
                         <li>
-                            <a href="{{ url_for('vocab', page=page+1) }}" class="dictionary-secondary-action dictionary-pagination-link">
+                            <a href="{{ url_for('vocab', page=page+1, q=search_q) }}" class="dictionary-secondary-action dictionary-pagination-link">
                                 Tiếp theo
                             </a>
                         </li>
@@ -443,7 +451,31 @@
         applyFilters();
     }
 
-    async function toggleLearned(id, status, reload = true) {
+    function updateMetrics(deltaLearned, deltaTotal) {
+        const totalEl = document.getElementById('metricTotal');
+        const learnedEl = document.getElementById('metricLearned');
+        const unlearnedEl = document.getElementById('metricUnlearned');
+        const total = Math.max(0, Number(totalEl ? totalEl.textContent : 0) + deltaTotal);
+        const learned = Math.max(0, Math.min(total, Number(learnedEl ? learnedEl.textContent : 0) + deltaLearned));
+        if (totalEl) totalEl.textContent = total;
+        if (learnedEl) learnedEl.textContent = learned;
+        if (unlearnedEl) unlearnedEl.textContent = total - learned;
+
+        const fill = document.getElementById('vocabProgressFill');
+        const hint = document.getElementById('vocabProgressHint');
+        const countLabel = document.getElementById('vocabProgressCount');
+        const track = document.querySelector('.vocab-progress-track');
+        const pct = total > 0 ? (learned / total) * 100 : 0;
+        if (fill) fill.style.width = `${pct.toFixed(1)}%`;
+        if (hint) hint.textContent = total > 0 ? `${Math.round(pct)}% hoàn thành` : 'Chưa có từ vựng nào.';
+        if (countLabel) countLabel.textContent = `${learned} / ${total} từ`;
+        if (track) {
+            track.setAttribute('aria-valuenow', learned);
+            track.setAttribute('aria-valuemax', total);
+        }
+    }
+
+    async function saveLearned(id, status) {
         try {
             const response = await fetch('/api/mark_learned', {
                 method: 'POST',
@@ -454,16 +486,24 @@
             if (!response.ok) {
                 throw new Error(await readApiError(response, 'Thao tác thất bại.'));
             }
-
-            if (reload) {
-                window.location.reload();
-                return;
-            }
             return true;
         } catch (error) {
             window.showToast(error.message || 'Thao tác thất bại.', 'error');
             return false;
         }
+    }
+
+    async function toggleLearned(id, status) {
+        const saved = await saveLearned(id, status);
+        if (!saved) return false;
+        if (status) {
+            markCardLearnedUI(id);
+        } else {
+            markCardUnlearnedUI(id);
+        }
+        updateMetrics(status ? 1 : -1, 0);
+        applyFilters();
+        return true;
     }
 
     function markCardLearnedUI(id) {
@@ -472,6 +512,7 @@
         const practice = document.getElementById(`practice-${id}`);
         const statusButton = document.getElementById(`status-btn-${id}`);
         const exampleBox = document.getElementById(`example-box-${id}`);
+        const badge = card ? card.querySelector('.vocab-learned-badge') : null;
 
         if (card) {
             card.dataset.learned = 'true';
@@ -482,6 +523,11 @@
         if (practice) {
             practice.remove();
         }
+        if (badge) {
+            badge.textContent = 'Đã học';
+            badge.classList.remove('is-unlearned');
+            badge.classList.add('is-learned');
+        }
         if (statusButton) {
             statusButton.textContent = 'Đã học';
             statusButton.classList.remove('is-unlearned');
@@ -490,6 +536,64 @@
         }
         if (exampleBox) {
             exampleBox.classList.add('is-revealed');
+        }
+    }
+
+    function markCardUnlearnedUI(id) {
+        const card = document.getElementById(`card-${id}`);
+        const title = document.getElementById(`kr-text-${id}`);
+        const statusButton = document.getElementById(`status-btn-${id}`);
+        const exampleBox = document.getElementById(`example-box-${id}`);
+        const badge = card ? card.querySelector('.vocab-learned-badge') : null;
+        const korean = title ? title.textContent.trim() : '';
+
+        if (card) {
+            card.dataset.learned = 'false';
+        }
+        if (title) {
+            title.classList.add('is-concealed');
+        }
+        if (badge) {
+            badge.textContent = 'Chưa học';
+            badge.classList.remove('is-learned');
+            badge.classList.add('is-unlearned');
+        }
+        if (statusButton) {
+            statusButton.textContent = 'Chưa học';
+            statusButton.classList.remove('is-learned');
+            statusButton.classList.add('is-unlearned');
+            statusButton.setAttribute('onclick', `toggleLearned(${JSON.stringify(id)}, true)`);
+        }
+        if (exampleBox) {
+            exampleBox.classList.remove('is-revealed');
+            if (!exampleBox.querySelector('.dictionary-example-toggle')) {
+                const toggleButton = document.createElement('button');
+                toggleButton.type = 'button';
+                toggleButton.className = 'dictionary-example-toggle';
+                toggleButton.id = `example-overlay-${id}`;
+                toggleButton.innerHTML = '<span class="material-icons-outlined">visibility</span> Hiện ví dụ';
+                toggleButton.addEventListener('click', () => revealExample(id));
+                exampleBox.prepend(toggleButton);
+            }
+        }
+        if (card && korean && !document.getElementById(`practice-${id}`)) {
+            const detail = card.querySelector('.dictionary-card-detail');
+            if (detail) {
+                const practice = document.createElement('div');
+                practice.className = 'dictionary-practice';
+                practice.id = `practice-${id}`;
+                const label = document.createElement('label');
+                label.setAttribute('for', `practice-input-${id}`);
+                label.textContent = 'Nhập đúng từ để học';
+                const input = document.createElement('input');
+                input.id = `practice-input-${id}`;
+                input.type = 'text';
+                input.className = 'dictionary-practice-input';
+                input.placeholder = 'Nhập tại đây';
+                input.addEventListener('keyup', (event) => checkLearn(event, input, korean, id));
+                practice.append(label, input);
+                detail.prepend(practice);
+            }
         }
     }
 
@@ -503,16 +607,11 @@
         inputElem.disabled = true;
         inputElem.classList.add('is-success');
 
-        const saved = await toggleLearned(id, true, false);
+        const saved = await toggleLearned(id, true);
         if (!saved) {
             inputElem.disabled = false;
             inputElem.classList.remove('is-success');
-            return;
         }
-
-        markCardLearnedUI(id);
-        revealExample(id);
-        applyFilters();
     }
 
     function revealExample(id) {
@@ -539,11 +638,16 @@
                 body: JSON.stringify({ id: id })
             });
 
-            if (response.ok) {
-                window.location.reload();
-            } else {
+            if (!response.ok) {
                 throw new Error(await readApiError(response, 'Xoá từ thất bại.'));
             }
+
+            const card = document.getElementById(`card-${id}`);
+            const wasLearned = card && card.dataset.learned === 'true';
+            if (card) card.remove();
+            updateMetrics(wasLearned ? -1 : 0, -1);
+            applyFilters();
+            window.showToast('Đã xoá từ vựng.', 'success');
         } catch (error) {
             window.showToast(error.message || 'Xoá từ thất bại.', 'error');
         }
@@ -634,7 +738,40 @@
                 throw new Error(data.error || 'Lưu từ vào thư mục thất bại.');
             }
 
-            window.location.reload();
+            const card = document.getElementById(`card-${id}`);
+            if (!card || !data.group) {
+                window.location.reload();
+                return;
+            }
+
+            const newGroupId = String(data.group.id);
+            const assigned = (card.dataset.groups || '').split(',').filter(Boolean);
+            if (!assigned.includes(newGroupId)) {
+                assigned.push(newGroupId);
+                card.dataset.groups = assigned.join(',');
+                card.dataset.search = `${card.dataset.search || ''} ${String(data.group.name || '').toLowerCase()}`;
+
+                const meta = card.querySelector('.dictionary-card-meta');
+                if (meta) {
+                    const chip = document.createElement('span');
+                    chip.className = 'dictionary-chip dictionary-group-chip';
+                    chip.textContent = data.group.name;
+                    meta.insertBefore(chip, meta.querySelector('.vocab-learned-badge'));
+                }
+
+                const chipRow = card.querySelector('.dictionary-group-chip-row');
+                if (chipRow) {
+                    const emptyNote = chipRow.querySelector('.dictionary-folder-empty');
+                    if (emptyNote) emptyNote.remove();
+                    const chip = document.createElement('span');
+                    chip.className = 'dictionary-group-chip';
+                    chip.textContent = data.group.name;
+                    chipRow.appendChild(chip);
+                }
+            }
+            if (select) select.value = '';
+            applyFilters();
+            window.showToast(`Đã lưu vào thư mục “${data.group.name}”.`, 'success');
         } catch (error) {
             window.showToast(error.message || 'Lưu từ vào thư mục thất bại.', 'error');
         }

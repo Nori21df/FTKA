@@ -232,22 +232,25 @@ canvas {
 
 .app-container {
     display: grid;
-    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
-    min-height: 100vh;
+    grid-template-columns: var(--sidebar-compact) minmax(0, 1fr);
+    min-height: 100dvh;
     max-width: 100%;
     gap: 0;
 }
 
 .sidebar {
     position: sticky;
-    top: 12px;
+    top: 0;
+    left: 0;
     z-index: 50;
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - 24px);
-    margin: 12px 0 12px 12px;
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
     border: 1px solid var(--line);
-    border-radius: 18px;
+    border-radius: 0 18px 18px 0;
     background: rgba(255, 255, 255, .92);
     backdrop-filter: blur(16px);
     overflow: hidden;
@@ -1500,6 +1503,7 @@ textarea {
 
 .dashboard-panel,
 .studio-main-card,
+.studio-side-card,
 .dictionary-panel,
 .grammar-panel,
 .listening-panel,
@@ -1840,6 +1844,28 @@ textarea {
     -webkit-overflow-scrolling: touch;
     border: 1px solid var(--line);
     border-radius: var(--radius);
+}
+
+.admin-bulk-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.admin-check-col {
+    width: 36px;
+    text-align: center;
+}
+
+.admin-check-col input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    min-height: 0;
+    accent-color: var(--primary);
+    cursor: pointer;
 }
 
 .admin-table-wrap .admin-table,
@@ -2218,6 +2244,33 @@ textarea {
 .dashboard-side-stack {
     display: grid;
     gap: 14px;
+}
+
+.studio-manual-form {
+    display: grid;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.dictionary-search-hint {
+    margin: 6px 2px 0;
+    font-size: .78rem;
+    color: var(--text-muted, #8aa0b8);
+}
+
+.dictionary-search-hint a {
+    color: var(--primary);
+}
+
+.studio-manual-field {
+    display: grid;
+    gap: 6px;
+}
+
+.studio-manual-field span {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--text-soft);
 }
 
 .saved-lessons-summary {
@@ -2926,7 +2979,7 @@ body.ftka-dark-ui .result-actions {
     }
 
     .app-container {
-        grid-template-columns: calc(var(--sidebar-compact) + 12px) minmax(0, 1fr);
+        grid-template-columns: var(--sidebar-compact) minmax(0, 1fr);
     }
 
     .sidebar:hover,

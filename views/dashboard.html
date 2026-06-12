@@ -12,14 +12,14 @@
         <div class="dashboard-hero-main">
             <h2 class="dashboard-hero-title">Tổng quan học tập</h2>
             <p class="dashboard-hero-copy">
-                {% if unlearned == 0 %}
-                    
+                {% if unlearned == 0 and vocab_count > 0 %}
+                    Bạn đã học hết từ vựng hiện có. Thêm từ mới để tiếp tục chuỗi ngày học.
                 {% elif learning_streak.status == 'at_risk' %}
-                    
+                    Học một từ hôm nay để giữ chuỗi {{ learning_streak.days }} ngày của bạn.
                 {% elif learning_streak.status == 'active' %}
-                    
+                    Hôm nay bạn đã học {{ learning_streak.today_count }} từ. Tiếp tục phát huy!
                 {% else %}
-                    
+                    Học một từ hôm nay để bắt đầu chuỗi ngày học mới.
                 {% endif %}
             </p>
             <div class="dashboard-hero-actions">
@@ -80,9 +80,16 @@
     </section>
 
     <section class="dashboard-metrics">
+        {# TEMP: Năng lượng tạm tắt — xoá "{% if false %}"/"{% endif %}" để bật lại #}
+        {% if false %}
         <article class="dashboard-metric-card energy-card">
             <span class="dashboard-metric-label">Năng lượng</span>
             <strong>⚡ {{ energy_status.current_energy }}/{{ energy_status.max_energy }}</strong>
+        </article>
+        {% endif %}
+        <article class="dashboard-metric-card">
+            <span class="dashboard-metric-label">Từ mới tuần này</span>
+            <strong>{{ dashboard_summary.new_words_this_week }}</strong>
         </article>
         <article class="dashboard-metric-card">
             <span class="dashboard-metric-label">Từ đã thuộc</span>
@@ -90,7 +97,7 @@
         </article>
         <article class="dashboard-metric-card">
             <span class="dashboard-metric-label">Từ chưa học</span>
-            <strong>{{ dashboard_summary.new_words_this_week }}</strong>
+            <strong>{{ unlearned }}</strong>
         </article>
         <article class="dashboard-metric-card">
             <span class="dashboard-metric-label">Ngữ pháp</span>
@@ -144,7 +151,7 @@
                                 <strong>{{ item.korean }}</strong>
                                 <span>{{ item.meaning_vi }}</span>
                             </div>
-                            <span class="dashboard-feed-date">{{ item.date_label }}</span>
+                            <span class="dashboard-feed-date">{{ item.created_label }}</span>
                         </li>
                         {% endfor %}
                     </ul>

@@ -58,7 +58,11 @@ router.get("/payment/cancel", ...named("payment_cancel", loginRequired, asyncHan
   });
 })));
 
+// TEMP: Premium tạm tắt — đổi thành true để bật lại trang thanh toán
+const BILLING_PAGE_ENABLED = false;
+
 router.get("/account/billing", ...named("account_billing", loginRequired, asyncHandler(async (req, res) => {
+  if (!BILLING_PAGE_ENABLED) return res.redirect("/dashboard");
   res.render("account/billing.html", await sepay.getBillingForUser(req.currentUser.id));
 })));
 

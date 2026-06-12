@@ -12,22 +12,16 @@
     <script>
         (function() {
             const allowedTypes = new Set(['success', 'error', 'info', 'warning']);
-            const textMap = [
-                { re: /xoá|xóa/i, message: 'Đã xoá thành công', type: 'success' },
-                { re: /cập nhật|lưu|khoá|khóa|mở khoá|mở khóa|tạo lại/i, message: 'Đã lưu thay đổi', type: 'success' },
-                { re: /không tìm thấy|not found/i, message: 'Không tìm thấy dữ liệu', type: 'warning' },
-                { re: /không.*quyền|forbidden|quản trị của chính mình|chính tài khoản quản trị/i, message: 'Bạn không có quyền thực hiện thao tác này', type: 'error' }
-            ];
 
             function normalizeToast(message, type) {
                 const text = String(message || '').trim();
-                const hint = String(type || '').toLowerCase();
-                for (const item of textMap) {
-                    if (item.re.test(text)) return { message: item.message, type: item.type };
-                }
+                let hint = String(type || '').toLowerCase();
+                if (hint === 'danger') hint = 'error';
+                if (!allowedTypes.has(hint)) hint = 'info';
+                if (text) return { message: text, type: hint };
                 return {
                     message: hint === 'success' ? 'Đã lưu thay đổi' : 'Có lỗi xảy ra, vui lòng thử lại',
-                    type: allowedTypes.has(hint) ? hint : (hint === 'danger' ? 'error' : 'info')
+                    type: hint
                 };
             }
 
@@ -112,10 +106,13 @@
                     <span class="material-icons-outlined">quiz</span>
                     <span class="nav-label">{{ t('nav.quiz') }}</span>
                 </a>
+                {# TEMP: Premium tạm tắt — xoá "{% if false %}"/"{% endif %}" để bật lại #}
+                {% if false %}
                 <a href="{{ url_for('pricing') }}" class="nav-item {% if request.endpoint == 'pricing' %}active{% endif %}">
                     <span class="material-icons-outlined">workspace_premium</span>
                     <span class="nav-label">Premium</span>
                 </a>
+                {% endif %}
                 {% if current_user and current_user.role == 'admin' %}
                 <a href="{{ url_for('settings') }}" class="nav-item {% if request.endpoint == 'settings' %}active{% endif %}">
                     <span class="material-icons-outlined">settings</span>
@@ -127,10 +124,13 @@
                 </a>
                 {% endif %}
                 {% if current_user %}
+                {# TEMP: Thanh toán tạm tắt — xoá "{% if false %}"/"{% endif %}" để bật lại #}
+                {% if false %}
                 <a href="{{ url_for('account_billing') }}" class="nav-item {% if request.endpoint == 'account_billing' %}active{% endif %}">
                     <span class="material-icons-outlined">receipt_long</span>
                     <span class="nav-label">Thanh toán</span>
                 </a>
+                {% endif %}
                 <a href="{{ url_for('preferences') }}" class="nav-item {% if request.endpoint == 'preferences' %}active{% endif %}">
                     <span class="material-icons-outlined">palette</span>
                     <span class="nav-label">Giao diện</span>
@@ -168,7 +168,8 @@
                     </div>
                 </div>
                 <div class="topbar-status">
-                    {% if energy_status %}
+                    {# TEMP: Năng lượng tạm tắt — bỏ "false and" để bật lại #}
+                    {% if false and energy_status %}
                     <button type="button" class="energy-pill" id="energyPill" title="Năng lượng AI">⚡ <span id="energyLabel">{% if energy_status.isUnlimitedEnergy %}Năng lượng: Không giới hạn{% else %}<span id="energyCurrent">{{ energy_status.current_energy }}</span>/<span id="energyMax">{{ energy_status.max_energy }}</span>{% endif %}</span></button>
                     {% endif %}
                     <span class="status-dot" aria-hidden="true"></span>
@@ -212,6 +213,9 @@
                 }
             });
 
+            // TEMP: Năng lượng tạm tắt — đổi thành true để bật lại
+            const ENERGY_UI_ENABLED = false;
+
             function renderEnergyStatus(energy) {
                 const label = document.getElementById('energyLabel');
                 if (!label || !energy) return;
@@ -222,14 +226,14 @@
                 label.innerHTML = `<span id="energyCurrent">${energy.currentEnergy ?? energy.current_energy}</span>/<span id="energyMax">${energy.maxEnergy ?? energy.max_energy}</span>`;
             }
 
-            if (document.body.dataset.authenticated === 'true') {
+            if (ENERGY_UI_ENABLED && document.body.dataset.authenticated === 'true') {
                 fetch('/api/me/energy', { headers: { 'Accept': 'application/json' } })
                     .then((res) => res.ok ? res.json() : null)
                     .then((data) => { if (data && data.energy) renderEnergyStatus(data.energy); })
                     .catch(() => {});
             }
 
-            if (document.body.dataset.authenticated === 'true' && window.io) {
+            if (ENERGY_UI_ENABLED && document.body.dataset.authenticated === 'true' && window.io) {
                 const energySocket = window.io();
                 energySocket.on('energy:update', renderEnergyStatus);
             }
@@ -281,6 +285,22 @@
                     modal.addEventListener('click', onBackdrop);
                 });
             };
+            // Forms with data-confirm use the styled modal instead of native confirm()
+            document.addEventListener('submit', (event) => {
+                const form = event.target;
+                if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-confirm')) return;
+                event.preventDefault();
+                window.showConfirm({
+                    title: form.dataset.confirmTitle || 'Xác nhận',
+                    message: form.dataset.confirm || 'Bạn có chắc chắn?',
+                    confirmText: form.dataset.confirmText || 'Xác nhận',
+                    cancelText: 'Huỷ',
+                    danger: form.dataset.confirmDanger === 'true'
+                }).then((confirmed) => {
+                    if (confirmed) form.submit();
+                });
+            }, true);
+
             const sidebar = document.getElementById('appSidebar');
             const toggle = document.querySelector('[data-sidebar-toggle]');
             const backdrop = document.querySelector('[data-sidebar-backdrop]');

@@ -48,6 +48,14 @@ function redirectNotFound(req, res, fallback = "/admin") {
   return res.redirect(fallback);
 }
 
+function backTo(req, fallback) {
+  try {
+    const url = new URL(req.get("referer"), `${req.protocol}://${req.get("host")}`);
+    if (url.pathname.startsWith("/admin")) return url.pathname + url.search;
+  } catch (error) { /* fall through */ }
+  return fallback;
+}
+
 router.use(adminRequired);
 
 router.get("/", ...named("admin.dashboard", asyncHandler(async (req, res) => {
@@ -164,23 +172,76 @@ router.post("/users/:user_id/vocab/:id/edit", ...named("admin.user_vocab_update"
 router.post("/users/:user_id/vocab/:id/delete", ...named("admin.user_vocab_delete", asyncHandler(async (req, res) => {
   let groupIds = [];
   await db.withClient(async (clientDb) => { await clientDb.begin(); const [oldValue, ids] = await admin.deleteUserVocab(req.params.user_id, req.params.id, clientDb); if (!oldValue) throw new Error("Not found"); groupIds = ids; await admin.logAdminAction(clientDb, adminId(req), "user_vocab_delete", "vocab", req.params.id, oldValue, null, req.body.reason); await clientDb.commit(); });
-  for (const id of groupIds) await groups.exportSnapshot(id); flashDeleted(req); res.redirect(`/admin/users/${req.params.user_id}/vocab`);
+  for (const id of groupIds) await groups.exportSnapshot(id); flashDeleted(req); res.redirect(backTo(req, `/admin/users/${req.params.user_id}/vocab`));
 })));
 router.get("/users/:user_id/grammar", ...named("admin.user_grammar", asyncHandler(async (req, res) => { const user = await admin.getUserDetail(req.params.user_id); if (!user) return sendNotFound(req, res, "/admin/users"); const [grammar, pageInfo] = await admin.listGrammar({ ...req.query, user_id: user.id }); res.render("admin/user_items.html", { user, title: "Quản lý ngữ pháp", items: grammar, page_info: pageInfo, page_base: `/admin/users/${user.id}/grammar`, col1: "Ngữ pháp", col1_key: "grammar", col2: "Nghĩa", col2_key: "meaning_vi", edit_endpoint: "admin.user_grammar_edit", delete_endpoint: "admin.user_grammar_delete" }); })));
 router.get("/users/:user_id/grammar/:id/edit", ...named("admin.user_grammar_edit", asyncHandler(async (req, res) => { const user = await admin.getUserDetail(req.params.user_id); const item = user && await admin.getUserGrammar(user.id, req.params.id); if (!item) return sendNotFound(req, res, `/admin/users/${req.params.user_id}/grammar`); res.render("admin/user_grammar_edit.html", { user, item }); })));
 router.post("/users/:user_id/grammar/:id/edit", ...named("admin.user_grammar_update", asyncHandler(async (req, res) => { await db.withClient(async (clientDb) => { await clientDb.begin(); const [oldValue, newValue] = await admin.updateUserGrammar(req.params.user_id, req.params.id, req.body, clientDb); if (!oldValue) throw new Error("Not found"); await admin.logAdminAction(clientDb, adminId(req), "user_grammar_update", "grammar", req.params.id, oldValue, newValue, req.body.reason); await clientDb.commit(); }); flashSaved(req); res.redirect(`/admin/users/${req.params.user_id}/grammar`); })));
-router.post("/users/:user_id/grammar/:id/delete", ...named("admin.user_grammar_delete", asyncHandler(async (req, res) => { await db.withClient(async (clientDb) => { await clientDb.begin(); const oldValue = await admin.deleteUserGrammar(req.params.user_id, req.params.id, clientDb); if (!oldValue) throw new Error("Not found"); await admin.logAdminAction(clientDb, adminId(req), "user_grammar_delete", "grammar", req.params.id, oldValue, null, req.body.reason); await clientDb.commit(); }); flashDeleted(req); res.redirect(`/admin/users/${req.params.user_id}/grammar`); })));
+router.post("/users/:user_id/grammar/:id/delete", ...named("admin.user_grammar_delete", asyncHandler(async (req, res) => { await db.withClient(async (clientDb) => { await clientDb.begin(); const oldValue = await admin.deleteUserGrammar(req.params.user_id, req.params.id, clientDb); if (!oldValue) throw new Error("Not found"); await admin.logAdminAction(clientDb, adminId(req), "user_grammar_delete", "grammar", req.params.id, oldValue, null, req.body.reason); await clientDb.commit(); }); flashDeleted(req); res.redirect(backTo(req, `/admin/users/${req.params.user_id}/grammar`)); })));
 router.get("/users/:user_id/writing", ...named("admin.user_writing", (req, res) => renderUnavailable(res, "writing")));
 router.get("/users/:user_id/listening", ...named("admin.user_listening", asyncHandler(async (req, res) => { const user = await admin.getUserDetail(req.params.user_id); if (!user) return sendNotFound(req, res, "/admin/users"); const [lessons, pageInfo] = await admin.listListening({ ...req.query, user_id: user.id }); res.render("admin/user_items.html", { user, title: "Quản lý nghe", items: lessons, page_info: pageInfo, page_base: `/admin/users/${user.id}/listening`, col1: "Tiêu đề", col1_key: "title", col2: "Chủ đề", col2_key: "topic", edit_endpoint: "admin.user_listening_edit", delete_endpoint: "admin.user_listening_delete" }); })));
 router.get("/users/:user_id/listening/:id/edit", ...named("admin.user_listening_edit", asyncHandler(async (req, res) => { const user = await admin.getUserDetail(req.params.user_id); const lesson = user && await admin.getUserListeningLesson(user.id, req.params.id); if (!lesson) return sendNotFound(req, res, `/admin/users/${req.params.user_id}/listening`); res.render("admin/user_listening_edit.html", { user, lesson }); })));
 router.post("/users/:user_id/listening/:id/edit", ...named("admin.user_listening_update", asyncHandler(async (req, res) => { await db.withClient(async (clientDb) => { await clientDb.begin(); const [oldValue, newValue] = await admin.updateUserListeningLesson(req.params.user_id, req.params.id, req.body, clientDb); if (!oldValue) throw new Error("Not found"); await admin.logAdminAction(clientDb, adminId(req), "user_listening_update", "listening_practice", req.params.id, oldValue, newValue, req.body.reason); await clientDb.commit(); }); flashSaved(req); res.redirect(`/admin/users/${req.params.user_id}/listening`); })));
-router.post("/users/:user_id/listening/:id/delete", ...named("admin.user_listening_delete", asyncHandler(async (req, res) => { await db.withClient(async (clientDb) => { await clientDb.begin(); const oldValue = await admin.deleteUserListeningLesson(req.params.user_id, req.params.id, clientDb); if (!oldValue) throw new Error("Not found"); await admin.logAdminAction(clientDb, adminId(req), "user_listening_delete", "listening_practice", req.params.id, oldValue, null, req.body.reason); await clientDb.commit(); }); flashDeleted(req); res.redirect(`/admin/users/${req.params.user_id}/listening`); })));
+router.post("/users/:user_id/listening/:id/delete", ...named("admin.user_listening_delete", asyncHandler(async (req, res) => { await db.withClient(async (clientDb) => { await clientDb.begin(); const oldValue = await admin.deleteUserListeningLesson(req.params.user_id, req.params.id, clientDb); if (!oldValue) throw new Error("Not found"); await admin.logAdminAction(clientDb, adminId(req), "user_listening_delete", "listening_practice", req.params.id, oldValue, null, req.body.reason); await clientDb.commit(); }); flashDeleted(req); res.redirect(backTo(req, `/admin/users/${req.params.user_id}/listening`)); })));
 router.get("/users/:user_id/audio", ...named("admin.user_audio", asyncHandler(async (req, res) => { const user = await admin.getUserDetail(req.params.user_id); if (!user) return sendNotFound(req, res, "/admin/users"); res.render("admin/user_audio.html", { user, records: await admin.listUserAudioRecords(user.id, tts.audioDir()) }); })));
 router.get("/users/:user_id/audio/:id/edit", ...named("admin.user_audio_edit", asyncHandler(async (req, res) => { const user = await admin.getUserDetail(req.params.user_id); const lesson = user && await admin.getUserListeningLesson(user.id, req.params.id); if (!lesson) return sendNotFound(req, res, `/admin/users/${req.params.user_id}/audio`); res.render("admin/user_audio_edit.html", { user, lesson }); })));
 router.post("/users/:user_id/audio/:id/edit", ...named("admin.user_audio_update", asyncHandler(async (req, res) => { await db.withClient(async (clientDb) => { await clientDb.begin(); const [oldValue, newValue] = await admin.updateUserListeningAudio(req.params.user_id, req.params.id, req.body.audio_path || "", req.body.audio_error || "", clientDb); if (!oldValue) throw new Error("Not found"); await admin.logAdminAction(clientDb, adminId(req), "user_audio_update", "listening_practice", req.params.id, oldValue, newValue, req.body.reason); await clientDb.commit(); }); flashSaved(req); res.redirect(`/admin/users/${req.params.user_id}/audio`); })));
 router.post("/users/:user_id/audio/:id/delete", ...named("admin.user_audio_delete", asyncHandler(async (req, res) => { const lesson = await admin.getUserListeningLesson(req.params.user_id, req.params.id); if (!lesson) return sendNotFound(req, res, `/admin/users/${req.params.user_id}/audio`); let oldValue; let newValue; await db.withClient(async (clientDb) => { await clientDb.begin(); [oldValue, newValue] = await admin.updateUserListeningAudio(req.params.user_id, req.params.id, "", "Âm thanh đã bị quản trị viên xoá.", clientDb); if (!oldValue) throw new Error("Not found"); await admin.logAdminAction(clientDb, adminId(req), "user_audio_delete", "listening_practice", req.params.id, oldValue, newValue, req.body.reason); await clientDb.commit(); }); const filename = admin.audioFilenameFromReference(lesson.audio_path); if (filename) { const full = path.resolve(tts.audioDir(), filename); if (path.dirname(full) === path.resolve(tts.audioDir()) && fs.existsSync(full)) fs.unlinkSync(full); } flashDeleted(req); res.redirect(`/admin/users/${req.params.user_id}/audio`); })));
 router.get("/users/:user_id/energy", ...named("admin.user_energy", (req, res) => renderUnavailable(res, "energy")));
 router.get("/users/:user_id/streak", ...named("admin.user_streak", (req, res) => renderUnavailable(res, "streaks")));
+
+const bulkDeleteConfigs = {
+  vocab: {
+    action: "user_vocab_delete",
+    targetType: "vocab",
+    remove: async (clientDb, userId, id) => {
+      const [oldValue, groupIds] = await admin.deleteUserVocab(userId, id, clientDb);
+      return { oldValue, groupIds };
+    }
+  },
+  grammar: {
+    action: "user_grammar_delete",
+    targetType: "grammar",
+    remove: async (clientDb, userId, id) => ({ oldValue: await admin.deleteUserGrammar(userId, id, clientDb), groupIds: [] })
+  },
+  listening: {
+    action: "user_listening_delete",
+    targetType: "listening_practice",
+    remove: async (clientDb, userId, id) => ({ oldValue: await admin.deleteUserListeningLesson(userId, id, clientDb), groupIds: [] })
+  }
+};
+
+function userItemsBulkDelete(type) {
+  const config = bulkDeleteConfigs[type];
+  return asyncHandler(async (req, res) => {
+    const back = backTo(req, `/admin/users/${req.params.user_id}/${type}`);
+    const ids = [].concat(req.body.ids || []).map((value) => String(value).trim()).filter(Boolean);
+    if (!ids.length) {
+      flashGenericError(req);
+      return res.redirect(back);
+    }
+    const groupIdSet = new Set();
+    let deleted = 0;
+    await db.withClient(async (clientDb) => {
+      await clientDb.begin();
+      for (const id of ids) {
+        const { oldValue, groupIds } = await config.remove(clientDb, req.params.user_id, id);
+        if (!oldValue) continue;
+        groupIds.forEach((gid) => groupIdSet.add(gid));
+        await admin.logAdminAction(clientDb, adminId(req), config.action, config.targetType, id, oldValue, null, req.body.reason || "Xoá hàng loạt từ trang quản trị người dùng");
+        deleted += 1;
+      }
+      await clientDb.commit();
+    });
+    for (const gid of groupIdSet) await groups.exportSnapshot(gid);
+    if (deleted) flashDeleted(req); else flashNotFound(req);
+    res.redirect(back);
+  });
+}
+
+router.post("/users/:user_id/vocab/bulk-delete", ...named("admin.user_vocab_bulk_delete", userItemsBulkDelete("vocab")));
+router.post("/users/:user_id/grammar/bulk-delete", ...named("admin.user_grammar_bulk_delete", userItemsBulkDelete("grammar")));
+router.post("/users/:user_id/listening/bulk-delete", ...named("admin.user_listening_bulk_delete", userItemsBulkDelete("listening")));
 
 router.get("/vocab", ...named("admin.vocab", asyncHandler(async (req, res) => {
   const [rows, pageInfo, sources] = await admin.listVocab(req.query);

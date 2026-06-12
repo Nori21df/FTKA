@@ -81,6 +81,37 @@
             </div>
         </section>
         <aside class="studio-side-stack">
+            <section class="studio-side-card">
+                <div class="studio-card-head">
+                    <div>
+                        <p class="studio-kicker">Thêm thủ công</p>
+                        <h3>Tự nhập từ vựng</h3>
+                    </div>
+                </div>
+
+                <div class="studio-manual-form">
+                    <label class="studio-manual-field">
+                        <span>Từ tiếng Hàn</span>
+                        <input type="text" id="manualKorean" class="studio-select" placeholder="예: 학교">
+                    </label>
+                    <label class="studio-manual-field">
+                        <span>Lưu vào thư mục</span>
+                        <select id="manualGroupInput" class="studio-select">
+                            <option value="">Chỉ lưu vào thư viện chính</option>
+                            {% for group in vocab_groups %}
+                            <option value="{{ group.id }}">{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <p class="studio-card-note">Nghĩa, giải thích và ví dụ sẽ được AI tạo tự động.</p>
+
+                    <button id="manualSaveBtn" class="studio-generate-button" type="button" onclick="manualAddCustom()">
+                        <span class="material-icons-outlined">add_circle</span>
+                        Thêm từ vựng
+                    </button>
+                </div>
+            </section>
         </aside>
     </div>
 </div>
@@ -119,7 +150,7 @@ function renderEmptyState(message) {
 
 async function readGeneratorResponse(response) {
     const raw = await response.text();
-    if (!raw) {a
+    if (!raw) {
         return {};
     }
 
@@ -207,7 +238,8 @@ async function generateVocab() {
     const groupId = groupSelect ? groupSelect.value : '';
 
     if (!topic) {
-        alert('Vui lòng nhập chủ đề hoặc tình huống trước.');
+        window.showToast('Vui lòng nhập chủ đề hoặc tình huống trước.', 'error');
+        document.getElementById('topicInput').focus();
         return;
     }
 
@@ -237,6 +269,53 @@ async function generateVocab() {
         setLoading(false);
     }
 }
+
+async function manualAddCustom() {
+    const input = document.getElementById('manualKorean');
+    const word = input.value.trim();
+    const groupSelect = document.getElementById('manualGroupInput');
+    const button = document.getElementById('manualSaveBtn');
+
+    if (!word) {
+        window.showToast('Vui lòng nhập từ tiếng Hàn.', 'error');
+        return;
+    }
+
+    button.disabled = true;
+    button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang thêm...';
+
+    try {
+        const response = await fetch('/api/manual_add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                word,
+                group_id: groupSelect ? groupSelect.value || null : null
+            })
+        });
+
+        const data = await readGeneratorResponse(response);
+        if (!response.ok || data.error) {
+            throw new Error(data.error || 'Thêm từ thất bại.');
+        }
+
+        window.showToast(`Đã thêm từ '${data.item.korean}'.`, 'success');
+        input.value = '';
+        renderResults([data.item], 'thêm thủ công');
+    } catch (error) {
+        window.showToast(error.message || 'Thêm từ thất bại.', 'error');
+    } finally {
+        button.disabled = false;
+        button.innerHTML = '<span class="material-icons-outlined">add_circle</span>Thêm từ vựng';
+    }
+}
+
+document.getElementById('manualKorean').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        manualAddCustom();
+    }
+});
 
 document.getElementById('topicInput').addEventListener('keydown', function(event) {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {

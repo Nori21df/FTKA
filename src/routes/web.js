@@ -229,7 +229,16 @@ router.get("/vocab", ...named("vocab", loginRequired, asyncHandler(async (req, r
   const page = Math.max(Number.parseInt(req.query.page || "1", 10) || 1, 1);
   const perPage = 20;
   const offset = (page - 1) * perPage;
-  const rows = await db.query("SELECT * FROM vocab WHERE owner_user_id=? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?", [ownerId, perPage, offset]);
+  const searchQ = String(req.query.q || "").trim();
+  let where = "owner_user_id=?";
+  const whereParams = [ownerId];
+  if (searchQ) {
+    where += " AND (korean ILIKE ? OR meaning_vi ILIKE ? OR explanation_vi ILIKE ? OR example_kr ILIKE ? OR example_vi ILIKE ?)";
+    const like = `%${searchQ}%`;
+    whereParams.push(like, like, like, like, like);
+  }
+  const rows = await db.query(`SELECT * FROM vocab WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`, [...whereParams, perPage, offset]);
+  const filteredTotal = Number(await db.scalar(`SELECT COUNT(*) FROM vocab WHERE ${where}`, whereParams));
   const total = Number(await db.scalar("SELECT COUNT(*) FROM vocab WHERE owner_user_id=?", [ownerId]));
   const learnedCount = Number(await db.scalar("SELECT COUNT(*) FROM vocab WHERE owner_user_id=? AND learned=TRUE", [ownerId]));
   res.render("vocab.html", {
@@ -237,10 +246,12 @@ router.get("/vocab", ...named("vocab", loginRequired, asyncHandler(async (req, r
     count: total,
     learned_count: learnedCount,
     unlearned_count: total - learnedCount,
+    shelf_total: filteredTotal,
+    search_q: searchQ,
     vocab_groups: await groups.getGroups(ownerId),
     vocab_group_map: await groups.getAssignments(ownerId),
     page,
-    total_pages: Math.ceil(total / perPage),
+    total_pages: Math.ceil(filteredTotal / perPage),
     per_page: perPage,
     total_vocab: total
   });

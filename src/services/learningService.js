@@ -63,6 +63,13 @@ async function recordLearningActivity(vocabId, ownerUserId) {
   );
 }
 
+const WEEKDAY_LABELS = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+
+function localDateKey(date) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 async function getLearningActivityTimeline(ownerUserId, days = 7) {
   const rows = await db.query(
     "SELECT created_at FROM learning_activity WHERE owner_user_id=? AND activity_type='learned'",
@@ -71,11 +78,12 @@ async function getLearningActivityTimeline(ownerUserId, days = 7) {
   const now = new Date();
   const buckets = [];
   for (let i = days - 1; i >= 0; i -= 1) {
-    const d = new Date(now);
-    d.setDate(now.getDate() - i);
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
     buckets.push({
-      date: d.toISOString().slice(0, 10),
+      date: localDateKey(d),
       short_date: `${d.getDate()}/${d.getMonth() + 1}`,
+      label: WEEKDAY_LABELS[d.getDay()],
+      is_today: i === 0,
       count: 0
     });
   }
@@ -83,8 +91,13 @@ async function getLearningActivityTimeline(ownerUserId, days = 7) {
   for (const row of rows) {
     const parsed = parseTimestamp(row.created_at);
     if (!parsed) continue;
-    const key = parsed.toISOString().slice(0, 10);
+    const key = localDateKey(parsed);
     if (byDate[key]) byDate[key].count += 1;
+  }
+  const maxCount = Math.max(1, ...buckets.map((b) => b.count));
+  for (const bucket of buckets) {
+    bucket.active = bucket.count > 0;
+    bucket.height = Math.round((bucket.count / maxCount) * 100);
   }
   return buckets;
 }
