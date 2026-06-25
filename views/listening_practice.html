@@ -181,7 +181,7 @@
 
                 <section class="lesson-section">
                     <h4>Transcript tiếng Hàn</h4>
-                    <div class="listening-text-block listening-korean">{{ selected_lesson.korean_text }}</div>
+                    <div class="listening-text-block listening-korean" lang="ko">{{ selected_lesson.korean_text }}</div>
                 </section>
 
                 {% if selected_lesson.sentences %}
@@ -211,7 +211,7 @@
                             {% for sentence in selected_lesson.sentences %}
                             <div class="sentence-line" data-sentence-line data-audio-path="{{ sentence.audio_path }}" data-sentence-index="{{ sentence.index }}">
                                 <span class="sentence-number">{{ sentence.index }}</span>
-                                <span>{{ sentence.text }}</span>
+                                <span lang="ko" class="sentence-text">{{ sentence.text }}</span>
                                 {% if not sentence.audio_path %}
                                 <span class="sentence-error">{{ sentence.audio_error or 'Chưa có âm thanh cho câu này.' }}</span>
                                 {% endif %}
@@ -233,9 +233,9 @@
                     <div class="lesson-grid">
                         {% for item in selected_lesson.vocabulary %}
                         <div class="lesson-mini-card">
-                            <strong>{{ item.korean }}</strong>
+                            <strong lang="ko">{{ item.korean }}</strong>
                             <span>{{ item.meaning_vi }}</span>
-                            {% if item.example_kr %}<span>{{ item.example_kr }}</span>{% endif %}
+                            {% if item.example_kr %}<span lang="ko">{{ item.example_kr }}</span>{% endif %}
                             {% if item.example_vi %}<span>{{ item.example_vi }}</span>{% endif %}
                         </div>
                         {% endfor %}

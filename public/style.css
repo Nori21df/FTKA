@@ -1,53 +1,65 @@
 :root {
     color-scheme: light;
-    --bg: #cbe0ff;
+    /* Calm, focused light theme — soft neutral canvas, single refined blue accent */
+    --bg: #eef1f6;
     --surface: #ffffff;
-    --surface-soft: #f9fbff;
-    --surface-blue: #eff6ff;
-    --line: #006aff;
-    --line-strong: #0051ff89;
-    --text: #0f172a;
-    --text-soft: #334155;
-    --muted: #64748b;
-    --primary: #0059ff8c;
-    --primary-strong: #003ada;
-    --primary-soft: #dbeafe;
-    --info: #0284c7;
-    --success: #15803d;
-    --success-soft: #dcfce7;
-    --warning: #b45309;
-    --warning-soft: #fef3c7;
-    --danger: #dc2626;
-    --danger-soft: #fee2e2;
-    --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
-    --shadow-md: 0 10px 28px rgba(15, 23, 42, .08);
-    --shadow-lg: 0 18px 48px rgba(15, 23, 42, .12);
-    --radius-sm: 8px;
-    --radius: 10px;
-    --radius-lg: 14px;
+    --surface-soft: #f6f8fb;
+    --surface-blue: #eef3ff;
+    --line: #e3e8ef;
+    --line-strong: #cdd5e0;
+    --text: #1a2233;
+    --text-soft: #475063;
+    --muted: #7a8499;
+    --primary: #3b62e6;
+    --primary-strong: #2c4bc4;
+    --primary-soft: #e6ecfd;
+    --info: #0e7fb8;
+    --info-soft: #e0f2fe;
+    --success: #16855a;
+    --success-soft: #d8f3e6;
+    --warning: #b06a06;
+    --warning-soft: #fcefcf;
+    --danger: #d4493f;
+    --danger-soft: #fbe5e3;
+    --shadow-sm: 0 1px 2px rgba(26, 34, 51, .05);
+    --shadow-md: 0 6px 20px rgba(26, 34, 51, .07);
+    --shadow-lg: 0 16px 44px rgba(26, 34, 51, .12);
+    --radius-sm: 10px;
+    --radius: 14px;
+    --radius-lg: 20px;
     --sidebar-width: 272px;
     --sidebar-compact: 82px;
     --topbar-height: 74px;
+    /* Korean glyphs render in Noto Sans KR while Latin/Vietnamese stay in Inter */
+    --font-base: Inter, "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-kr: "Noto Sans KR", Inter, system-ui, sans-serif;
 }
 
 body.ftka-dark-ui {
     color-scheme: dark;
-    --bg: #0f172a;
-    --surface: #172033;
-    --surface-soft: #1e293b;
-    --surface-blue: #14264a;
-    --line: #597397;
-    --line-strong: #597397;
-    --text: #f8fafc;
-    --text-soft: #dbe4f0;
-    --muted: #a6b4c7;
-    --primary: #60a5fa;
-    --primary-strong: #93c5fd;
-    --primary-soft: #1e3a5f;
-    --info: #38bdf8;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .22);
-    --shadow-md: 0 10px 28px rgba(0, 0, 0, .28);
-    --shadow-lg: 0 18px 48px rgba(0, 0, 0, .34);
+    --bg: #0e1320;
+    --surface: #171d2b;
+    --surface-soft: #1d2536;
+    --surface-blue: #1a2742;
+    --line: #2a3346;
+    --line-strong: #3a455c;
+    --text: #f1f5fb;
+    --text-soft: #c4cee0;
+    --muted: #8c97ac;
+    --primary: #6f92ff;
+    --primary-strong: #93adff;
+    --primary-soft: #21304f;
+    --info: #46b6e8;
+    --info-soft: #18324a;
+    --success: #4cc78d;
+    --success-soft: #163328;
+    --warning: #e0a85b;
+    --warning-soft: #3a2e12;
+    --danger: #f0726a;
+    --danger-soft: #3a201e;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
+    --shadow-md: 0 6px 20px rgba(0, 0, 0, .35);
+    --shadow-lg: 0 16px 44px rgba(0, 0, 0, .45);
 }
 
 *,
@@ -61,11 +73,7 @@ html {
     max-width: 100%;
     min-height: 100%;
     overflow-x: hidden;
-    background-color: #ffffff;
-    background-image:
-        linear-gradient(45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%),
-        linear-gradient(-45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%);
-    background-size: 40px 40px;
+    background-color: var(--bg);
 }
 
 body {
@@ -73,26 +81,40 @@ body {
     max-width: 100%;
     min-height: 100%;
     margin: 0;
-    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: var(--font-base);
     font-size: 15px;
-    line-height: 1.55;
+    line-height: 1.6;
     color: var(--text);
-    background-color: transparent;
+    background-color: var(--bg);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
+/* Calm canvas: a soft tinted wash instead of the busy crosshatch pattern */
 body.ftka-light-ui {
-    background-color: #f7fef1;
+    background-color: var(--bg);
     background-image:
-        linear-gradient(45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%),
-        linear-gradient(-45deg, transparent 49%, #e5e7eb 49%, #e5e7eb 51%, transparent 51%);
-    background-size: 40px 40px;
+        radial-gradient(120% 90% at 100% 0%, rgba(59, 98, 230, .06) 0%, transparent 55%),
+        radial-gradient(100% 80% at 0% 100%, rgba(59, 98, 230, .04) 0%, transparent 50%);
+    background-attachment: fixed;
 }
 
 body.ftka-dark-ui {
     background-color: var(--bg);
-    background-image: none;
+    background-image:
+        radial-gradient(120% 90% at 100% 0%, rgba(111, 146, 255, .08) 0%, transparent 55%),
+        radial-gradient(100% 80% at 0% 100%, rgba(111, 146, 255, .05) 0%, transparent 50%);
+    background-attachment: fixed;
+}
+
+/* Korean text as the visual hero — proper Hangul line-breaking + dedicated face */
+:lang(ko),
+.kr,
+[data-lang="ko"] {
+    font-family: var(--font-kr);
+    word-break: keep-all;
+    overflow-wrap: anywhere;
 }
 
 a {
@@ -129,8 +151,9 @@ canvas {
 }
 
 :focus-visible {
-    outline: 3px solid rgba(37, 99, 235, .28);
+    outline: 3px solid color-mix(in srgb, var(--primary) 40%, transparent);
     outline-offset: 3px;
+    border-radius: 4px;
 }
 
 .skip-link {
@@ -214,15 +237,15 @@ canvas {
     width: 26px;
     height: 26px;
     border-radius: 999px;
-    color: #64748b;
+    color: var(--muted);
     background: transparent;
     font-size: 20px;
     line-height: 1;
 }
 
 .toast-close:hover {
-    color: #0f172a;
-    background: #f1f5f9;
+    color: var(--text);
+    background: var(--surface-soft);
 }
 
 @keyframes toast-in {
@@ -672,9 +695,10 @@ body.ftka-dark-ui .energy-pill {
 .settings-hero-title {
     margin: 0;
     color: var(--text);
-    font-size: clamp(32px, 5vw, 58px);
-    line-height: 1.03;
-    letter-spacing: 0;
+    font-size: clamp(32px, 5vw, 54px);
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    font-weight: 800;
 }
 
 .dashboard-hero-title,
@@ -1375,8 +1399,11 @@ textarea {
 }
 
 .dashboard-streak-orb strong {
-    font-size: 42px;
+    font-size: 46px;
+    font-weight: 800;
     line-height: 1;
+    letter-spacing: -.02em;
+    color: var(--primary);
 }
 
 .dashboard-streak-orb span,
@@ -1778,6 +1805,34 @@ textarea {
     line-height: 1.2;
 }
 
+/* Korean headword as the hero of each card */
+.dictionary-card-title,
+.studio-result-title {
+    font-family: var(--font-kr);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--text);
+    letter-spacing: -.01em;
+}
+
+.studio-result-example strong {
+    font-family: var(--font-kr);
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.7;
+    word-break: keep-all;
+}
+
+/* Korean example sentence — readable, distinct from the Vietnamese gloss */
+.dictionary-example-kr {
+    font-family: var(--font-kr);
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.7;
+    color: var(--text);
+}
+
 .dictionary-card-title.is-concealed {
     filter: blur(7px);
     user-select: none;
@@ -2120,10 +2175,14 @@ textarea {
 }
 
 .grammar-card-title {
+    font-family: var(--font-kr);
     overflow-wrap: anywhere;
+    word-break: keep-all;
     max-width: 100%;
     margin-top: 8px;
     font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -.01em;
 }
 
 .grammar-card-meaning {
@@ -2194,9 +2253,12 @@ textarea {
 }
 
 .grammar-example strong {
+    font-family: var(--font-kr);
     color: var(--text);
-    font-size: 16px;
-    line-height: 1.45;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.7;
+    word-break: keep-all;
 }
 
 .dictionary-pagination ul,
@@ -2328,15 +2390,56 @@ textarea {
     margin: 0 0 10px;
 }
 
+.sentence-list {
+    display: grid;
+    gap: 8px;
+}
+
 .sentence-line {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    gap: 10px;
+    gap: 12px;
+    align-items: start;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    transition: border-color .14s ease, background .14s ease;
+}
+
+.sentence-line:hover {
+    border-color: var(--primary-soft);
+    background: var(--surface-soft);
 }
 
 .sentence-line.active {
     border-color: var(--primary);
     background: var(--surface-blue);
+}
+
+.sentence-text {
+    font-family: var(--font-kr);
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.7;
+    word-break: keep-all;
+}
+
+/* Full Korean transcript — generous reading rhythm */
+.listening-korean {
+    font-family: var(--font-kr);
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.9;
+    white-space: pre-line;
+    word-break: keep-all;
+}
+
+.lesson-mini-card strong {
+    font-family: var(--font-kr);
+    font-size: 18px;
+    font-weight: 700;
+    word-break: keep-all;
 }
 
 .sentence-number {
@@ -2454,10 +2557,12 @@ textarea {
 
 .prompt-main {
     overflow-wrap: anywhere;
+    word-break: keep-all;
     color: var(--text);
     font-size: clamp(30px, 5vw, 56px);
-    font-weight: 850;
-    line-height: 1.08;
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -.01em;
 }
 
 .study-card-header,
@@ -2613,8 +2718,12 @@ textarea {
 }
 
 .example-kr {
+    font-family: var(--font-kr);
     color: var(--text);
-    font-weight: 800;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.7;
+    word-break: keep-all;
 }
 
 .result-actions {
@@ -2671,9 +2780,13 @@ body.ftka-dark-ui .result-actions {
 
 .grammar-quiz-question {
     margin: 0;
+    font-family: var(--font-kr);
     overflow-wrap: anywhere;
-    font-size: clamp(26px, 4vw, 42px);
-    line-height: 1.18;
+    word-break: keep-all;
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -.01em;
 }
 
 .grammar-quiz-translation {
@@ -2720,6 +2833,10 @@ body.ftka-dark-ui .result-actions {
     border-radius: var(--radius);
     background: rgba(255, 255, 255, .96);
     box-shadow: var(--shadow-md);
+}
+
+body.ftka-dark-ui .grammar-quiz-actions {
+    background: rgba(23, 32, 51, .96);
 }
 
 .profile-panel,
@@ -3911,5 +4028,809 @@ body.ftka-dark-ui .result-actions {
 
     .sidebar.is-open {
         transform: translateX(0);
+    }
+}
+
+/* === Premium Anki-style vocab flashcards === */
+.anki-vocab-shell {
+    display: grid;
+    gap: 22px;
+    min-height: calc(100vh - 120px);
+}
+
+.anki-vocab-hero,
+.anki-vocab-stats,
+.anki-study-shell,
+.anki-manage-panel,
+.anki-progress-card {
+    border: 1px solid color-mix(in srgb, var(--line) 76%, transparent);
+    border-radius: 28px;
+    background: color-mix(in srgb, var(--surface) 86%, transparent);
+    box-shadow: 0 18px 54px rgba(15, 23, 42, .09);
+}
+
+.anki-vocab-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    overflow: hidden;
+    padding: clamp(22px, 3vw, 32px);
+}
+
+.anki-vocab-hero::before {
+    content: "";
+    position: absolute;
+    inset: -120px auto auto -90px;
+    width: 340px;
+    height: 340px;
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+.anki-vocab-hero > * {
+    position: relative;
+    z-index: 1;
+}
+
+.anki-vocab-kicker,
+.anki-progress-kicker,
+.anki-card-label,
+.anki-answer-label {
+    display: inline-flex;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.anki-vocab-title {
+    margin: 0;
+    color: var(--text);
+    font-size: clamp(34px, 4.8vw, 56px);
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: -.045em;
+}
+
+.anki-vocab-copy {
+    max-width: 620px;
+    margin: 10px 0 0;
+    color: var(--text-soft);
+    font-size: 16px;
+    font-weight: 650;
+}
+
+.anki-vocab-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.anki-vocab-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    background: var(--line);
+}
+
+.anki-vocab-stat {
+    display: grid;
+    gap: 7px;
+    padding: 20px 24px;
+    background: color-mix(in srgb, var(--surface) 94%, var(--primary-soft));
+}
+
+.anki-vocab-stat span {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.anki-vocab-stat strong {
+    color: var(--text);
+    font-size: clamp(30px, 4vw, 42px);
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: -.045em;
+}
+
+.anki-study-shell {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 18px;
+    min-height: min(860px, calc(100vh - 230px));
+    padding: clamp(18px, 4vw, 40px);
+    overflow: hidden;
+    background:
+
+        color-mix(in srgb, var(--surface) 90%, transparent);
+}
+
+.anki-progress-host,
+.anki-card-stage,
+.anki-actions-host,
+.anki-shortcuts {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 700px);
+}
+
+.anki-progress-card {
+    display: grid;
+    gap: 14px;
+    width: 100%;
+    padding: 18px;
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, .07);
+}
+
+.anki-progress-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.anki-progress-summary strong {
+    display: block;
+    margin-top: 3px;
+    color: var(--text);
+    font-size: clamp(19px, 2.8vw, 25px);
+    font-weight: 850;
+    letter-spacing: -.025em;
+}
+
+.anki-progress-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 74px;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 16px;
+    color: #fff;
+    background: var(--primary);
+    font-size: 18px;
+    font-weight: 900;
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+.anki-progress-track {
+    display: block;
+    height: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary-soft) 74%, var(--line));
+}
+
+.anki-progress-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--primary), #06b6d4, #22c55e);
+    transition: width .42s cubic-bezier(.22, 1, .36, 1);
+}
+
+.anki-progress-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.anki-progress-stats span {
+    display: grid;
+    gap: 3px;
+    min-height: 76px;
+    padding: 12px;
+    border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--surface-soft) 84%, transparent);
+}
+
+.anki-progress-stats b {
+    color: var(--text);
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.anki-progress-stats small {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.anki-card-stage {
+    display: grid;
+    place-items: center;
+    perspective: 1500px;
+}
+
+.anki-flashcard {
+    position: relative;
+    width: 100%;
+    max-width: 700px;
+    aspect-ratio: 4 / 3;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    perspective: 1500px;
+    transform: translateZ(0);
+}
+
+.anki-card-inner {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 32px;
+    transform-style: preserve-3d;
+    box-shadow: 0 26px 70px rgba(15, 23, 42, .16);
+}
+
+.anki-flashcard:focus-visible .anki-card-inner {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 28%, transparent), 0 28px 76px rgba(15, 23, 42, .18);
+}
+
+.anki-card-face {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: clamp(16px, 3vw, 26px);
+    padding: clamp(24px, 4.4vw, 42px);
+    border: 1px solid rgba(255, 255, 255, .58);
+    border-radius: 32px;
+    overflow: hidden;
+    color: var(--text);
+    background:
+        linear-gradient(145deg, rgba(255,255,255,.94), rgba(255,255,255,.72)),
+        radial-gradient(circle at 18% 14%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 36%);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform-style: preserve-3d;
+    text-align: left;
+}
+
+.anki-card-back {
+    transform: rotateY(180deg);
+    background:
+        linear-gradient(145deg, rgba(255,255,255,.96), rgba(246,248,251,.78)),
+        radial-gradient(circle at 84% 12%, rgba(20, 184, 166, .18), transparent 34%);
+}
+
+.anki-face-header,
+.anki-face-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+}
+
+.anki-card-chip,
+.anki-face-footer {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.anki-card-chip {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary-soft) 62%, transparent);
+    white-space: nowrap;
+}
+
+.anki-face-footer {
+    justify-content: center;
+    padding-top: 10px;
+    border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+    text-align: center;
+}
+
+.anki-face-footer .material-icons-outlined {
+    color: var(--primary);
+    font-size: 20px;
+}
+
+.anki-front-content {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 16px;
+    min-height: 0;
+    text-align: center;
+}
+
+.anki-card-word {
+    max-width: 100%;
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font-kr);
+    font-size: clamp(46px, 8vw, 82px);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -.04em;
+    overflow-wrap: anywhere;
+    word-break: keep-all;
+}
+
+.anki-card-pronunciation {
+    max-width: 90%;
+    margin: 0;
+    padding: 10px 16px;
+    border-radius: 999px;
+    color: var(--text-soft);
+    background: color-mix(in srgb, var(--surface-soft) 82%, transparent);
+    font-size: clamp(18px, 2.5vw, 24px);
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.anki-back-content {
+    display: grid;
+    align-content: center;
+    gap: 10px;
+    min-height: 0;
+}
+
+.anki-answer-label {
+    margin: 0;
+}
+
+.anki-card-meaning {
+    margin: 0;
+    color: var(--text);
+    font-size: clamp(28px, 4.4vw, 46px);
+    font-weight: 850;
+    line-height: 1.16;
+    letter-spacing: -.035em;
+}
+
+.anki-card-explain {
+    max-width: 94%;
+    margin: 0;
+    color: var(--text-soft);
+    font-size: clamp(16px, 2vw, 19px);
+    font-weight: 650;
+    line-height: 1.58;
+}
+
+.anki-example-box {
+    display: grid;
+    gap: 7px;
+    width: 100%;
+    padding: clamp(14px, 2.4vw, 18px);
+    border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--surface-soft) 82%, transparent);
+}
+
+.anki-example-box.is-empty {
+    color: var(--muted);
+    font-weight: 750;
+}
+
+.anki-example-kr {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font-kr);
+    font-size: clamp(18px, 2.6vw, 24px);
+    font-weight: 750;
+    line-height: 1.45;
+    word-break: keep-all;
+}
+
+.anki-example-vi {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: clamp(14px, 1.8vw, 16px);
+    font-weight: 650;
+    line-height: 1.5;
+}
+
+.anki-card-status {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: calc(100% - 36px);
+    pointer-events: none;
+}
+
+.anki-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 30px;
+    padding: 6px 10px;
+    border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+    border-radius: 999px;
+    color: var(--primary);
+    background: color-mix(in srgb, var(--primary-soft) 84%, rgba(255,255,255,.72));
+    font-size: 12px;
+    font-weight: 900;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+}
+
+.anki-pill .material-icons-outlined {
+    font-size: 16px;
+}
+
+.anki-pill.is-learned {
+    color: var(--success);
+    border-color: color-mix(in srgb, var(--success) 24%, transparent);
+    background: var(--success-soft);
+}
+
+.anki-pill.is-hard {
+    color: var(--warning);
+    border-color: color-mix(in srgb, var(--warning) 24%, transparent);
+    background: var(--warning-soft);
+}
+
+.anki-actions-host {
+    display: grid;
+}
+
+.anki-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    box-shadow: 0 16px 42px rgba(15, 23, 42, .10);
+    opacity: 1;
+    transform: none;
+}
+
+.anki-action-btn {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    min-height: 66px;
+    padding: 11px 12px;
+    border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+    border-radius: 18px;
+    color: var(--text);
+    background: var(--surface);
+    font-weight: 850;
+    text-align: left;
+    cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, color .16s ease, transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+}
+
+.anki-action-btn:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--primary) 26%, var(--line));
+    background: var(--surface-blue);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .10);
+}
+
+.anki-action-btn:disabled {
+    opacity: .52;
+    cursor: not-allowed;
+}
+
+.anki-action-btn > .material-icons-outlined {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    color: var(--primary);
+    background: var(--primary-soft);
+    font-size: 21px;
+}
+
+.anki-action-btn.is-learned > .material-icons-outlined {
+    color: var(--success);
+    background: var(--success-soft);
+}
+
+.anki-action-btn.is-review > .material-icons-outlined {
+    color: var(--warning);
+    background: var(--warning-soft);
+}
+
+.anki-action-btn strong,
+.anki-action-btn small {
+    display: block;
+}
+
+.anki-action-btn strong {
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.1;
+}
+
+.anki-action-btn small {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+.anki-action-btn kbd,
+.anki-shortcuts kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    border: 1px solid color-mix(in srgb, var(--line-strong) 70%, transparent);
+    border-bottom-width: 2px;
+    border-radius: 8px;
+    color: var(--muted);
+    background: var(--surface-soft);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.anki-shortcuts {
+    margin: -2px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.anki-session-complete {
+    display: grid;
+    place-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 700px;
+    min-height: 360px;
+    padding: 34px;
+    border: 1px solid var(--line);
+    border-radius: 32px;
+    background: var(--surface);
+    box-shadow: 0 24px 64px rgba(15, 23, 42, .12);
+    text-align: center;
+}
+
+.anki-session-complete .material-icons-outlined {
+    color: var(--success);
+    font-size: 56px;
+}
+
+.anki-session-complete h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 30px;
+}
+
+.anki-session-complete p {
+    margin: 0;
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.anki-session-complete-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: min(100%, 420px);
+    margin-top: 12px;
+}
+
+.anki-session-complete-actions .primary-cta,
+.anki-session-complete-actions .secondary-cta {
+    justify-content: center;
+    min-height: 46px;
+    border-radius: 14px;
+}
+
+.anki-manage-panel {
+    padding: 0;
+    overflow: hidden;
+}
+
+.anki-manage-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 22px;
+    color: var(--text);
+    font-weight: 900;
+    cursor: pointer;
+    list-style: none;
+}
+
+.anki-manage-summary::-webkit-details-marker {
+    display: none;
+}
+
+.anki-manage-chevron {
+    margin-left: auto;
+    color: var(--muted);
+    transition: transform .18s ease;
+}
+
+.anki-manage-panel[open] .anki-manage-chevron {
+    transform: rotate(180deg);
+}
+
+.anki-manage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding: 0 18px 18px;
+}
+
+.anki-folder-panel {
+    grid-column: 1 / -1;
+}
+
+body.ftka-dark-ui .anki-vocab-hero,
+body.ftka-dark-ui .anki-vocab-stats,
+body.ftka-dark-ui .anki-study-shell,
+body.ftka-dark-ui .anki-manage-panel,
+body.ftka-dark-ui .anki-progress-card,
+body.ftka-dark-ui .anki-actions {
+    border-color: rgba(148, 163, 184, .18);
+    background: linear-gradient(145deg, rgba(23, 32, 51, .84), rgba(15, 23, 42, .66));
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .32);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+body.ftka-dark-ui .anki-vocab-stats {
+    background: rgba(148, 163, 184, .14);
+}
+
+body.ftka-dark-ui .anki-vocab-stat,
+body.ftka-dark-ui .anki-progress-stats span,
+body.ftka-dark-ui .anki-action-btn,
+body.ftka-dark-ui .anki-session-complete {
+    border-color: rgba(148, 163, 184, .16);
+    background: rgba(23, 32, 51, .72);
+}
+
+body.ftka-dark-ui .anki-card-face {
+    border-color: rgba(148, 163, 184, .20);
+    background:
+        linear-gradient(145deg, rgba(30, 41, 59, .98), rgba(15, 23, 42, .90)),
+        radial-gradient(circle at 18% 14%, rgba(96, 165, 250, .22), transparent 36%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+body.ftka-dark-ui .anki-card-back {
+}
+
+body.ftka-dark-ui .anki-card-chip,
+body.ftka-dark-ui .anki-card-pronunciation,
+body.ftka-dark-ui .anki-example-box,
+body.ftka-dark-ui .anki-action-btn kbd,
+body.ftka-dark-ui .anki-shortcuts kbd {
+    border-color: rgba(148, 163, 184, .16);
+    background: rgba(15, 23, 42, .48);
+}
+
+@media (max-width: 1180px) {
+    .anki-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .anki-vocab-hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .anki-vocab-hero-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .anki-vocab-hero-actions > * {
+        flex: 1 1 180px;
+        justify-content: center;
+    }
+
+    .anki-manage-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .anki-vocab-shell {
+        gap: 14px;
+    }
+
+    .anki-vocab-hero,
+    .anki-study-shell,
+    .anki-progress-card,
+    .anki-actions {
+        border-radius: 22px;
+    }
+
+    .anki-vocab-stats,
+    .anki-progress-stats,
+    .anki-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .anki-vocab-stat {
+        padding: 15px 16px;
+    }
+
+    .anki-study-shell {
+        min-height: auto;
+        padding: 14px;
+    }
+
+    .anki-flashcard {
+        aspect-ratio: 3 / 4;
+    }
+
+    .anki-card-face,
+    .anki-card-inner {
+        border-radius: 24px;
+    }
+
+    .anki-card-face {
+        padding: 20px;
+    }
+
+    .anki-face-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .anki-card-status {
+        top: 12px;
+        right: 12px;
+    }
+
+    .anki-card-word {
+        font-size: clamp(40px, 15vw, 64px);
+    }
+
+    .anki-card-meaning {
+        font-size: clamp(25px, 8vw, 34px);
+    }
+
+    .anki-action-btn {
+        min-height: 60px;
+    }
+
+    .anki-shortcuts {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .anki-progress-fill,
+    .anki-action-btn,
+    .anki-manage-chevron {
+        transition: none;
     }
 }

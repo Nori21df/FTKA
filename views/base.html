@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ t('app.title') }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     {% block head %}{% endblock %}
@@ -90,6 +92,10 @@
                     <span class="material-icons-outlined">translate</span>
                     <span class="nav-label">{{ t('nav.vocabulary') }}</span>
                 </a>
+                <a href="{{ url_for('quiz') }}" class="nav-item {% if request.endpoint == 'quiz' %}active{% endif %}">
+                    <span class="material-icons-outlined">quiz</span>
+                    <span class="nav-label">{{ t('nav.quiz') }}</span>
+                </a>
                 <a href="{{ url_for('grammar') }}" class="nav-item {% if request.endpoint == 'grammar' %}active{% endif %}">
                     <span class="material-icons-outlined">menu_book</span>
                     <span class="nav-label">{{ t('nav.grammar') }}</span>
@@ -101,10 +107,6 @@
                 <a href="{{ url_for('listening_practice') }}" class="nav-item {% if request.endpoint in ['listening_practice', 'generate_listening_practice'] %}active{% endif %}">
                     <span class="material-icons-outlined">headphones</span>
                     <span class="nav-label">Luyện nghe</span>
-                </a>
-                <a href="{{ url_for('quiz') }}" class="nav-item {% if request.endpoint == 'quiz' %}active{% endif %}">
-                    <span class="material-icons-outlined">quiz</span>
-                    <span class="nav-label">{{ t('nav.quiz') }}</span>
                 </a>
                 {# TEMP: Premium tạm tắt — xoá "{% if false %}"/"{% endif %}" để bật lại #}
                 {% if false %}

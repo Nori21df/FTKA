@@ -123,19 +123,6 @@ app.use(loadCurrentUser);
 app.use(flash);
 app.use(viewContext);
 
-app.use((req, res, next) => {
-  const redirect = res.redirect.bind(res);
-  res.redirect = (statusOrUrl, maybeUrl) => {
-    const status = typeof statusOrUrl === "number" ? statusOrUrl : 302;
-    const target = typeof statusOrUrl === "number" ? maybeUrl : statusOrUrl;
-    if (status === 302) {
-      console.warn(`[redirect:302] ${req.method} ${req.originalUrl} -> ${target}`);
-    }
-    return typeof statusOrUrl === "number" ? redirect(statusOrUrl, maybeUrl) : redirect(statusOrUrl);
-  };
-  next();
-});
-
 app.use("/", webhookRoutes);
 app.use("/", paymentRoutes);
 app.use("/api", apiRoutes);
@@ -150,7 +137,7 @@ app.use((error, req, res, next) => {
   console.error(error);
   if (res.headersSent) return next(error);
   if (req.accepts("json") && req.path.startsWith("/api/")) {
-    return res.status(500).json({ error: error.message || "Internal server error" });
+    return res.status(500).json({ error: env.nodeEnv === "production" ? "Internal server error" : (error.message || "Internal server error") });
   }
   return res.status(500).send(env.nodeEnv === "production" ? "Internal server error" : `<pre>${String(error.stack || error)}</pre>`);
 });

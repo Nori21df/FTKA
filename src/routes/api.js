@@ -5,6 +5,7 @@ const db = require("../db");
 const asyncHandler = require("../utils/asyncHandler");
 const { named } = require("../middleware/viewContext");
 const { loginRequired, adminRequired } = require("../middleware/auth");
+const { aiLimiter } = require("../middleware/rateLimit");
 const auth = require("../services/authService");
 const ai = require("../services/aiService");
 const settings = require("../services/settingsService");
@@ -166,7 +167,7 @@ router.post("/import_vocab", loginRequired, upload.single("file"), asyncHandler(
   res.json({ success: true, count: imported });
 }));
 
-router.post("/generate", loginRequired, asyncHandler(async (req, res) => {
+router.post("/generate", aiLimiter, loginRequired, asyncHandler(async (req, res) => {
   const topic = normalizeTopic(req.body.topic);
   if (!topic) return res.status(400).json({ error: "Vui lòng nhập chủ đề hoặc tình huống trước." });
   let count;
@@ -254,7 +255,7 @@ router.post("/delete_grammar", loginRequired, asyncHandler(async (req, res) => {
   res.json({ success: true });
 }));
 
-router.post("/regenerate_grammar_quiz_items", loginRequired, asyncHandler(async (req, res) => {
+router.post("/regenerate_grammar_quiz_items", aiLimiter, loginRequired, asyncHandler(async (req, res) => {
   const itemId = String(req.body.id || "").trim();
   const existing = await db.one("SELECT * FROM grammar WHERE id=? AND owner_user_id=?", [itemId, req.currentUser.id]);
   if (!existing) return res.status(404).json({ error: "Không tìm thấy ngữ pháp" });
@@ -265,7 +266,7 @@ router.post("/regenerate_grammar_quiz_items", loginRequired, asyncHandler(async 
   res.json({ success: true, item: learning.serializeGrammarApiItem({ ...existing, quiz_items: quizItems }), quiz_count: quizItems.length });
 }));
 
-router.post("/add_grammar", loginRequired, asyncHandler(async (req, res) => {
+router.post("/add_grammar", aiLimiter, loginRequired, asyncHandler(async (req, res) => {
   const pattern = normalizeTopic(req.body.grammar || req.body.pattern);
   if (!pattern) return res.status(400).json({ error: "Vui lòng nhập mẫu ngữ pháp tiếng Hàn trước." });
   const duplicate = await db.one("SELECT id FROM grammar WHERE owner_user_id=? AND LOWER(grammar)=LOWER(?)", [req.currentUser.id, pattern]);
@@ -283,7 +284,7 @@ router.post("/add_grammar", loginRequired, asyncHandler(async (req, res) => {
   res.json({ success: true, item: learning.serializeGrammarApiItem(saved) });
 }));
 
-router.post("/manual_add", loginRequired, asyncHandler(async (req, res) => {
+router.post("/manual_add", aiLimiter, loginRequired, asyncHandler(async (req, res) => {
   const word = normalizeWordKey(req.body.word);
   if (!word) return res.status(400).json({ error: "Vui lòng nhập từ tiếng Hàn." });
   const parsedGroup = parseOptionalGroupId(req.body.group_id);

@@ -1,20 +1,17 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block content %}
-
-<div class="dictionary-shell">
-    <section class="dictionary-hero">
-        <h2 class="dictionary-hero-title">Từ vựng tiếng Hàn</h2>
-        <div class="dictionary-hero-actions">
+<div class="anki-vocab-shell" data-component="vocab-flashcards">
+    <section class="anki-vocab-hero" aria-labelledby="vocabPageTitle">
+        <div>
+            <span class="anki-vocab-kicker">Anki mode</span>
+            <h2 id="vocabPageTitle" class="anki-vocab-title">Từ vựng tiếng Hàn</h2>
+        </div>
+        <div class="anki-vocab-hero-actions">
             <a href="{{ url_for('generator') }}" class="dictionary-action">
                 <span class="material-icons-outlined">auto_awesome</span>
                 Tạo từ mới
             </a>
-            <button type="button" class="dictionary-secondary-action" onclick="reshuffleWords()"
-                title="Xáo trộn thứ tự thẻ từ vựng">
-                <span class="material-icons-outlined">shuffle</span>
-                Trộn lại
-            </button>
             <button type="button" class="dictionary-secondary-action" onclick="resetLearned()">
                 <span class="material-icons-outlined">replay</span>
                 Đặt lại tiến độ
@@ -22,292 +19,18 @@
         </div>
     </section>
 
-    <section class="dictionary-metrics">
-        <article class="dictionary-metric">
-            <span>Tổng số từ</span>
-            <strong id="metricTotal">{{ count }}</strong>
-        </article>
-        <article class="dictionary-metric">
-            <span>Đã học</span>
-            <strong id="metricLearned">{{ learned_count }}</strong>
-        </article>
-        <article class="dictionary-metric">
-            <span>Cần ôn</span>
-            <strong id="metricUnlearned">{{ unlearned_count }}</strong>
-        </article>
+    <section class="anki-vocab-stats" aria-label="Thống kê từ vựng">
+        <article class="anki-vocab-stat"><span>Tổng số từ</span><strong id="metricTotal">{{ count }}</strong></article>
+        <article class="anki-vocab-stat"><span>Đã học</span><strong id="metricLearned">{{ learned_count }}</strong></article>
+        <article class="anki-vocab-stat"><span>Còn lại</span><strong id="metricUnlearned">{{ unlearned_count }}</strong></article>
     </section>
 
-    <!-- Learning Progress Bar -->
-    <section class="vocab-progress-section">
-        <div class="vocab-progress-header">
-            <span class="vocab-progress-label">
-                <span class="material-icons-outlined" aria-hidden="true">trending_up</span>
-                Tiến độ học từ vựng
-            </span>
-            <span class="vocab-progress-count" id="vocabProgressCount">{{ learned_count }} / {{ count }} từ</span>
-        </div>
-        <div class="vocab-progress-track" role="progressbar" aria-valuenow="{{ learned_count }}" aria-valuemin="0" aria-valuemax="{{ count }}" aria-label="Tiến độ học: {{ learned_count }} trên {{ count }} từ">
-            <div class="vocab-progress-fill" id="vocabProgressFill" style="width: {% if count > 0 %}{{ ((learned_count / count) * 100) | round(1) }}{% else %}0{% endif %}%"></div>
-        </div>
-        <p class="vocab-progress-hint" id="vocabProgressHint">{% if count > 0 %}{{ ((learned_count / count) * 100) | round(0) | int }}% hoàn thành{% else %}Chưa có từ vựng nào.{% endif %}</p>
-    </section>
-
-    <section class="dictionary-control-grid">
-        <article class="dictionary-panel">
-            <div class="dictionary-panel-head">
-                <div>
-                    <h3>Thêm từ vựng</h3>
-                </div>
-            </div>
-
-            <div class="dictionary-manual-row">
-                <input type="text" id="manualWord" class="dictionary-input"
-                    placeholder="Nhập một từ tiếng Hàn">
-                <button id="manualAddBtn" type="button" class="dictionary-add-button" onclick="manualAdd()">
-                    <span class="material-icons-outlined">add_circle</span>
-                    Thêm
-                </button>
-            </div>
-            <div class="dictionary-manual-row" style="margin-top: 12px;">
-                <input type="file" id="importFile" class="dictionary-input" accept=".json" style="padding-top: 10px;">
-                <button id="importBtn" type="button" class="dictionary-secondary-action" onclick="importJson()" style="justify-content: center;">
-                    <span class="material-icons-outlined">upload_file</span>
-                    Nhập JSON
-                </button>
-            </div>
-            <div style="margin-top: 12px;">
-                <select id="manualGroup" class="dictionary-select">
-                    <option value="">Lưu vào thư viện chính</option>
-                    {% for group in vocab_groups %}
-                    <option value="{{ group.id }}">{{ group.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </article>
-
-        <article class="dictionary-panel">
-            <div class="dictionary-panel-head">
-                <div>
-                    <h3>Tìm kiếm</h3>
-                </div>
-            </div>
-
-            <div class="dictionary-filter-stack">
-                <form method="get" action="{{ url_for('vocab') }}">
-                    <input type="text" id="dictionarySearch" name="q" class="dictionary-search-input"
-                        value="{{ search_q }}"
-                        placeholder="Tìm tiếng Hàn, nghĩa, giải thích hoặc ví dụ">
-                    <p class="dictionary-search-hint">Gõ để lọc trang này · nhấn Enter để tìm trong toàn bộ từ điển{% if search_q %} · <a href="{{ url_for('vocab') }}">Xoá tìm kiếm</a>{% endif %}</p>
-                </form>
-                <select id="dictionaryGroupFilter" class="dictionary-select">
-                    <option value="all">Tất cả thư mục</option>
-                    {% for group in vocab_groups %}
-                    <option value="{{ group.id }}">{{ group.name }}</option>
-                    {% endfor %}
-                </select>
-                <div class="dictionary-filter-row">
-                    <button type="button" class="dictionary-filter-button is-active" data-filter="all">Tất cả</button>
-                    <button type="button" class="dictionary-filter-button" data-filter="unlearned">Chưa học</button>
-                    <button type="button" class="dictionary-filter-button" data-filter="learned">Đã học</button>
-                </div>
-            </div>
-        </article>
-    </section>
-
-    <section class="dictionary-group-section">
-        <!-- Collapsible Folder Panel -->
-        <details class="dictionary-folder-section-details" {% if vocab_groups %}open{% endif %}>
-            <summary class="dictionary-folder-section-toggle">
-                <span class="material-icons-outlined" aria-hidden="true">folder</span>
-                Thư mục
-                <span class="dictionary-folder-section-count">{{ vocab_groups | length }} thư mục</span>
-                <span class="material-icons-outlined dictionary-folder-chevron" aria-hidden="true">expand_more</span>
-            </summary>
-            <article class="dictionary-panel" style="margin-top: 12px;">
-                <div class="dictionary-panel-head">
-                    <div>
-                        <h3>Thư mục</h3>
-                    </div>
-                </div>
-
-                <div class="dictionary-group-row">
-                    <input type="text" id="groupNameInput" class="dictionary-input"
-                        placeholder="Tên thư mục">
-                    <button id="createGroupBtn" type="button" class="dictionary-add-button" onclick="createGroup()">
-                        <span class="material-icons-outlined">create_new_folder</span>
-                        Tạo thư mục
-                    </button>
-                </div>
-
-                {% if vocab_groups %}
-                <div class="dictionary-group-table-wrap" style="margin-top: 14px;">
-                    <table class="dictionary-group-table">
-                        <thead>
-                            <tr>
-                                <th>Thư mục</th>
-                                <th>Tệp xuất</th>
-                                <th>Số từ</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for group in vocab_groups %}
-                            <tr>
-                                <td>
-                                    <span class="dictionary-group-name">{{ group.name }}</span>
-                                </td>
-                                <td>
-                                    <span class="dictionary-group-file">{{ group.file_name }}</span>
-                                </td>
-                                <td>
-                                    <span class="dictionary-group-count">{{ group.count }}</span>
-                                </td>
-                                <td>
-                                    <button type="button" class="dictionary-group-delete-button"
-                                        onclick='deleteGroup({{ group.id|tojson }}, {{ group.name|tojson }})'
-                                        title="Xoá thư mục">
-                                        <span class="material-icons-outlined">delete_outline</span>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="dictionary-empty-state" style="margin-top: 18px;">
-                    Chưa có thư mục. Tạo thư mục rồi lưu từ vào đó.
-                </div>
-                {% endif %}
-            </article>
-        </details>
-    </section>
-
-    <section class="dictionary-shelf">
-        <div class="dictionary-shelf-head">
-            <div>
-                <h1>Tất cả từ vựng</h1>
-            </div>
-            <span class="dictionary-shelf-count" id="dictionaryShelfCount">{{ shelf_total }} thẻ từ vựng{% if search_q %} khớp “{{ search_q }}”{% endif %}</span>
-        </div>
-
+    <section class="anki-study-shell" aria-label="Khu vực học flashcard">
         {% if vocab %}
-        <div id="dictionaryGrid" class="dictionary-grid">
-            {% for v in vocab %}
-            {% set card_groups = vocab_group_map[v.id] | default([]) %}
-            <article id="card-{{ v.id }}" class="dictionary-card vocab-card-accented" data-learned="{{ 'true' if v.learned else 'false' }}"
-                data-groups="{% for group in card_groups %}{{ group.id }}{% if not loop.last %},{% endif %}{% endfor %}"
-                data-search="{{ (v.korean ~ ' ' ~ v.meaning_vi ~ ' ' ~ (v.explanation_vi or '') ~ ' ' ~ (v.example_kr or '') ~ ' ' ~ (v.example_vi or ''))|lower|e }}{% for group in card_groups %} {{ group.name|lower|e }}{% endfor %}">
-                <div class="dictionary-card-main">
-                    <div class="dictionary-word-block">
-                        <div class="dictionary-card-meta">
-                            <span class="dictionary-chip dictionary-source-chip">{{ (v.source or
-                                'unspecified')|replace('_', ' ')|replace('-', ' ')|title }}</span>
-                            {% for group in card_groups %}
-                            <span class="dictionary-chip dictionary-group-chip">{{ group.name }}</span>
-                            {% endfor %}
-                            <span class="vocab-learned-badge {% if v.learned %}is-learned{% else %}is-unlearned{% endif %}">
-                                {{ 'Đã học' if v.learned else 'Chưa học' }}
-                            </span>
-                        </div>
-                        <h4 id="kr-text-{{ v.id }}"
-                            class="dictionary-card-title {% if not v.learned %}is-concealed{% endif %}"
-                            onclick='revealWord({{ v.id|tojson }})'>{{ v.korean }}</h4>
-                        <p class="dictionary-card-meaning">{{ v.meaning_vi }}</p>
-                        {% if v.explanation_vi %}
-                        <p class="dictionary-card-copy">{{ v.explanation_vi }}</p>
-                        {% endif %}
-                    </div>
-
-                    <div class="dictionary-card-actions" aria-label="Thao tác từ vựng">
-                        <button type="button" class="dictionary-icon-button"
-                            onclick='playTTS({{ (v.korean or '')|tojson }})' title="Nghe">
-                            <span class="material-icons-outlined">volume_up</span>
-                        </button>
-                        <button type="button"
-                            class="dictionary-status-button {% if v.learned %}is-learned{% else %}is-unlearned{% endif %}"
-                            id="status-btn-{{ v.id }}"
-                            onclick='toggleLearned({{ v.id|tojson }}, {{ (not v.learned)|tojson }})'>
-                            {% if v.learned %}Đã học{% else %}Chưa học{% endif %}
-                        </button>
-                        <button type="button" class="dictionary-icon-button" onclick='deleteWord({{ v.id|tojson }})'
-                            title="Xoá">
-                            <span class="material-icons-outlined">delete_outline</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="dictionary-card-detail">
-                {% if not v.learned %}
-                <div class="dictionary-practice" id="practice-{{ v.id }}">
-                    <label for="practice-input-{{ v.id }}">Nhập đúng từ để học</label>
-                    <input id="practice-input-{{ v.id }}" type="text" class="dictionary-practice-input"
-                        placeholder="Nhập tại đây"
-                        onkeyup='checkLearn(event, this, {{ v.korean|tojson }}, {{ v.id|tojson }})'>
-                </div>
-                {% endif %}
-
-                <div class="dictionary-folder-panel">
-                    <div class="dictionary-folder-topline">
-                        <div>
-                            <span class="dictionary-folder-label">Thư mục</span>
-                            <div class="dictionary-group-chip-row">
-                                {% if card_groups %}
-                                {% for group in card_groups %}
-                                <span class="dictionary-group-chip">{{ group.name }}</span>
-                                {% endfor %}
-                                {% else %}
-                                <span class="dictionary-folder-empty">Chưa lưu vào thư mục.</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="dictionary-group-assign">
-                        {% if vocab_groups %}
-                        <select id="group-select-{{ v.id }}" class="dictionary-select">
-                            <option value="">Chọn thư mục</option>
-                            {% for group in vocab_groups %}
-                            <option value="{{ group.id }}">{{ group.name }}</option>
-                            {% endfor %}
-                        </select>
-                        <button type="button" class="dictionary-inline-button"
-                            onclick='assignWordToGroup({{ v.id|tojson }})'>
-                            <span class="material-icons-outlined">drive_file_move</span>
-                            Lưu vào thư mục
-                        </button>
-                        {% else %}
-                        <span class="dictionary-folder-empty">Tạo thư mục trước.</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                {% if v.example_kr %}
-                <div id="example-box-{{ v.id }}" class="dictionary-example {% if v.learned %}is-revealed{% endif %}">
-                    {% if not v.learned %}
-                    <button type="button" class="dictionary-example-toggle" id="example-overlay-{{ v.id }}"
-                        onclick='revealExample({{ v.id|tojson }})'>
-                        <span class="material-icons-outlined">visibility</span>
-                        Hiện ví dụ
-                    </button>
-                    {% endif %}
-
-                    <div class="dictionary-example-content">
-                        <div>
-                            <p>{{ v.example_kr }}</p>
-                            <p class="dictionary-card-copy">{{ v.example_vi }}</p>
-                        </div>
-                        <button type="button" class="dictionary-inline-button"
-                            onclick='playTTS({{ (v.example_kr or '')|tojson }})'>
-                            <span class="material-icons-outlined">volume_up</span>
-                            Ví dụ
-                        </button>
-                    </div>
-                </div>
-                {% endif %}
-                </div>
-            </article>
-            {% endfor %}
-        </div>
+        <div id="vocabProgress" class="anki-progress-host"></div>
+        <div id="flashcardStage" class="anki-card-stage"></div>
+        <div id="flashcardActions" class="anki-actions-host"></div>
+        <p class="anki-shortcuts" aria-label="Phím tắt"><kbd>Space</kbd> Lật · <kbd>A</kbd> Đã học · <kbd>R</kbd> Ôn lại · <kbd>S</kbd> Bỏ qua · <kbd>D</kbd> Ngẫu nhiên</p>
         {% else %}
         <div class="dictionary-empty-state">
             {% if search_q %}
@@ -317,644 +40,133 @@
             {% endif %}
         </div>
         {% endif %}
-
-        <div id="dictionaryEmptyFiltered" class="dictionary-empty-state" style="display: none; margin-top: 18px;">
-            Không có thẻ nào khớp bộ lọc.
-        </div>
-
-        <!-- Pagination Controls -->
-        {% if total_pages > 1 %}
-        <div class="dictionary-pagination">
-            <nav>
-                <ul class="dictionary-pagination-list">
-                    {% if page > 1 %}
-                        <li>
-                            <a href="{{ url_for('vocab', page=page-1, q=search_q) }}" class="dictionary-secondary-action dictionary-pagination-link">
-                                Quay lại
-                            </a>
-                        </li>
-                    {% endif %}
-
-                    {% for i in range(max(1, page-2), min(total_pages+1, page+3)) %}
-                        <li>
-                            {% if i == page %}
-                                <span class="dictionary-action dictionary-pagination-link">
-                                    {{ i }}
-                                </span>
-                            {% else %}
-                                <a href="{{ url_for('vocab', page=i, q=search_q) }}" class="dictionary-secondary-action dictionary-pagination-link">
-                                    {{ i }}
-                                </a>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-
-                    {% if page < total_pages %}
-                        <li>
-                            <a href="{{ url_for('vocab', page=page+1, q=search_q) }}" class="dictionary-secondary-action dictionary-pagination-link">
-                                Tiếp theo
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </div>
-        {% endif %}
     </section>
+
+    <details class="anki-manage-panel">
+        <summary class="anki-manage-summary">
+            <span class="material-icons-outlined" aria-hidden="true">tune</span>
+            Quản lý từ vựng
+            <span class="material-icons-outlined anki-manage-chevron" aria-hidden="true">expand_more</span>
+        </summary>
+        <div class="anki-manage-grid">
+            <article class="dictionary-panel">
+                <div class="dictionary-panel-head"><h3>Thêm từ vựng</h3></div>
+                <div class="dictionary-manual-row">
+                    <input type="text" id="manualWord" class="dictionary-input" placeholder="Nhập một từ tiếng Hàn">
+                    <button id="manualAddBtn" type="button" class="dictionary-add-button" onclick="manualAdd()"><span class="material-icons-outlined">add_circle</span>Thêm</button>
+                </div>
+                <div class="dictionary-manual-row" style="margin-top: 12px;">
+                    <input type="file" id="importFile" class="dictionary-input" accept=".json" style="padding-top: 10px;">
+                    <button id="importBtn" type="button" class="dictionary-secondary-action" onclick="importJson()" style="justify-content: center;"><span class="material-icons-outlined">upload_file</span>Nhập JSON</button>
+                </div>
+                <div style="margin-top: 12px;">
+                    <select id="manualGroup" class="dictionary-select">
+                        <option value="">Lưu vào thư viện chính</option>
+                        {% for group in vocab_groups %}<option value="{{ group.id }}">{{ group.name }}</option>{% endfor %}
+                    </select>
+                </div>
+            </article>
+
+            <article class="dictionary-panel">
+                <div class="dictionary-panel-head"><h3>Tìm kiếm phiên học</h3></div>
+                <form method="get" action="{{ url_for('vocab') }}" class="dictionary-filter-stack">
+                    <input type="text" name="q" class="dictionary-search-input" value="{{ search_q }}" placeholder="Tìm tiếng Hàn, nghĩa, giải thích hoặc ví dụ">
+                    <button type="submit" class="dictionary-secondary-action" style="justify-content: center;">Tìm</button>
+                    {% if search_q %}<a href="{{ url_for('vocab') }}" class="dictionary-search-hint">Xoá tìm kiếm</a>{% endif %}
+                </form>
+            </article>
+
+            <article class="dictionary-panel anki-folder-panel">
+                <div class="dictionary-panel-head"><h3>Thư mục</h3></div>
+                <div class="dictionary-group-row">
+                    <input type="text" id="groupNameInput" class="dictionary-input" placeholder="Tên thư mục">
+                    <button id="createGroupBtn" type="button" class="dictionary-add-button" onclick="createGroup()"><span class="material-icons-outlined">create_new_folder</span>Tạo thư mục</button>
+                </div>
+                {% if vocab_groups %}
+                <div class="dictionary-group-table-wrap" style="margin-top: 14px;">
+                    <table class="dictionary-group-table">
+                        <thead><tr><th>Thư mục</th><th>Số từ</th><th>Thao tác</th></tr></thead>
+                        <tbody>
+                            {% for group in vocab_groups %}
+                            <tr>
+                                <td><span class="dictionary-group-name">{{ group.name }}</span></td>
+                                <td><span class="dictionary-group-count">{{ group.count }}</span></td>
+                                <td><button type="button" class="dictionary-group-delete-button" onclick='deleteGroup({{ group.id|tojson }}, {{ group.name|tojson }})' title="Xoá thư mục"><span class="material-icons-outlined">delete_outline</span></button></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}<div class="dictionary-empty-state" style="margin-top: 18px;">Chưa có thư mục.</div>{% endif %}
+            </article>
+        </div>
+    </details>
 </div>
 
+<script id="vocab-data" type="application/json">{{ flashcard_vocab|tojson }}</script>
+<script type="module" src="/static/js/vocab/vocabFlashcards.js"></script>
 <script>
-    let currentFilter = 'all';
-    let currentGroupFilter = 'all';
-
-    function revealWord(id) {
-        const title = document.getElementById(`kr-text-${id}`);
-        if (title) {
-            title.classList.remove('is-concealed');
-        }
-    }
-
-    function updateVisibleCount() {
-        const cards = Array.from(document.querySelectorAll('.dictionary-card'));
-        const visibleCards = cards.filter((card) => !card.classList.contains('is-hidden'));
-        const visibleCount = visibleCards.length;
-        const visibleCountEl = document.getElementById('visibleCount');
-        if (visibleCountEl) visibleCountEl.textContent = `${visibleCount} đang hiển thị`;
-
-        const shelfCountEl = document.getElementById('dictionaryShelfCount');
-        if (shelfCountEl) shelfCountEl.textContent = `${visibleCount} thẻ`;
-
-        const emptyFilteredEl = document.getElementById('dictionaryEmptyFiltered');
-        if (emptyFilteredEl) emptyFilteredEl.style.display = visibleCount === 0 ? 'block' : 'none';
-    }
-
     async function readApiError(response, fallback) {
-        try {
-            const data = await response.json();
-            return data && data.error ? data.error : fallback;
-        } catch (error) {
-            return fallback;
-        }
+        try { const data = await response.json(); return data && data.error ? data.error : fallback; } catch (error) { return fallback; }
     }
-
-    function playTTS(text) {
-        const value = String(text || '').trim();
-        if (!value) return;
-
-        const audio = new Audio(`/api/tts?text=${encodeURIComponent(value)}`);
-        audio.play().catch(() => {
-            window.showToast('Không phát được âm thanh.', 'error');
-        });
-    }
-
-    function applyFilters() {
-        const searchEl = document.getElementById('dictionarySearch');
-        const groupFilterEl = document.getElementById('dictionaryGroupFilter');
-        const query = searchEl ? searchEl.value.trim().toLowerCase() : '';
-        const selectedGroupId = groupFilterEl ? groupFilterEl.value : 'all';
-        const cards = document.querySelectorAll('.dictionary-card');
-
-        cards.forEach((card) => {
-            const learned = card.dataset.learned === 'true';
-            const searchText = card.dataset.search || '';
-            const groups = (card.dataset.groups || '').split(',').filter(Boolean);
-            const matchesQuery = !query || searchText.includes(query);
-            const matchesGroup = selectedGroupId === 'all' || groups.includes(selectedGroupId);
-            const matchesFilter =
-                currentFilter === 'all' ||
-                (currentFilter === 'learned' && learned) ||
-                (currentFilter === 'unlearned' && !learned);
-
-            card.classList.toggle('is-hidden', !(matchesQuery && matchesFilter && matchesGroup));
-        });
-
-        updateVisibleCount();
-    }
-
-    function reshuffleWords() {
-        const grid = document.getElementById('dictionaryGrid');
-        if (!grid) {
-            return;
-        }
-
-        const cards = Array.from(grid.querySelectorAll('.dictionary-card'));
-        if (cards.length < 2) {
-            return;
-        }
-
-        for (let index = cards.length - 1; index > 0; index -= 1) {
-            const swapIndex = Math.floor(Math.random() * (index + 1));
-            [cards[index], cards[swapIndex]] = [cards[swapIndex], cards[index]];
-        }
-
-        cards.forEach((card) => grid.appendChild(card));
-        applyFilters();
-    }
-
-    function updateMetrics(deltaLearned, deltaTotal) {
-        const totalEl = document.getElementById('metricTotal');
-        const learnedEl = document.getElementById('metricLearned');
-        const unlearnedEl = document.getElementById('metricUnlearned');
-        const total = Math.max(0, Number(totalEl ? totalEl.textContent : 0) + deltaTotal);
-        const learned = Math.max(0, Math.min(total, Number(learnedEl ? learnedEl.textContent : 0) + deltaLearned));
-        if (totalEl) totalEl.textContent = total;
-        if (learnedEl) learnedEl.textContent = learned;
-        if (unlearnedEl) unlearnedEl.textContent = total - learned;
-
-        const fill = document.getElementById('vocabProgressFill');
-        const hint = document.getElementById('vocabProgressHint');
-        const countLabel = document.getElementById('vocabProgressCount');
-        const track = document.querySelector('.vocab-progress-track');
-        const pct = total > 0 ? (learned / total) * 100 : 0;
-        if (fill) fill.style.width = `${pct.toFixed(1)}%`;
-        if (hint) hint.textContent = total > 0 ? `${Math.round(pct)}% hoàn thành` : 'Chưa có từ vựng nào.';
-        if (countLabel) countLabel.textContent = `${learned} / ${total} từ`;
-        if (track) {
-            track.setAttribute('aria-valuenow', learned);
-            track.setAttribute('aria-valuemax', total);
-        }
-    }
-
-    async function saveLearned(id, status) {
-        try {
-            const response = await fetch('/api/mark_learned', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id, learned: status })
-            });
-
-            if (!response.ok) {
-                throw new Error(await readApiError(response, 'Thao tác thất bại.'));
-            }
-            return true;
-        } catch (error) {
-            window.showToast(error.message || 'Thao tác thất bại.', 'error');
-            return false;
-        }
-    }
-
-    async function toggleLearned(id, status) {
-        const saved = await saveLearned(id, status);
-        if (!saved) return false;
-        if (status) {
-            markCardLearnedUI(id);
-        } else {
-            markCardUnlearnedUI(id);
-        }
-        updateMetrics(status ? 1 : -1, 0);
-        applyFilters();
-        return true;
-    }
-
-    function markCardLearnedUI(id) {
-        const card = document.getElementById(`card-${id}`);
-        const title = document.getElementById(`kr-text-${id}`);
-        const practice = document.getElementById(`practice-${id}`);
-        const statusButton = document.getElementById(`status-btn-${id}`);
-        const exampleBox = document.getElementById(`example-box-${id}`);
-        const badge = card ? card.querySelector('.vocab-learned-badge') : null;
-
-        if (card) {
-            card.dataset.learned = 'true';
-        }
-        if (title) {
-            title.classList.remove('is-concealed');
-        }
-        if (practice) {
-            practice.remove();
-        }
-        if (badge) {
-            badge.textContent = 'Đã học';
-            badge.classList.remove('is-unlearned');
-            badge.classList.add('is-learned');
-        }
-        if (statusButton) {
-            statusButton.textContent = 'Đã học';
-            statusButton.classList.remove('is-unlearned');
-            statusButton.classList.add('is-learned');
-            statusButton.setAttribute('onclick', `toggleLearned(${JSON.stringify(id)}, false)`);
-        }
-        if (exampleBox) {
-            exampleBox.classList.add('is-revealed');
-        }
-    }
-
-    function markCardUnlearnedUI(id) {
-        const card = document.getElementById(`card-${id}`);
-        const title = document.getElementById(`kr-text-${id}`);
-        const statusButton = document.getElementById(`status-btn-${id}`);
-        const exampleBox = document.getElementById(`example-box-${id}`);
-        const badge = card ? card.querySelector('.vocab-learned-badge') : null;
-        const korean = title ? title.textContent.trim() : '';
-
-        if (card) {
-            card.dataset.learned = 'false';
-        }
-        if (title) {
-            title.classList.add('is-concealed');
-        }
-        if (badge) {
-            badge.textContent = 'Chưa học';
-            badge.classList.remove('is-learned');
-            badge.classList.add('is-unlearned');
-        }
-        if (statusButton) {
-            statusButton.textContent = 'Chưa học';
-            statusButton.classList.remove('is-learned');
-            statusButton.classList.add('is-unlearned');
-            statusButton.setAttribute('onclick', `toggleLearned(${JSON.stringify(id)}, true)`);
-        }
-        if (exampleBox) {
-            exampleBox.classList.remove('is-revealed');
-            if (!exampleBox.querySelector('.dictionary-example-toggle')) {
-                const toggleButton = document.createElement('button');
-                toggleButton.type = 'button';
-                toggleButton.className = 'dictionary-example-toggle';
-                toggleButton.id = `example-overlay-${id}`;
-                toggleButton.innerHTML = '<span class="material-icons-outlined">visibility</span> Hiện ví dụ';
-                toggleButton.addEventListener('click', () => revealExample(id));
-                exampleBox.prepend(toggleButton);
-            }
-        }
-        if (card && korean && !document.getElementById(`practice-${id}`)) {
-            const detail = card.querySelector('.dictionary-card-detail');
-            if (detail) {
-                const practice = document.createElement('div');
-                practice.className = 'dictionary-practice';
-                practice.id = `practice-${id}`;
-                const label = document.createElement('label');
-                label.setAttribute('for', `practice-input-${id}`);
-                label.textContent = 'Nhập đúng từ để học';
-                const input = document.createElement('input');
-                input.id = `practice-input-${id}`;
-                input.type = 'text';
-                input.className = 'dictionary-practice-input';
-                input.placeholder = 'Nhập tại đây';
-                input.addEventListener('keyup', (event) => checkLearn(event, input, korean, id));
-                practice.append(label, input);
-                detail.prepend(practice);
-            }
-        }
-    }
-
-    async function checkLearn(event, inputElem, expectedWord, id) {
-        const typedWord = inputElem.value.trim();
-        const normalizedExpected = String(expectedWord || '').trim();
-        if (typedWord !== normalizedExpected) {
-            return;
-        }
-
-        inputElem.disabled = true;
-        inputElem.classList.add('is-success');
-
-        const saved = await toggleLearned(id, true);
-        if (!saved) {
-            inputElem.disabled = false;
-            inputElem.classList.remove('is-success');
-        }
-    }
-
-    function revealExample(id) {
-        const exampleBox = document.getElementById(`example-box-${id}`);
-        if (exampleBox) {
-            exampleBox.classList.add('is-revealed');
-        }
-    }
-
-    async function deleteWord(id) {
-        const confirmed = await window.showConfirm({
-            title: 'Xoá từ vựng',
-            message: 'Bạn có chắc chắn muốn xóa từ này không?',
-            confirmText: 'Xoá',
-            cancelText: 'Huỷ',
-            danger: true
-        });
-        if (!confirmed) return;
-
-        try {
-            const response = await fetch('/api/delete_word', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id })
-            });
-
-            if (!response.ok) {
-                throw new Error(await readApiError(response, 'Xoá từ thất bại.'));
-            }
-
-            const card = document.getElementById(`card-${id}`);
-            const wasLearned = card && card.dataset.learned === 'true';
-            if (card) card.remove();
-            updateMetrics(wasLearned ? -1 : 0, -1);
-            applyFilters();
-            window.showToast('Đã xoá từ vựng.', 'success');
-        } catch (error) {
-            window.showToast(error.message || 'Xoá từ thất bại.', 'error');
-        }
-    }
-
     async function resetLearned() {
-        const confirmed = await window.showConfirm({
-            title: 'Đặt lại tiến độ',
-            message: 'Đặt lại tiến độ học của tất cả từ?',
-            confirmText: 'Đặt lại',
-            cancelText: 'Huỷ',
-            danger: true
-        });
+        const confirmed = await window.showConfirm({ title: 'Đặt lại tiến độ', message: 'Đặt lại tiến độ học của tất cả từ?', confirmText: 'Đặt lại', cancelText: 'Huỷ', danger: true });
         if (!confirmed) return;
-
         try {
+            localStorage.removeItem('ftka:vocab:flashcard:v2');
             const response = await fetch('/api/reset_learned', { method: 'POST' });
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                throw new Error(await readApiError(response, 'Đặt lại tiến độ thất bại.'));
-            }
-        } catch (error) {
-            window.showToast(error.message || 'Đặt lại tiến độ thất bại.', 'error');
-        }
+            if (!response.ok) throw new Error(await readApiError(response, 'Đặt lại tiến độ thất bại.'));
+            window.location.reload();
+        } catch (error) { window.showToast(error.message || 'Đặt lại tiến độ thất bại.', 'error'); }
     }
-
     async function createGroup() {
-        const input = document.getElementById('groupNameInput');
-        const button = document.getElementById('createGroupBtn');
-        const name = input.value.trim();
-
-        if (!name) {
-            window.showToast('Vui lòng nhập tên thư mục trước.', 'error');
-            return;
-        }
-
-        button.disabled = true;
-        button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang tạo...';
-
+        const input = document.getElementById('groupNameInput'); const button = document.getElementById('createGroupBtn'); const name = input.value.trim();
+        if (!name) return window.showToast('Vui lòng nhập tên thư mục trước.', 'error');
+        button.disabled = true; button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang tạo...';
         try {
-            const response = await fetch('/api/vocab_groups', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name })
-            });
-
-            if (!response.ok) {
-                throw new Error(await readApiError(response, 'Tạo thư mục thất bại.'));
-            }
-
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error(data.error || 'Tạo thư mục thất bại.');
-            }
-
-            window.location.reload();
-        } catch (error) {
-            window.showToast(error.message || 'Tạo thư mục thất bại.', 'error');
-        } finally {
-            button.disabled = false;
-            button.innerHTML = '<span class="material-icons-outlined">create_new_folder</span>Tạo thư mục';
-        }
+            const response = await fetch('/api/vocab_groups', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+            if (!response.ok) throw new Error(await readApiError(response, 'Tạo thư mục thất bại.'));
+            const data = await response.json(); if (!data.success) throw new Error(data.error || 'Tạo thư mục thất bại.'); window.location.reload();
+        } catch (error) { window.showToast(error.message || 'Tạo thư mục thất bại.', 'error'); }
+        finally { button.disabled = false; button.innerHTML = '<span class="material-icons-outlined">create_new_folder</span>Tạo thư mục'; }
     }
-
-    async function assignWordToGroup(id) {
-        const select = document.getElementById(`group-select-${id}`);
-        const groupId = select ? select.value : '';
-
-        if (!groupId) {
-            window.showToast('Vui lòng chọn thư mục trước.', 'error');
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/vocab_groups/assign', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ vocab_id: id, group_id: groupId })
-            });
-
-            if (!response.ok) {
-                throw new Error(await readApiError(response, 'Lưu từ vào thư mục thất bại.'));
-            }
-
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error(data.error || 'Lưu từ vào thư mục thất bại.');
-            }
-
-            const card = document.getElementById(`card-${id}`);
-            if (!card || !data.group) {
-                window.location.reload();
-                return;
-            }
-
-            const newGroupId = String(data.group.id);
-            const assigned = (card.dataset.groups || '').split(',').filter(Boolean);
-            if (!assigned.includes(newGroupId)) {
-                assigned.push(newGroupId);
-                card.dataset.groups = assigned.join(',');
-                card.dataset.search = `${card.dataset.search || ''} ${String(data.group.name || '').toLowerCase()}`;
-
-                const meta = card.querySelector('.dictionary-card-meta');
-                if (meta) {
-                    const chip = document.createElement('span');
-                    chip.className = 'dictionary-chip dictionary-group-chip';
-                    chip.textContent = data.group.name;
-                    meta.insertBefore(chip, meta.querySelector('.vocab-learned-badge'));
-                }
-
-                const chipRow = card.querySelector('.dictionary-group-chip-row');
-                if (chipRow) {
-                    const emptyNote = chipRow.querySelector('.dictionary-folder-empty');
-                    if (emptyNote) emptyNote.remove();
-                    const chip = document.createElement('span');
-                    chip.className = 'dictionary-group-chip';
-                    chip.textContent = data.group.name;
-                    chipRow.appendChild(chip);
-                }
-            }
-            if (select) select.value = '';
-            applyFilters();
-            window.showToast(`Đã lưu vào thư mục “${data.group.name}”.`, 'success');
-        } catch (error) {
-            window.showToast(error.message || 'Lưu từ vào thư mục thất bại.', 'error');
-        }
-    }
-
     async function deleteGroup(groupId, groupName) {
-        const confirmed = await window.showConfirm({
-            title: 'Xoá thư mục',
-            message: `Xoá thư mục \u201c${groupName}\u201d và tệp xuất riêng?`,
-            confirmText: 'Xoá',
-            cancelText: 'Huỷ',
-            danger: true
-        });
+        const confirmed = await window.showConfirm({ title: 'Xoá thư mục', message: `Xoá thư mục “${groupName}” và tệp xuất riêng?`, confirmText: 'Xoá', cancelText: 'Huỷ', danger: true });
         if (!confirmed) return;
-
         try {
-            const response = await fetch('/api/vocab_groups/delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ group_id: groupId })
-            });
-
-            if (!response.ok) {
-                throw new Error(await readApiError(response, 'Xoá thư mục thất bại.'));
-            }
-
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error(data.error || 'Xoá thư mục thất bại.');
-            }
-
-            window.location.reload();
-        } catch (error) {
-            window.showToast(error.message || 'Xoá thư mục thất bại.', 'error');
-        }
+            const response = await fetch('/api/vocab_groups/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ group_id: groupId }) });
+            if (!response.ok) throw new Error(await readApiError(response, 'Xoá thư mục thất bại.'));
+            const data = await response.json(); if (!data.success) throw new Error(data.error || 'Xoá thư mục thất bại.'); window.location.reload();
+        } catch (error) { window.showToast(error.message || 'Xoá thư mục thất bại.', 'error'); }
     }
-
     async function manualAdd() {
-        const input = document.getElementById('manualWord');
-        const button = document.getElementById('manualAddBtn');
-        const manualGroup = document.getElementById('manualGroup');
-        const word = input.value.trim();
-
-        if (!word) {
-            return;
-        }
-
-        button.disabled = true;
-        button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang thêm...';
-
+        const input = document.getElementById('manualWord'); const button = document.getElementById('manualAddBtn'); const manualGroup = document.getElementById('manualGroup'); const word = input.value.trim();
+        if (!word) return;
+        button.disabled = true; button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang thêm...';
         try {
-            const response = await fetch('/api/manual_add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    word: word,
-                    group_id: manualGroup ? manualGroup.value || null : null
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(await readApiError(response, 'Thêm từ thất bại.'));
-            }
-
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error(data.error || 'Thêm từ thất bại.');
-            }
-
-            window.location.reload();
-        } catch (error) {
-            window.showToast(error.message || 'Lỗi mạng.', 'error');
-        } finally {
-            button.disabled = false;
-            button.innerHTML = '<span class="material-icons-outlined">add_circle</span>Thêm';
-        }
+            const response = await fetch('/api/manual_add', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ word, group_id: manualGroup ? manualGroup.value || null : null }) });
+            if (!response.ok) throw new Error(await readApiError(response, 'Thêm từ thất bại.'));
+            const data = await response.json(); if (!data.success) throw new Error(data.error || 'Thêm từ thất bại.'); window.location.reload();
+        } catch (error) { window.showToast(error.message || 'Lỗi mạng.', 'error'); }
+        finally { button.disabled = false; button.innerHTML = '<span class="material-icons-outlined">add_circle</span>Thêm'; }
     }
-
     async function importJson() {
-        const fileInput = document.getElementById('importFile');
-        const file = fileInput.files[0];
-        const button = document.getElementById('importBtn');
-
-        if (!file) {
-            window.showToast('Vui lòng chọn một tệp JSON để nhập.', 'error');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        button.disabled = true;
-        button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang nhập...';
-
+        const fileInput = document.getElementById('importFile'); const file = fileInput.files[0]; const button = document.getElementById('importBtn');
+        if (!file) return window.showToast('Vui lòng chọn một tệp JSON để nhập.', 'error');
+        const formData = new FormData(); formData.append('file', file); button.disabled = true; button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang nhập...';
         try {
-            const response = await fetch('/api/import_vocab', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error(await readApiError(response, 'Nhập JSON thất bại.'));
-            }
-
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error(data.error || 'Nhập JSON thất bại.');
-            }
-
-            window.showToast(`Đã nhập ${data.count} từ.`, 'success');
-            window.location.reload();
-        } catch (error) {
-            window.showToast(error.message || 'Lỗi kết nối mạng.', 'error');
-        } finally {
-            button.disabled = false;
-            button.innerHTML = '<span class="material-icons-outlined">upload_file</span>Nhập JSON';
-        }
+            const response = await fetch('/api/import_vocab', { method: 'POST', body: formData });
+            if (!response.ok) throw new Error(await readApiError(response, 'Nhập JSON thất bại.'));
+            const data = await response.json(); if (!data.success) throw new Error(data.error || 'Nhập JSON thất bại.'); window.showToast(`Đã nhập ${data.count} từ.`, 'success'); window.location.reload();
+        } catch (error) { window.showToast(error.message || 'Lỗi kết nối mạng.', 'error'); }
+        finally { button.disabled = false; button.innerHTML = '<span class="material-icons-outlined">upload_file</span>Nhập JSON'; }
     }
-
-    Object.assign(window, {
-        revealWord,
-        reshuffleWords,
-        resetLearned,
-        toggleLearned,
-        checkLearn,
-        revealExample,
-        deleteWord,
-        createGroup,
-        assignWordToGroup,
-        deleteGroup,
-        manualAdd,
-        importJson,
-        playTTS
-    });
-
-    function initVocabPage() {
-        document.querySelectorAll('.dictionary-filter-button').forEach((button) => {
-            button.addEventListener('click', () => {
-                currentFilter = button.dataset.filter;
-                document.querySelectorAll('.dictionary-filter-button').forEach((item) => item.classList.remove('is-active'));
-                button.classList.add('is-active');
-                applyFilters();
-            });
-        });
-
-        const dictionarySearchEl = document.getElementById('dictionarySearch');
-        if (dictionarySearchEl) dictionarySearchEl.addEventListener('input', applyFilters);
-
-        const dictionaryGroupFilterEl = document.getElementById('dictionaryGroupFilter');
-        if (dictionaryGroupFilterEl) {
-            dictionaryGroupFilterEl.addEventListener('change', function (event) {
-                currentGroupFilter = event.target.value;
-                applyFilters();
-            });
-        }
-
+    document.addEventListener('DOMContentLoaded', () => {
         const manualWordEl = document.getElementById('manualWord');
-        if (manualWordEl) {
-            manualWordEl.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    manualAdd();
-                }
-            });
-        }
-
+        if (manualWordEl) manualWordEl.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); manualAdd(); } });
         const groupNameInputEl = document.getElementById('groupNameInput');
-        if (groupNameInputEl) {
-            groupNameInputEl.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    createGroup();
-                }
-            });
-        }
-
-        applyFilters();
-    }
-
-    try {
-        initVocabPage();
-    } catch (error) {
-        console.error('Vocabulary page initialization failed:', error);
-    }
+        if (groupNameInputEl) groupNameInputEl.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); createGroup(); } });
+    });
+    Object.assign(window, { resetLearned, createGroup, deleteGroup, manualAdd, importJson });
 </script>
 {% endblock %}

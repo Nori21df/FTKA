@@ -89,7 +89,7 @@
                         <div class="grammar-card-meta">
                             <span class="grammar-chip">{{ (g.level or 'General')|upper }}</span>
                         </div>
-                        <h4 class="grammar-card-title">{{ g.grammar }}</h4>
+                        <h4 class="grammar-card-title" lang="ko">{{ g.grammar }}</h4>
                         <p class="grammar-card-meaning">{{ g.meaning_vi }}</p>
                     </div>
                     <div class="grammar-card-actions">
@@ -112,7 +112,7 @@
 
                 {% if g.example_kr %}
                 <div class="grammar-example">
-                    <strong>{{ g.example_kr }}</strong>
+                    <strong lang="ko">{{ g.example_kr }}</strong>
                     <span>{{ g.example_vi }}</span>
                 </div>
                 {% endif %}

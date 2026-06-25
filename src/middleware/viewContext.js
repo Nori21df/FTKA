@@ -9,7 +9,7 @@ const VI_TRANSLATIONS = {
   "nav.generator": "Tạo nội dung AI",
   "nav.vocabulary": "Từ vựng",
   "nav.grammar": "Ngữ pháp",
-  "nav.quiz": "Ôn tập / Kiểm tra",
+  "nav.quiz": "Ôn tập / Kiểm tra từ vựng",
   "nav.settings": "Cài đặt",
   "settings.enabled": "Bật",
   "settings.disabled": "Tắt",

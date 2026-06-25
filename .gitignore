@@ -20,3 +20,5 @@ data/
 # OS/editor
 .DS_Store
 .vscode/
+
+public/audio/*.mp3

@@ -4,6 +4,7 @@ const db = require("../db");
 const asyncHandler = require("../utils/asyncHandler");
 const { named } = require("../middleware/viewContext");
 const { loginRequired, adminRequired } = require("../middleware/auth");
+const { authLimiter, aiLimiter } = require("../middleware/rateLimit");
 const auth = require("../services/authService");
 const settings = require("../services/settingsService");
 const learning = require("../services/learningService");
@@ -42,7 +43,7 @@ router.route("/register")
       google_configured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
     });
   }))
-  .post(...named("register", asyncHandler(async (req, res) => {
+  .post(authLimiter, ...named("register", asyncHandler(async (req, res) => {
     try {
       const user = await auth.createUser(req.body.username, req.body.email, req.body.password);
       auth.loginSession(req, user);
@@ -67,7 +68,7 @@ router.route("/login")
       google_configured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
     });
   }))
-  .post(...named("login", asyncHandler(async (req, res) => {
+  .post(authLimiter, ...named("login", asyncHandler(async (req, res) => {
     const user = await auth.authenticateUser(req.body.login, req.body.password);
     if (user) {
       auth.loginSession(req, user);
@@ -89,7 +90,7 @@ router.get("/forgot-password", ...named("forgot_password", (req, res) => {
   res.render("auth/forgot_password.html", { message: "", error: "", email: "" });
 }));
 
-router.post("/forgot-password", ...named("forgot_password", asyncHandler(async (req, res) => {
+router.post("/forgot-password", authLimiter, ...named("forgot_password", asyncHandler(async (req, res) => {
   const result = await auth.requestPasswordReset(req.body.email);
   if (req.is("application/json")) return res.json({ success: true, message: result.message });
   return res.render("auth/forgot_password.html", { message: result.message, error: "", email: req.body.email || "" });
@@ -104,7 +105,7 @@ router.get("/reset-password", ...named("reset_password", asyncHandler(async (req
   return res.render("auth/reset_password.html", { token, error: "", success: "" });
 })));
 
-router.post("/reset-password", ...named("reset_password", asyncHandler(async (req, res) => {
+router.post("/reset-password", authLimiter, ...named("reset_password", asyncHandler(async (req, res) => {
   const result = await auth.resetPassword(req.body.token, req.body.password, req.body.confirmPassword);
   if (req.is("application/json")) {
     return result.ok ? res.json({ success: true }) : res.status(400).json({ success: false, error: result.error });
@@ -226,9 +227,6 @@ router.get("/dashboard", ...named("dashboard", loginRequired, asyncHandler(async
 
 router.get("/vocab", ...named("vocab", loginRequired, asyncHandler(async (req, res) => {
   const ownerId = req.currentUser.id;
-  const page = Math.max(Number.parseInt(req.query.page || "1", 10) || 1, 1);
-  const perPage = 20;
-  const offset = (page - 1) * perPage;
   const searchQ = String(req.query.q || "").trim();
   let where = "owner_user_id=?";
   const whereParams = [ownerId];
@@ -237,12 +235,24 @@ router.get("/vocab", ...named("vocab", loginRequired, asyncHandler(async (req, r
     const like = `%${searchQ}%`;
     whereParams.push(like, like, like, like, like);
   }
-  const rows = await db.query(`SELECT * FROM vocab WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`, [...whereParams, perPage, offset]);
+  const rows = await db.query(`SELECT * FROM vocab WHERE ${where} ORDER BY learned ASC, created_at DESC, id DESC`, whereParams);
   const filteredTotal = Number(await db.scalar(`SELECT COUNT(*) FROM vocab WHERE ${where}`, whereParams));
   const total = Number(await db.scalar("SELECT COUNT(*) FROM vocab WHERE owner_user_id=?", [ownerId]));
   const learnedCount = Number(await db.scalar("SELECT COUNT(*) FROM vocab WHERE owner_user_id=? AND learned=TRUE", [ownerId]));
   res.render("vocab.html", {
     vocab: rows,
+    flashcard_vocab: rows.map((row) => ({
+      id: row.id,
+      korean: row.korean || "",
+      meaning_vi: row.meaning_vi || "",
+      explanation_vi: row.explanation_vi || "",
+      example_kr: row.example_kr || "",
+      example_vi: row.example_vi || "",
+      tts_text: row.tts_text || row.korean || "",
+      learned: Boolean(row.learned),
+      created_at: row.created_at || "",
+      source: row.source || ""
+    })),
     count: total,
     learned_count: learnedCount,
     unlearned_count: total - learnedCount,
@@ -250,9 +260,6 @@ router.get("/vocab", ...named("vocab", loginRequired, asyncHandler(async (req, r
     search_q: searchQ,
     vocab_groups: await groups.getGroups(ownerId),
     vocab_group_map: await groups.getAssignments(ownerId),
-    page,
-    total_pages: Math.ceil(filteredTotal / perPage),
-    per_page: perPage,
     total_vocab: total
   });
 })));
@@ -299,7 +306,7 @@ router.get("/listening-practice", ...named("listening_practice", loginRequired, 
   });
 })));
 
-router.post("/listening-practice/generate", ...named("generate_listening_practice", loginRequired, asyncHandler(async (req, res) => {
+router.post("/listening-practice/generate", aiLimiter, ...named("generate_listening_practice", loginRequired, asyncHandler(async (req, res) => {
   const wantsJson = req.is("application/json");
   try {
     const status = await energy.hasEnoughEnergy(req.currentUser.id, 10);
