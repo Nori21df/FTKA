@@ -74,7 +74,15 @@
             <div>
                 <h1>Danh sách ngữ pháp</h1>
             </div>
+            <div class="grammar-list-head-actions">
+                <button type="button" class="grammar-secondary-action" id="regenAllQuizBtn" onclick="regenerateAllGrammarQuizzes()" title="Tạo lại câu hỏi quiz cho tất cả mẫu ngữ pháp">
+                    <span class="material-icons-outlined">autorenew</span>
+                    Tạo lại tất cả quiz
+                </button>
+                <span id="grammarVisibleCount" class="grammar-visible-count" aria-live="polite"></span>
+            </div>
         </div>
+        <div id="regenAllStatus" class="grammar-add-status" aria-live="polite"></div>
         <div id="grammarGrid" class="grammar-grid">
             {% for g in grammar %}
             {% set level_value = (g.level or 'general')|lower %}
@@ -172,6 +180,9 @@
 
 <script>
 let currentGrammarLevel = 'all';
+// Con trỏ cho "Tạo lại tất cả quiz" — giữ giữa các lần bấm để tiếp tục sau khi hồi năng lượng.
+// Reset về 0 khi đã chạy hết toàn bộ danh sách.
+let regenAllOffset = 0;
 
 function applyGrammarFilters() {
     const query = document.getElementById('grammarSearch').value.trim().toLowerCase();
@@ -186,8 +197,10 @@ function applyGrammarFilters() {
     });
 
     const visibleCount = Array.from(cards).filter((card) => !card.classList.contains('is-hidden')).length;
-    document.getElementById('grammarVisibleCount').textContent = `${visibleCount} đang hiển thị`;
-    document.getElementById('grammarEmptyFiltered').style.display = visibleCount === 0 ? 'block' : 'none';
+    const visibleCountEl = document.getElementById('grammarVisibleCount');
+    if (visibleCountEl) visibleCountEl.textContent = `${visibleCount} đang hiển thị`;
+    const emptyFilteredEl = document.getElementById('grammarEmptyFiltered');
+    if (emptyFilteredEl) emptyFilteredEl.style.display = visibleCount === 0 ? 'block' : 'none';
 }
 
 document.querySelectorAll('.grammar-filter-button').forEach((button) => {
@@ -297,6 +310,83 @@ async function regenerateGrammarQuizItems(button) {
     } finally {
         button.disabled = false;
         button.innerHTML = '<span class="material-icons-outlined">refresh</span>Quiz';
+    }
+}
+
+function setRegenAllStatus(message, tone) {
+    const status = document.getElementById('regenAllStatus');
+    if (!status) return;
+    status.textContent = message;
+    status.className = `grammar-add-status is-visible is-${tone}`;
+}
+
+async function regenerateAllGrammarQuizzes() {
+    const button = document.getElementById('regenAllQuizBtn');
+    if (!confirm('Tạo lại câu hỏi quiz cho TẤT CẢ mẫu ngữ pháp?\nMỗi mẫu tốn 3 năng lượng và thao tác có thể mất một lát.')) {
+        return;
+    }
+
+    const originalHtml = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang tạo lại...';
+
+    let totalUpdated = 0;
+    let totalFailed = 0;
+    let grandTotal = 0;
+    let stoppedForEnergy = false;
+    const MAX_ITERATIONS = 100; // chặn vòng lặp vô hạn
+
+    try {
+        for (let iter = 0; iter < MAX_ITERATIONS; iter += 1) {
+            const response = await fetch('/api/regenerate_all_grammar_quiz_items', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ offset: regenAllOffset })
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Tạo lại tất cả quiz thất bại.');
+            }
+
+            grandTotal = data.total;
+            if (grandTotal === 0) {
+                setRegenAllStatus('Chưa có mẫu ngữ pháp nào để tạo lại.', 'success');
+                regenAllOffset = 0;
+                return;
+            }
+
+            totalUpdated += data.updated || 0;
+            totalFailed += data.failed || 0;
+
+            // Cập nhật trạng thái cho các thẻ đang hiển thị trên trang (thẻ ở trang khác sẽ được bỏ qua an toàn).
+            (data.updated_ids || []).forEach((id) => setGrammarCardStatus(id, 'Đã tạo lại quiz.', 'success'));
+            (data.failed_items || []).forEach((item) => setGrammarCardStatus(item.id, 'Tạo lại quiz thất bại.', 'error'));
+
+            setRegenAllStatus(`Đang tạo lại... ${totalUpdated + totalFailed}/${grandTotal} mẫu (${totalUpdated} thành công${totalFailed ? `, ${totalFailed} lỗi` : ''}).`, 'success');
+
+            regenAllOffset = data.next_offset;
+
+            if (data.out_of_energy) { stoppedForEnergy = true; break; }
+            if (data.remaining <= 0 || data.next_offset <= data.offset) break;
+        }
+
+        // Đã quét hết danh sách → reset con trỏ cho lần chạy sau.
+        if (!stoppedForEnergy) regenAllOffset = 0;
+
+        const parts = [];
+        if (stoppedForEnergy) {
+            parts.push(`Đã tạo lại ${totalUpdated}/${grandTotal} mẫu rồi dừng vì hết năng lượng — chờ hồi phục rồi bấm lại để tiếp tục.`);
+        } else {
+            parts.push(`Hoàn tất: đã tạo lại ${totalUpdated}/${grandTotal} mẫu.`);
+        }
+        if (totalFailed) parts.push(`${totalFailed} mẫu lỗi.`);
+        setRegenAllStatus(parts.join(' '), (totalFailed || stoppedForEnergy) ? 'error' : 'success');
+    } catch (error) {
+        setRegenAllStatus(error.message || 'Tạo lại tất cả quiz thất bại.', 'error');
+    } finally {
+        button.disabled = false;
+        button.innerHTML = originalHtml;
     }
 }
 

@@ -46,7 +46,7 @@ router.route("/register")
   .post(authLimiter, ...named("register", asyncHandler(async (req, res) => {
     try {
       const user = await auth.createUser(req.body.username, req.body.email, req.body.password);
-      auth.loginSession(req, user);
+      await auth.loginSession(req, user, "register");
       return res.redirect("/verify-email-required");
     } catch (error) {
       return res.render("auth/register.html", {
@@ -71,7 +71,7 @@ router.route("/login")
   .post(authLimiter, ...named("login", asyncHandler(async (req, res) => {
     const user = await auth.authenticateUser(req.body.login, req.body.password);
     if (user) {
-      auth.loginSession(req, user);
+      await auth.loginSession(req, user, "password");
       if (!auth.isEmailVerified(user)) return res.redirect("/verify-email-required");
       return res.redirect(safeNextUrl(req.body.next));
     }
@@ -82,9 +82,11 @@ router.route("/login")
     });
   })));
 
-router.all("/logout", ...named("logout", (req, res) => {
-  req.session.destroy(() => res.redirect("/login"));
-}));
+router.all("/logout", ...named("logout", asyncHandler(async (req, res) => {
+  await auth.logoutSession(req);
+  res.clearCookie("ftka.sid");
+  return res.redirect("/login");
+})));
 
 router.get("/forgot-password", ...named("forgot_password", (req, res) => {
   res.render("auth/forgot_password.html", { message: "", error: "", email: "" });
@@ -166,10 +168,13 @@ router.get("/auth/google/callback", ...named("google_callback", (req, res, next)
   }
   return passport.authenticate("google", { failureRedirect: "/login" })(req, res, next);
 }, (req, res) => {
-  if (req.user) auth.loginSession(req, req.user);
   const nextUrl = req.session.oauth_next || "/dashboard";
-  delete req.session.oauth_next;
-  res.redirect(safeNextUrl(nextUrl));
+  return auth.loginSession(req, req.user, "google")
+    .then(() => res.redirect(safeNextUrl(nextUrl)))
+    .catch((error) => {
+      console.error("[auth] Google session creation failed:", error);
+      res.redirect("/login");
+    });
 }));
 
 router.get("/profile", ...named("profile", loginRequired, (req, res) => res.render("auth/profile.html", { user: req.currentUser })));

@@ -1,4 +1,4 @@
-﻿{% extends "admin/base.html" %}
+{% extends "admin/base.html" %}
 
 {% block admin_content %}
 <div class="admin-header">
@@ -15,6 +15,18 @@
     </div>
 </div>
 
+<!-- Active model banner -->
+<div class="ai-log-model-banner" id="aiLogModelBanner">
+    <div class="ai-log-model-banner-inner">
+        <span class="material-icons-outlined">smart_toy</span>
+        <div>
+            <span class="ai-log-model-label">Primary model (Google AI Studio)</span>
+            <strong class="ai-log-model-name" id="aiLogModelName">…</strong>
+        </div>
+    </div>
+    <div class="ai-log-provider-chips" id="aiLogProviderChips"></div>
+</div>
+
 <section class="admin-panel">
     <form class="admin-filters" method="get" action="{{ url_for('admin.ai_logs') }}">
         <label>Status
@@ -25,18 +37,194 @@
                 {% endfor %}
             </select>
         </label>
-        <label>Type <input class="admin-input" name="type" value="{{ request.args['type'] or '' }}" placeholder="vocabulary, grammar..."></label>
+        <label>Type <input class="admin-input" name="type" value="{{ request.args['type'] or '' }}" placeholder="vocabulary, grammar, router…"></label>
+        <label>Provider <input class="admin-input" name="provider" value="{{ request.args['provider'] or '' }}" placeholder="google, groq, nvidia…"></label>
         <label>Limit <input class="admin-input" name="limit" value="{{ request.args['limit'] or 100 }}" type="number" min="1" max="300"></label>
         <button class="admin-button" type="submit">Filter</button>
     </form>
 
     <div class="admin-table-wrap">
-        <table class="admin-table">
-            <thead><tr><th>Time</th><th>Status</th><th>Type</th><th>Message</th><th>Model</th><th>User</th><th>Duration</th><th>Error</th></tr></thead>
-            <tbody id="aiLogRows"><tr><td colspan="8">Loading AI logs...</td></tr></tbody>
+        <table class="admin-table ai-log-table">
+            <thead>
+                <tr>
+                    <th style="width:130px">Time</th>
+                    <th style="width:90px">Status</th>
+                    <th style="width:90px">Type</th>
+                    <th>Message</th>
+                    <th style="width:180px">Model / Provider</th>
+                    <th style="width:70px">User</th>
+                    <th style="width:80px">Duration</th>
+                    <th style="width:32px"></th>
+                </tr>
+            </thead>
+            <tbody id="aiLogRows"><tr><td colspan="8" class="ai-log-loading">Loading AI logs…</td></tr></tbody>
         </table>
     </div>
 </section>
+
+<style>
+/* ── Model banner ────────────────────────────────── */
+.ai-log-model-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    background: var(--surface-blue);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    flex-wrap: wrap;
+}
+.ai-log-model-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--primary);
+}
+.ai-log-model-banner-inner .material-icons-outlined { font-size: 22px; }
+.ai-log-model-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    margin-bottom: 2px;
+}
+.ai-log-model-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+}
+.ai-log-provider-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.ai-log-pchip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text-soft);
+    transition: all .15s;
+}
+.ai-log-pchip.configured  { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+.ai-log-pchip.unconfigured { background: var(--surface-soft); color: var(--text-soft); }
+.ai-log-pchip-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .7;
+}
+
+/* ── Table enhancements ─────────────────────────── */
+.ai-log-table td { vertical-align: top; padding-top: 9px; padding-bottom: 9px; }
+.ai-log-loading { text-align: center; color: var(--text-soft); padding: 24px !important; }
+
+/* Model/provider cell */
+.ai-log-model-cell { display: flex; flex-direction: column; gap: 4px; }
+.ai-log-provider-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    width: fit-content;
+}
+.ai-log-model-name-cell {
+    font-size: 11px;
+    color: var(--text-soft);
+    word-break: break-all;
+    line-height: 1.4;
+}
+.ai-log-tier-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    color: var(--text-soft);
+    margin-left: 4px;
+}
+.ai-log-cached-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: #fef9c3;
+    color: #854d0e;
+    border: 1px solid #fde68a;
+    margin-left: 4px;
+}
+
+/* Provider colours */
+.pvdr-google      { background: #e8f0fe; color: #1967d2; }
+.pvdr-groq        { background: #fce8f3; color: #b01060; }
+.pvdr-nvidia      { background: #e8f8e8; color: #1a7a1a; }
+.pvdr-cloudflare  { background: #fff0e0; color: #d96c00; }
+.pvdr-openrouter  { background: #f0e8ff; color: #7b3fe4; }
+.pvdr-cache       { background: #fef9c3; color: #854d0e; }
+.pvdr-router      { background: var(--surface-soft); color: var(--text-soft); border: 1px solid var(--line); }
+.pvdr-            { background: var(--surface-soft); color: var(--text-soft); }
+
+/* Expand button */
+.ai-log-expand-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-soft); padding: 2px 4px; border-radius: 4px;
+    font-size: 16px; line-height: 1; transition: all .15s;
+    display: flex; align-items: center;
+}
+.ai-log-expand-btn:hover { background: var(--surface-soft); color: var(--primary); }
+
+/* Expanded meta row */
+.ai-log-meta-row td {
+    padding: 0 !important;
+    background: var(--surface-soft);
+    border-bottom: 2px solid var(--primary-soft);
+}
+.ai-log-meta-inner {
+    padding: 12px 18px;
+    font-size: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px 16px;
+}
+.ai-log-meta-kv { display: flex; flex-direction: column; gap: 1px; }
+.ai-log-meta-key {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--text-soft);
+}
+.ai-log-meta-val { font-size: 12px; font-weight: 500; color: var(--text); word-break: break-all; }
+.ai-log-meta-preview {
+    grid-column: 1 / -1;
+    font-size: 11px;
+    color: var(--text-soft);
+    font-style: italic;
+    border-top: 1px solid var(--line);
+    padding-top: 6px;
+    margin-top: 2px;
+}
+.ai-log-error-cell {
+    font-size: 11px; color: #dc2626;
+    max-width: 240px; word-break: break-word;
+}
+</style>
 
 <script>
 const rows = document.getElementById('aiLogRows');
@@ -45,37 +233,162 @@ const clearAiLogsForm = document.getElementById('clearAiLogsForm');
 const testAiLogButton = document.getElementById('testAiLogButton');
 const params = new URLSearchParams(window.location.search);
 const maxRows = Number(params.get('limit') || 100);
+const providerFilter = (params.get('provider') || '').toLowerCase().trim();
+
 function escapeHtml(value) {
     return String(value == null ? '' : value).replace(/[&<>"]/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 }
+
 function statusBadge(status) {
-    return `<span class="admin-badge ${status === 'error' ? 'danger' : ''}">${escapeHtml(status)}</span>`;
+    const cls = status === 'error' ? 'danger' : status === 'success' ? '' : '';
+    return `<span class="admin-badge ${cls}">${escapeHtml(status)}</span>`;
 }
+
+function providerBadge(provider) {
+    if (!provider) return '';
+    const cls = `pvdr-${provider}`;
+    return `<span class="ai-log-provider-badge ${cls}">${escapeHtml(provider)}</span>`;
+}
+
+function modelCell(log) {
+    const provider   = log.provider || (log.meta && log.meta.provider) || '';
+    const model      = log.model || (log.meta && log.meta.model) || '';
+    const tier       = log.meta && log.meta.tier ? log.meta.tier : '';
+    const cached     = log.meta && log.meta.cached;
+    const tierTag    = tier    ? `<span class="ai-log-tier-tag">${escapeHtml(tier)}</span>` : '';
+    const cachedTag  = cached  ? `<span class="ai-log-cached-tag">cached</span>` : '';
+    const modelStr   = model && model !== provider ? escapeHtml(model) : '';
+    return `<div class="ai-log-model-cell">
+        ${providerBadge(provider)}
+        ${modelStr ? `<span class="ai-log-model-name-cell">${modelStr}${tierTag}${cachedTag}</span>` : (tierTag || cachedTag ? `<span>${tierTag}${cachedTag}</span>` : '')}
+    </div>`;
+}
+
+function metaPanel(log, rowId) {
+    const meta = log.meta || {};
+    const keys = Object.keys(meta).filter(k => k !== 'prompt_preview');
+    const preview = meta.prompt_preview;
+    const kvsHtml = keys.map(k => {
+        const v = meta[k];
+        return `<div class="ai-log-meta-kv">
+            <span class="ai-log-meta-key">${escapeHtml(k)}</span>
+            <span class="ai-log-meta-val">${escapeHtml(String(v == null ? '–' : v))}</span>
+        </div>`;
+    }).join('');
+    const previewHtml = preview ? `<div class="ai-log-meta-preview">Prompt preview: ${escapeHtml(preview)}</div>` : '';
+    const errorHtml = log.error ? `<div class="ai-log-meta-kv" style="grid-column:1/-1"><span class="ai-log-meta-key">Error</span><span class="ai-log-meta-val" style="color:#dc2626">${escapeHtml(log.error)}</span></div>` : '';
+    return `<tr class="ai-log-meta-row" id="meta-${rowId}" hidden>
+        <td colspan="8">
+            <div class="ai-log-meta-inner">
+                ${kvsHtml}${errorHtml}${previewHtml}
+            </div>
+        </td>
+    </tr>`;
+}
+
+let expandedRows = new Set();
+
+function toggleMeta(rowId) {
+    const el = document.getElementById('meta-' + rowId);
+    const btn = document.getElementById('expandbtn-' + rowId);
+    if (!el) return;
+    const hidden = el.hidden;
+    el.hidden = !hidden;
+    if (btn) btn.textContent = hidden ? '▾' : '▸';
+    if (hidden) expandedRows.add(rowId); else expandedRows.delete(rowId);
+}
+
 function rowHtml(log) {
-    return `<tr data-ai-log-id="${escapeHtml(log.id)}"><td>${escapeHtml(log.created_at)}</td><td>${statusBadge(log.status)}</td><td>${escapeHtml(log.type)}</td><td>${escapeHtml(log.message)}</td><td>${escapeHtml(log.model)}</td><td>${escapeHtml(log.user_id || '')}</td><td>${escapeHtml(log.duration_ms || '')}</td><td>${escapeHtml(log.error || '')}</td></tr>`;
+    const id = escapeHtml(log.id);
+    const hasMeta = log.meta && (Object.keys(log.meta).length > 0 || log.error);
+    const expandBtn = hasMeta
+        ? `<button class="ai-log-expand-btn" id="expandbtn-${id}" onclick="toggleMeta(${id})" title="Details">▸</button>`
+        : '';
+    const duration = log.duration_ms != null ? `${log.duration_ms}ms` : '';
+    const time = log.created_at
+        ? new Date(log.created_at).toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit',second:'2-digit'})
+        : '';
+
+    const mainRow = `<tr data-ai-log-id="${id}">
+        <td title="${escapeHtml(log.created_at)}">${escapeHtml(time)}</td>
+        <td>${statusBadge(log.status)}</td>
+        <td><span style="font-size:11px">${escapeHtml(log.type)}</span></td>
+        <td>${escapeHtml(log.message)}</td>
+        <td>${modelCell(log)}</td>
+        <td><span style="font-size:11px">${escapeHtml(log.user_id || '')}</span></td>
+        <td><span style="font-size:11px;color:var(--text-soft)">${escapeHtml(duration)}</span></td>
+        <td>${expandBtn}</td>
+    </tr>`;
+
+    return mainRow + (hasMeta ? metaPanel(log, id) : '');
 }
+
 function renderLogs(logs) {
-    rows.innerHTML = logs.length ? logs.map(rowHtml).join('') : '<tr><td colspan="8">No AI logs yet.</td></tr>';
+    const filtered = providerFilter
+        ? logs.filter(l => (l.provider || (l.meta && l.meta.provider) || '').toLowerCase() === providerFilter)
+        : logs;
+    rows.innerHTML = filtered.length
+        ? filtered.map(rowHtml).join('')
+        : '<tr><td colspan="8" class="ai-log-loading">No AI logs yet.</td></tr>';
 }
+
 function prependLog(log) {
     if (params.get('status') && params.get('status') !== log.status) return;
     if (params.get('type') && params.get('type').toLowerCase() !== String(log.type || '').toLowerCase()) return;
-    if (rows.querySelector('td[colspan="8"]')) rows.innerHTML = '';
+    if (providerFilter) {
+        const lp = (log.provider || (log.meta && log.meta.provider) || '').toLowerCase();
+        if (lp !== providerFilter) return;
+    }
+    // Chỉ xoá dòng placeholder (Loading/No logs) khi CHƯA có log thật nào.
+    // KHÔNG dùng td[colspan="8"] để dò placeholder: meta row cũng chứa td colspan=8,
+    // sẽ khiến mỗi log realtime xoá sạch bảng → chỉ còn 1 dòng.
+    if (!rows.querySelector('tr[data-ai-log-id]')) rows.innerHTML = '';
     rows.insertAdjacentHTML('afterbegin', rowHtml(log));
-    while (rows.children.length > maxRows) rows.removeChild(rows.lastElementChild);
+    // trim excess rows (bỏ cả meta row đi kèm)
+    let realRows = rows.querySelectorAll('tr[data-ai-log-id]');
+    while (realRows.length > maxRows) {
+        const last = realRows[realRows.length - 1];
+        const metaRow = document.getElementById('meta-' + last.getAttribute('data-ai-log-id'));
+        if (metaRow) metaRow.remove();
+        last.remove();
+        realRows = rows.querySelectorAll('tr[data-ai-log-id]');
+    }
 }
+
 function setConnection(label, tone = '') {
     sseStatus.textContent = label;
     sseStatus.className = `admin-badge ${tone}`;
 }
+
+/* ── Load provider status banner ──────────────── */
+async function loadProviderStatus() {
+    try {
+        const res = await fetch('/api/settings/ai_status');
+        if (!res.ok) return;
+        const data = await res.json();
+        const nameEl = document.getElementById('aiLogModelName');
+        const chipsEl = document.getElementById('aiLogProviderChips');
+        if (nameEl) nameEl.textContent = data.activeModel || '—';
+        if (chipsEl && data.providers) {
+            chipsEl.innerHTML = data.providers.map(p => `
+                <span class="ai-log-pchip ${p.configured ? 'configured' : 'unconfigured'}" title="${p.configured ? 'Key configured' : 'No API key'}">
+                    <span class="ai-log-pchip-dot"></span>${p.name}
+                </span>`).join('');
+        }
+    } catch { /* silent */ }
+}
+
 async function loadInitialLogs() {
     const response = await fetch(`/admin/ai-logs.json?${params.toString()}`, { headers: { Accept: 'application/json' } });
     const data = await response.json();
     renderLogs(data.logs || []);
 }
+
+loadProviderStatus();
 loadInitialLogs().catch(() => renderLogs([]));
+
 const events = new EventSource('/admin/ai-logs/stream');
-events.onopen = () => setConnection('Connected');
+events.onopen = () => setConnection('Live');
 events.onerror = () => setConnection('Reconnecting', 'danger');
 events.addEventListener('ai-log', (event) => {
     const log = JSON.parse(event.data);
@@ -83,9 +396,11 @@ events.addEventListener('ai-log', (event) => {
     prependLog(log);
 });
 events.addEventListener('ai-clear', () => renderLogs([]));
+
 testAiLogButton.addEventListener('click', async () => {
     await fetch('/admin/ai-logs/test', { method: 'POST', headers: { Accept: 'application/json' } });
 });
+
 clearAiLogsForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!confirm('Clear AI logs?')) return;

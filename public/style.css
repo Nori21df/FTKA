@@ -1576,6 +1576,22 @@ textarea {
     margin: 0;
 }
 
+.grammar-visible-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    white-space: nowrap;
+    align-self: center;
+}
+
+.grammar-list-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .dashboard-chart-frame {
     position: relative;
     min-height: 260px;
