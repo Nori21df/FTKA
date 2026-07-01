@@ -61,7 +61,14 @@ const VALID_STYLES = ["studio", "warm", "midnight", "glass", "clay", "neo"];
 // Đọc style giao diện từ cookie (do người dùng chọn ở trang "Giao diện"); null nếu chưa đặt/không hợp lệ.
 function parseStyleCookie(req) {
   const match = /(?:^|;\s*)ftka_style=([^;]+)/.exec(req.headers.cookie || "");
-  const value = match ? decodeURIComponent(match[1]).trim().toLowerCase() : "";
+  if (!match) return null;
+  let value = "";
+  try {
+    // decodeURIComponent ném URIError với chuỗi "%" lỗi (vd Cookie: ftka_style=%) → phải bọc để không 500 mọi trang.
+    value = decodeURIComponent(match[1]).trim().toLowerCase();
+  } catch {
+    return null;
+  }
   return VALID_STYLES.includes(value) ? value : null;
 }
 

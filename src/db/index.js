@@ -2,7 +2,15 @@ const { Pool } = require("pg");
 const env = require("../config/env");
 
 const pool = new Pool({
-  connectionString: env.databaseUrl
+  connectionString: env.databaseUrl,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000
+});
+
+// Không có handler thì lỗi của client nhàn rỗi (mất kết nối mạng) sẽ crash tiến trình.
+pool.on("error", (error) => {
+  console.error("[db] Idle client error:", error.message);
 });
 
 function convertSql(sql) {
@@ -92,6 +100,14 @@ async function withClient(fn) {
   };
   try {
     return await fn(db);
+  } catch (error) {
+    // Rollback tường minh để không trả client "bẩn" (đang mở transaction) — tránh churn kết nối pool.
+    try {
+      await client.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("[db] Rollback failed:", rollbackError.message);
+    }
+    throw error;
   } finally {
     client.release();
   }

@@ -27,7 +27,8 @@ async function generateAudio(text) {
   if (!String(text || "").trim()) throw new Error("Không có văn bản tiếng Hàn để tạo âm thanh.");
   const output = uniqueAudioPath();
   const buffer = await synthesizeBuffer(text);
-  fs.writeFileSync(output, buffer);
+  // Ghi bất đồng bộ để không chặn event loop (writeFileSync đóng băng mọi request khác trong lúc ghi).
+  await fs.promises.writeFile(output, buffer);
   return output;
 }
 

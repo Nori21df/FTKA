@@ -3,6 +3,9 @@ const { EventEmitter } = require("events");
 const MAX_LOGS = 300;
 const VALID_STATUSES = new Set(["started", "progress", "success", "error"]);
 const events = new EventEmitter();
+// Mỗi client SSE (/admin/ai-logs/stream) đăng ký 2 listener; nhiều tab admin sẽ vượt
+// mặc định 10 và gây MaxListenersExceededWarning. Nâng trần cho khớp activityLogService.
+events.setMaxListeners(50);
 
 let logs = [];
 let nextId = 1;

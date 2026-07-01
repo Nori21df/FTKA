@@ -489,6 +489,10 @@ Return JSON with exactly these keys:
 {"grammar":"...","meaning_vi":"...","explanation_vi":"...","example_kr":"...","example_vi":"...","level":"topik1|topik2|topik3|topik4|topik5|topik6","usage_notes_vi":"...","common_mistakes_vi":"...","quiz_items":[{"question_kr":"... ___ ...","question_vi":"...","options":["...","...","...","..."],"correct_index":0,"correct_answer":"...","explanation_vi":"..."}]}`,
     { temperature: 0.3, maxTokens: 12000, type: "grammar", taskType: TASK_TYPES.GRAMMAR }
   );
+  // Provider fallback có thể trả về mảng/chuỗi thay vì object → chặn để không lưu bản ghi rỗng / TypeError.
+  if (!result || Array.isArray(result) || typeof result !== "object") {
+    throw new Error("AI returned invalid grammar object.");
+  }
   // Lọc quiz kém chất lượng; nếu còn quá ít câu hợp lệ thì tạo lại (đã tự lọc bên trong).
   result.quiz_items = normalizeQuizItems(result.quiz_items);
   if (result.quiz_items.length < 2) {

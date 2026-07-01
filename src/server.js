@@ -20,6 +20,14 @@ async function start() {
   });
 }
 
+// Lưới an toàn: log thay vì để tiến trình chết âm thầm khi có promise/exception không bắt được.
+process.on("unhandledRejection", (reason) => {
+  console.error("[process] Unhandled promise rejection:", reason);
+});
+process.on("uncaughtException", (error) => {
+  console.error("[process] Uncaught exception:", error);
+});
+
 start().catch((error) => {
   console.error("Failed to start FTKA Express app:", error);
   process.exit(1);
