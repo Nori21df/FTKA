@@ -59,6 +59,17 @@ app.set("views", viewsDir);
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
+// Ép HTTP -> HTTPS khi chạy sau proxy (Cloudflare gửi header x-forwarded-proto).
+// Chỉ chuyển hướng khi header nói rõ là "http"; gọi trực tiếp localhost (health-check,
+// không có header này) sẽ bỏ qua để không phá vòng nội bộ.
+app.use((req, res, next) => {
+  const forwardedProto = req.headers["x-forwarded-proto"];
+  if (forwardedProto && forwardedProto.split(",")[0].trim() === "http") {
+    return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
+  }
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: false
 }));
