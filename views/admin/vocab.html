@@ -3,9 +3,11 @@
 {% block admin_content %}
 <div class="admin-header">
     <div>
+        <span class="gen-kicker">Quản trị · Nội dung</span>
         <h2>Từ vựng</h2>
         <p class="admin-muted">Bảng từ vựng. Tìm theo tiếng Hàn, nghĩa tiếng Việt hoặc ID.</p>
     </div>
+    {% if page_info %}<span class="admin-count">{{ page_info.total }} từ</span>{% endif %}
 </div>
 
 <section class="admin-panel">

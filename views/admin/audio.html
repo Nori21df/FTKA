@@ -3,9 +3,11 @@
 {% block admin_content %}
 <div class="admin-header">
     <div>
+        <span class="gen-kicker">Quản trị · Nội dung</span>
         <h2>Tệp âm thanh</h2>
         <p class="admin-muted">Chỉ kiểm tra các tham chiếu âm thanh đã biết của bài luyện nghe. Đường dẫn máy chủ không được hiển thị.</p>
     </div>
+    {% if records %}<span class="admin-count">{{ records|length }} tham chiếu</span>{% endif %}
 </div>
 
 <section class="admin-panel">

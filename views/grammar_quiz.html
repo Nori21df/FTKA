@@ -3,33 +3,40 @@
 {% block content %}
 
 
-<div class="grammar-quiz-shell">
-    <section class="grammar-quiz-hero">
-        <h2 class="grammar-quiz-title">Câu hỏi ngữ pháp</h2>
-        <div class="grammar-quiz-stats">
-            <span class="grammar-quiz-pill">{{ total_items }} câu hỏi</span>
-            <span class="grammar-quiz-pill">{{ total_grammar }} ngữ pháp</span>
+<div class="qz-wrap">
+    <div class="qz-head">
+        <div>
+            <h2>Câu hỏi ngữ pháp</h2>
+            <p>Chọn đáp án đúng cho từng câu, xem giải thích ngay sau đó.</p>
         </div>
-    </section>
+        <div class="qz-pills">
+            <span class="qz-pill">{{ total_items }} câu hỏi</span>
+            <span class="qz-pill">{{ total_grammar }} ngữ pháp</span>
+        </div>
+    </div>
 
     {% if quiz_items %}
-    <section class="grammar-quiz-card">
-        <div class="grammar-quiz-topline">
+    <section class="qz-card dv-card">
+        <div class="qz-top">
             <span id="grammarQuizProgress">Câu 1 / {{ quiz_items|length }}</span>
-            <span id="grammarQuizScore">Điểm 0</span>
+            <span id="grammarQuizScore" class="qz-score">Điểm 0</span>
         </div>
-        <h3 id="grammarQuizQuestion" class="grammar-quiz-question"></h3>
-        <p id="grammarQuizTranslation" class="grammar-quiz-translation"></p>
-        <div id="grammarQuizOptions" class="grammar-quiz-options"></div>
+        <h3 id="grammarQuizQuestion" class="qz-question kr" lang="ko"></h3>
+        <p id="grammarQuizTranslation" class="qz-translation"></p>
+        <div id="grammarQuizOptions" class="qz-options"></div>
         <div id="grammarQuizFeedback" class="grammar-quiz-feedback"></div>
-        <div class="grammar-quiz-actions">
-            <button type="button" id="grammarQuizNext" class="grammar-quiz-action" onclick="nextGrammarQuestion()">Câu tiếp theo</button>
-            <a href="{{ url_for('grammar') }}" class="grammar-quiz-action secondary">Thêm ngữ pháp</a>
+        <div class="qz-actions">
+            <a href="{{ url_for('grammar') }}" class="dv-cta ghost" style="margin:0">
+                <span class="material-icons-outlined" aria-hidden="true">add</span> Thêm ngữ pháp
+            </a>
+            <button type="button" id="grammarQuizNext" class="dv-cta" onclick="nextGrammarQuestion()">
+                Câu tiếp theo <span class="material-icons-outlined" aria-hidden="true">arrow_forward</span>
+            </button>
         </div>
     </section>
     {% else %}
-    <section class="grammar-quiz-empty">
-        Chưa có câu quiz ngữ pháp. Hãy tạo thẻ ngữ pháp rồi quay lại.
+    <section class="dv-card" style="padding:40px;text-align:center;color:var(--muted)">
+        Chưa có câu hỏi ngữ pháp. Hãy tạo thẻ ngữ pháp rồi quay lại.
     </section>
     {% endif %}
 </div>

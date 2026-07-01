@@ -3,84 +3,43 @@
 {% block content %}
 
 
-<div class="grammar-shell">
-    <section class="grammar-hero">
-        <h2 class="grammar-hero-title">Ngữ pháp tiếng Hàn</h2>
-        <div class="grammar-hero-actions">
-            <a href="{{ url_for('vocab') }}" class="grammar-secondary-action">
-                <span class="material-icons-outlined">translate</span>
-                Mở từ vựng
-            </a>
-            <a href="{{ url_for('grammar_quiz') }}" class="grammar-secondary-action">
-                <span class="material-icons-outlined">school</span>
-                Mở câu hỏi ngữ pháp
-            </a>
+<div class="gr-wrap">
+    <div class="gr-head">
+        <div>
+            <h2>Ngữ pháp</h2>
+            <p>{{ count }} mẫu · {{ level_counts|length }} cấp độ</p>
         </div>
-    </section>
-
-    <section class="grammar-panel">
-        <div class="grammar-panel-head">
-            <div>
-                <h1>Thêm ngữ pháp</h1>
-            </div>
+        <div class="gr-head-actions">
+            <a href="{{ url_for('vocab') }}" class="dv-cta ghost" style="margin:0"><span class="material-icons-outlined" aria-hidden="true">translate</span> Mở từ vựng</a>
+            <a href="{{ url_for('grammar_quiz') }}" class="dv-cta ghost" style="margin:0"><span class="material-icons-outlined" aria-hidden="true">school</span> Câu hỏi ngữ pháp</a>
         </div>
+    </div>
 
-        <div class="grammar-add-grid">
-            <div class="grammar-field">
-                <input type="text" id="grammarPattern" class="grammar-input" placeholder="Nhập ngữ pháp">
-            </div>
-            <button type="button" class="grammar-action" id="addGrammarBtn" onclick="addGrammarPattern()">
-                <span class="material-icons-outlined">auto_awesome</span>
-                Tạo ngữ pháp
+    <section class="dv-card" style="padding:18px">
+        <div class="gr-add">
+            <input type="text" id="grammarPattern" class="grammar-input" placeholder="Nhập mẫu ngữ pháp tiếng Hàn…">
+            <button type="button" class="dv-cta" id="addGrammarBtn" onclick="addGrammarPattern()">
+                <span class="material-icons-outlined" aria-hidden="true">auto_awesome</span> Tạo ngữ pháp
             </button>
         </div>
         <div id="grammarAddStatus" class="grammar-add-status" aria-live="polite"></div>
     </section>
 
-    <section class="grammar-metrics">
-        <article class="grammar-metric">
-            <span>Tổng số ngữ pháp</span>
-            <strong>{{ count }}</strong>
-        </article>
-        <article class="grammar-metric">
-            <span>Cấp độ</span>
-            <strong>{{ level_counts|length }}</strong>
-        </article>
-        <article class="grammar-metric">
-            <span>Chế độ xem</span>
-            <strong>{{ 'Hoạt động' if count else 'Trống' }}</strong>
-        </article>
-    </section>
-
-    <section class="grammar-panel">
-        <div class="grammar-panel-head">
-            <div>
-                <h3>Lọc tìm kiếm</h3>
-            </div>
+    <section class="dv-card" style="padding:18px">
+        <div class="gr-list-head">
+            <input type="text" id="grammarSearch" class="grammar-search" placeholder="Tìm ngữ pháp, nghĩa, giải thích hoặc ví dụ…">
+            <button type="button" class="dv-cta ghost" id="regenAllQuizBtn" onclick="regenerateAllGrammarQuizzes()" style="margin:0" title="Tạo lại câu hỏi quiz cho tất cả mẫu ngữ pháp">
+                <span class="material-icons-outlined" aria-hidden="true">autorenew</span> Tạo lại tất cả quiz
+            </button>
         </div>
-
-        <input type="text" id="grammarSearch" class="grammar-search" placeholder="Tìm ngữ pháp, nghĩa, giải thích hoặc ví dụ">
-
-        <div class="grammar-filter-row">
+        <div class="gr-filters">
             <button type="button" class="grammar-filter-button is-active" data-level="all">Tất cả</button>
             {% for level, total in level_counts|dictsort %}
             <button type="button" class="grammar-filter-button" data-level="{{ level }}">{{ level|upper }} · {{ total }}</button>
             {% endfor %}
         </div>
-    </section>
-
-    <section class="grammar-panel">
-        <div class="grammar-panel-head">
-            <div>
-                <h1>Danh sách ngữ pháp</h1>
-            </div>
-            <div class="grammar-list-head-actions">
-                <button type="button" class="grammar-secondary-action" id="regenAllQuizBtn" onclick="regenerateAllGrammarQuizzes()" title="Tạo lại câu hỏi quiz cho tất cả mẫu ngữ pháp">
-                    <span class="material-icons-outlined">autorenew</span>
-                    Tạo lại tất cả quiz
-                </button>
-                <span id="grammarVisibleCount" class="grammar-visible-count" aria-live="polite"></span>
-            </div>
+        <div class="gr-listbar">
+            <span id="grammarVisibleCount" class="grammar-visible-count" aria-live="polite"></span>
         </div>
         <div id="regenAllStatus" class="grammar-add-status" aria-live="polite"></div>
         <div id="grammarGrid" class="grammar-grid">
@@ -238,8 +197,10 @@ async function addGrammarPattern() {
     }
 
     button.disabled = true;
-    button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang tạo...';
-        setGrammarAddStatus('Đang tạo ngữ pháp, ví dụ và quiz...', 'success');
+    button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang soạn…';
+    const addStatusEl = document.getElementById('grammarAddStatus');
+    addStatusEl.className = 'grammar-add-status is-visible is-success';
+    const stopAddWait = window.ftkaWait(addStatusEl, ['Đang chuẩn bị bài ngữ pháp cho bạn…', 'Đang tìm ví dụ minh hoạ dễ hiểu…', 'Đang soạn câu hỏi ôn tập…', 'Sắp xong rồi nhé…']);
 
     try {
         const response = await fetch('/api/add_grammar', {
@@ -258,6 +219,7 @@ async function addGrammarPattern() {
     } catch (error) {
         setGrammarAddStatus(error.message || 'Thêm ngữ pháp thất bại.', 'error');
     } finally {
+        stopAddWait();
         button.disabled = false;
         button.innerHTML = '<span class="material-icons-outlined">auto_awesome</span>Tạo và lưu';
     }
@@ -288,8 +250,8 @@ async function regenerateGrammarQuizItems(button) {
     }
 
     button.disabled = true;
-    button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang tạo lại';
-        setGrammarCardStatus(id, 'Đang tạo lại câu quiz...', 'success');
+    button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang soạn…';
+        setGrammarCardStatus(id, 'Đang soạn lại câu hỏi, chờ chút nhé…', 'success');
 
     try {
         const response = await fetch('/api/regenerate_grammar_quiz_items', {
@@ -304,9 +266,9 @@ async function regenerateGrammarQuizItems(button) {
         }
 
         const quizCount = data.quiz_count || data.item?.quiz_items?.length || 0;
-        setGrammarCardStatus(id, `Đã tạo lại ${quizCount} câu quiz.`, 'success');
+        setGrammarCardStatus(id, `Đã soạn lại ${quizCount} câu hỏi.`, 'success');
     } catch (error) {
-        setGrammarCardStatus(id, error.message || 'Tạo lại quiz thất bại.', 'error');
+        setGrammarCardStatus(id, 'Chưa soạn lại được, bạn thử lại nhé.', 'error');
     } finally {
         button.disabled = false;
         button.innerHTML = '<span class="material-icons-outlined">refresh</span>Quiz';
@@ -322,13 +284,13 @@ function setRegenAllStatus(message, tone) {
 
 async function regenerateAllGrammarQuizzes() {
     const button = document.getElementById('regenAllQuizBtn');
-    if (!confirm('Tạo lại câu hỏi quiz cho TẤT CẢ mẫu ngữ pháp?\nMỗi mẫu tốn 3 năng lượng và thao tác có thể mất một lát.')) {
+    if (!confirm('Soạn lại câu hỏi cho TẤT CẢ bài ngữ pháp?\nMỗi bài tốn 3 năng lượng và có thể mất một lát.')) {
         return;
     }
 
     const originalHtml = button.innerHTML;
     button.disabled = true;
-    button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang tạo lại...';
+    button.innerHTML = '<span class="material-icons-outlined">autorenew</span>Đang soạn lại…';
 
     let totalUpdated = 0;
     let totalFailed = 0;
@@ -346,12 +308,12 @@ async function regenerateAllGrammarQuizzes() {
             const data = await response.json().catch(() => ({}));
 
             if (!response.ok || !data.success) {
-                throw new Error(data.error || 'Tạo lại tất cả quiz thất bại.');
+                throw new Error(data.error || 'Chưa soạn lại được, bạn thử lại nhé.');
             }
 
             grandTotal = data.total;
             if (grandTotal === 0) {
-                setRegenAllStatus('Chưa có mẫu ngữ pháp nào để tạo lại.', 'success');
+                setRegenAllStatus('Chưa có bài ngữ pháp nào để soạn lại.', 'success');
                 regenAllOffset = 0;
                 return;
             }
@@ -360,10 +322,10 @@ async function regenerateAllGrammarQuizzes() {
             totalFailed += data.failed || 0;
 
             // Cập nhật trạng thái cho các thẻ đang hiển thị trên trang (thẻ ở trang khác sẽ được bỏ qua an toàn).
-            (data.updated_ids || []).forEach((id) => setGrammarCardStatus(id, 'Đã tạo lại quiz.', 'success'));
-            (data.failed_items || []).forEach((item) => setGrammarCardStatus(item.id, 'Tạo lại quiz thất bại.', 'error'));
+            (data.updated_ids || []).forEach((id) => setGrammarCardStatus(id, 'Đã soạn lại câu hỏi.', 'success'));
+            (data.failed_items || []).forEach((item) => setGrammarCardStatus(item.id, 'Chưa soạn lại được.', 'error'));
 
-            setRegenAllStatus(`Đang tạo lại... ${totalUpdated + totalFailed}/${grandTotal} mẫu (${totalUpdated} thành công${totalFailed ? `, ${totalFailed} lỗi` : ''}).`, 'success');
+            setRegenAllStatus(`Đang soạn lại… ${totalUpdated + totalFailed}/${grandTotal} bài (${totalUpdated} xong${totalFailed ? `, ${totalFailed} chưa được` : ''}).`, 'success');
 
             regenAllOffset = data.next_offset;
 
@@ -376,14 +338,14 @@ async function regenerateAllGrammarQuizzes() {
 
         const parts = [];
         if (stoppedForEnergy) {
-            parts.push(`Đã tạo lại ${totalUpdated}/${grandTotal} mẫu rồi dừng vì hết năng lượng — chờ hồi phục rồi bấm lại để tiếp tục.`);
+            parts.push(`Đã soạn lại ${totalUpdated}/${grandTotal} bài rồi tạm dừng vì hết năng lượng — chờ hồi lại rồi bấm tiếp nhé.`);
         } else {
-            parts.push(`Hoàn tất: đã tạo lại ${totalUpdated}/${grandTotal} mẫu.`);
+            parts.push(`Xong rồi: đã soạn lại ${totalUpdated}/${grandTotal} bài.`);
         }
-        if (totalFailed) parts.push(`${totalFailed} mẫu lỗi.`);
+        if (totalFailed) parts.push(`${totalFailed} bài chưa soạn được.`);
         setRegenAllStatus(parts.join(' '), (totalFailed || stoppedForEnergy) ? 'error' : 'success');
     } catch (error) {
-        setRegenAllStatus(error.message || 'Tạo lại tất cả quiz thất bại.', 'error');
+        setRegenAllStatus(error.message || 'Chưa soạn lại được, bạn thử lại nhé.', 'error');
     } finally {
         button.disabled = false;
         button.innerHTML = originalHtml;

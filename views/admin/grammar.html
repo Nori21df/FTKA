@@ -3,9 +3,11 @@
 {% block admin_content %}
 <div class="admin-header">
     <div>
+        <span class="gen-kicker">Quản trị · Nội dung</span>
         <h2>Ngữ pháp</h2>
         <p class="admin-muted">Bảng ngữ pháp hiện có trong hệ thống.</p>
     </div>
+    {% if page_info %}<span class="admin-count">{{ page_info.total }} mẫu</span>{% endif %}
 </div>
 
 <section class="admin-panel">

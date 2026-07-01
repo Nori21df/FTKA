@@ -3,9 +3,11 @@
 {% block admin_content %}
 <div class="admin-header">
     <div>
+        <span class="gen-kicker">Quản trị · Nội dung</span>
         <h2>Người dùng</h2>
         <p class="admin-muted">Tìm theo tên đăng nhập, email hoặc ID. Thao tác quản trị dùng POST.</p>
     </div>
+    {% if page_info %}<span class="admin-count">{{ page_info.total }} người dùng</span>{% endif %}
 </div>
 
 <section class="admin-panel">
