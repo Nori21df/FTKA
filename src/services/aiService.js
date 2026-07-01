@@ -1,6 +1,7 @@
 const env = require("../config/env");
 const aiLogService = require("./aiLogService");
 const { FTKARouter, TASK_TYPES, MODEL_TIER } = require("../ai/core/router");
+const { PROVIDERS_CONFIG, FALLBACK_CHAIN } = require("../ai/core/providerConfig");
 
 /** Singleton router — lazily created on first use. */
 let _router = null;
@@ -116,140 +117,107 @@ function providerErrorMessage(status, bodyText) {
   }
 }
 
-/**
- * routeThroughFallback
- * Định tuyến 1 request qua FTKARouter (Groq → NVIDIA → Cloudflare → OpenRouter), bỏ qua Google.
- * Dùng cho cả 2 trường hợp: Google vừa lỗi, hoặc Google đang trong cooldown do chạm rate-limit.
- */
-async function routeThroughFallback(type, system, prompt, options, googleError) {
-  const startedAt = Date.now();
-  const taskType = options.taskType || TASK_TYPES.SIMPLE;
-
-  // Gộp system + prompt thành 1 user message cho các provider chuẩn OpenAI.
-  // Thêm chỉ dẫn "chỉ JSON" vì các provider này không hỗ trợ responseSchema.
-  const fallbackPrompt = [
+/** Gộp system + prompt thành 1 user message cho provider chuẩn OpenAI (không có responseSchema). */
+function buildRouterPrompt(system, prompt) {
+  return [
     `${system}`,
     ``,
     `${prompt}`,
     ``,
     `IMPORTANT: Return ONLY raw JSON — no markdown fences, no explanation, no extra text.`,
   ].join("\n");
+}
 
-  const messages = [{ role: "user", content: fallbackPrompt }];
-
-  // Bỏ qua google trong router (vừa lỗi hoặc đang cooldown) → ép dùng provider khác.
-  const router = getRouter();
-  router.circuitBreaker.recordFailure("google");
-  router.circuitBreaker.recordFailure("google");
-  router.circuitBreaker.recordFailure("google"); // chạm ngưỡng → trip open
-
-  // Tác vụ tiếng Hàn (ngữ pháp/dịch) cần model mạnh để tránh output kém → ép dùng tier "heavy".
-  const forceTier = (taskType === TASK_TYPES.GRAMMAR || taskType === TASK_TYPES.TRANSLATE) ? MODEL_TIER.HEAVY : undefined;
-
-  let resolvedModel = "fallback";
-  try {
-    const result = await router.chat(messages, {
-      taskType,
-      forceTier,
-      useCache: false,          // không cache JSON thô từ fallback
-      type,
-      user_id: options.user_id || options.userId || null,
-    });
-
-    // Resolve model name for logging
-    if (result.provider && result.provider !== "cache") {
-      try {
-        const { PROVIDERS_CONFIG } = require("../ai/core/providerConfig");
-        const cfg = PROVIDERS_CONFIG[result.provider];
-        if (cfg) resolvedModel = cfg.models[result.tier] || cfg.models.light || result.provider;
-      } catch { /* ignore */ }
-    }
-
-    aiLogService.addAiLog({
-      type,
-      provider: result.provider,
-      model: resolvedModel,
-      status: "success",
-      message: `Fallback answered by ${result.provider}`,
-      duration_ms: Date.now() - startedAt,
-      user_id: options.user_id || options.userId || null,
-      meta: { ...promptMeta(prompt), provider: result.provider, model: resolvedModel, tier: result.tier || null, fallback: true },
-    });
-
-    // Parse raw text response as JSON (no schema enforcement on fallback providers)
-    return parseAiJson(result.text);
-  } catch (fallbackError) {
-    aiLogService.addAiLog({
-      type,
-      status: "error",
-      message: "All providers failed (Google + fallbacks)",
-      duration_ms: Date.now() - startedAt,
-      user_id: options.user_id || options.userId || null,
-      error: safeError(fallbackError),
-      meta: { ...promptMeta(prompt), fallback: true },
-    });
-    // Ưu tiên ném lại lỗi Google gốc (nếu có) để caller thấy thông điệp có nghĩa.
-    throw googleError || fallbackError;
-  }
+/** Tên model cụ thể của 1 provider theo tier (dùng để hiển thị log + chọn model Google). */
+function resolveModelName(provider, tier) {
+  const cfg = PROVIDERS_CONFIG[provider];
+  if (cfg) return cfg.models[tier] || cfg.models.light || provider;
+  return provider;
 }
 
 /**
  * chatJsonWithFallback
- * Ưu tiên gọi Google AI Studio (có responseSchema, chất lượng tốt nhất).
- * - Nếu Google đang trong cooldown (vừa chạm rate-limit 429) → BỎ QUA Google, đi thẳng router.
- * - Nếu Google lỗi → tự động fallback qua FTKARouter (Groq → NVIDIA → …).
+ * Thử lần lượt theo CHUỖI CỐ ĐỊNH (FALLBACK_CHAIN), KHÔNG phụ thuộc taskType:
+ *   google heavy → google light → groq heavy → groq light → nvidia → cloudflare → openrouter
+ * - Bước Google: gọi trực tiếp chatJson (model Gemini có responseSchema). Bỏ qua nếu đang cooldown 429.
+ * - Bước khác: gọi qua router.callStep (tôn trọng circuit breaker + quota), parse bằng parseAiJson.
+ * Trả về JSON của bước ĐẦU TIÊN thành công; nếu tất cả thất bại → ném lỗi tổng hợp.
  *
- * @param {string} type       - log type / JSON_SCHEMAS key
- * @param {string} system     - system instruction
- * @param {string} prompt     - user prompt
- * @param {Object} options    - temperature, maxTokens, taskType, user_id, …
- * @returns {*}               - parsed JSON value
+ * @param {string} type    - log type / JSON_SCHEMAS key
+ * @param {string} system  - system instruction
+ * @param {string} prompt  - user prompt
+ * @param {Object} options - temperature, maxTokens, user_id, …
+ * @returns {*}           - parsed JSON value
  */
 async function chatJsonWithFallback(type, system, prompt, options = {}) {
-  // ── Cooldown: Google vừa chạm rate-limit → không gọi lại cho tới khi hết cooldown ──
-  const cooldownRemaining = googleCooldownRemainingMs();
-  if (cooldownRemaining > 0) {
-    aiLogService.addAiLog({
-      type,
-      provider: "google",
-      model: env.googleAiStudioModel,
-      status: "progress",
-      message: `Google đang tạm nghỉ do rate-limit (còn ${Math.ceil(cooldownRemaining / 1000)}s) — bỏ qua, dùng router`,
-      user_id: options.user_id || options.userId || null,
-      meta: { ...promptMeta(prompt), google_cooldown_ms: cooldownRemaining },
-    });
-    return routeThroughFallback(type, system, prompt, options, new Error("Google đang tạm nghỉ do vừa chạm rate-limit/quota."));
+  const userId = options.user_id || options.userId || null;
+  const routerMessages = [{ role: "user", content: buildRouterPrompt(system, prompt) }];
+  const errors = [];
+
+  for (const step of FALLBACK_CHAIN) {
+    const { provider, tier } = step;
+    const startedAt = Date.now();
+
+    // ── Bước Google: đường trực tiếp (Gemini có responseSchema) ──
+    if (provider === "google") {
+      const cd = googleCooldownRemainingMs();
+      if (cd > 0) {
+        aiLogService.addAiLog({
+          type, provider: "google", model: resolveModelName("google", tier), status: "progress",
+          message: `Bỏ qua Google (${tier}) — đang tạm nghỉ do rate-limit (còn ${Math.ceil(cd / 1000)}s)`,
+          user_id: userId, meta: { ...promptMeta(prompt), google_cooldown_ms: cd },
+        });
+        continue;
+      }
+      try {
+        // chatJson tự log (withAiLogging) + tự bật cooldown khi gặp 429 (fetchGoogleWithRetry).
+        return await chatJson(system, prompt, { ...options, type, model: resolveModelName("google", tier) });
+      } catch (googleError) {
+        errors.push(`google/${tier}: ${safeError(googleError)}`);
+        continue;
+      }
+    }
+
+    // ── Bước provider khác: qua router (circuit breaker + quota) ──
+    try {
+      const result = await getRouter().callStep(provider, tier, routerMessages);
+      const model = resolveModelName(provider, tier);
+      const parsed = parseAiJson(result.text); // provider fallback không có schema → strip + trích JSON
+      aiLogService.addAiLog({
+        type, provider, model, status: "success",
+        message: `Fallback answered by ${provider} (${tier})`,
+        duration_ms: Date.now() - startedAt, user_id: userId,
+        meta: { ...promptMeta(prompt), provider, model, tier, fallback: true },
+      });
+      return parsed;
+    } catch (err) {
+      errors.push(`${provider}/${tier}: ${safeError(err)}`);
+      aiLogService.addAiLog({
+        type, provider, model: resolveModelName(provider, tier), status: "progress",
+        message: `Bỏ qua ${provider} (${tier}): ${safeError(err)}`,
+        duration_ms: Date.now() - startedAt, user_id: userId,
+        meta: { ...promptMeta(prompt), provider, tier },
+      });
+      continue;
+    }
   }
 
-  // ── Leg 1: Google AI Studio (JSON schema, structured output) ──────────
-  try {
-    return await chatJson(system, prompt, { ...options, type });
-  } catch (googleError) {
-    const coolingDownNow = googleCooldownRemainingMs() > 0; // fetchGoogleWithRetry bật cooldown khi gặp 429
-    aiLogService.addAiLog({
-      type,
-      provider: "google",
-      model: env.googleAiStudioModel,
-      status: "error",
-      message: coolingDownNow
-        ? `Google chạm rate-limit — tạm dừng gọi Google ${Math.round(GOOGLE_COOLDOWN_MS / 1000)}s, chuyển sang router (${safeError(googleError)})`
-        : `Google failed — routing to fallback providers (${safeError(googleError)})`,
-      user_id: options.user_id || options.userId || null,
-      error: safeError(googleError),
-      meta: { ...promptMeta(prompt), google_cooldown_ms: googleCooldownRemainingMs() },
-    });
-    return routeThroughFallback(type, system, prompt, options, googleError);
-  }
+  aiLogService.addAiLog({
+    type, status: "error", message: "Tất cả provider trong chuỗi fallback đều thất bại",
+    user_id: userId, error: errors.join(" | ").slice(0, 500), meta: { ...promptMeta(prompt) },
+  });
+  throw new Error("Tất cả provider đều thất bại: " + errors.join(" | "));
 }
 
 async function withAiLogging(system, prompt, options, fn) {
   const startedAt = Date.now();
+  const model = options.model || env.googleAiStudioModel;
   const base = {
     type: options.type || "ai",
     provider: "google",
-    model: env.googleAiStudioModel,
+    model,
     user_id: options.user_id || options.userId || null,
-    meta: { ...promptMeta(prompt), provider: "google", model: env.googleAiStudioModel }
+    meta: { ...promptMeta(prompt), provider: "google", model }
   };
   aiLogService.addAiLog({ ...base, status: "started", message: "AI request started" });
   try {
@@ -269,16 +237,22 @@ function requireApiKey() {
   }
 }
 
-function googleGenerateUrl() {
-  return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(env.googleAiStudioModel)}:generateContent?key=${encodeURIComponent(env.googleAiStudioApiKey)}`;
+function googleGenerateUrl(model) {
+  const m = model || env.googleAiStudioModel;
+  return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent?key=${encodeURIComponent(env.googleAiStudioApiKey)}`;
 }
 
-function googleBody(system, prompt, { temperature = 0.3, maxTokens = 8192, schema } = {}) {
+// responseSchema/responseMimeType JSON chỉ được Gemini hỗ trợ; model Gemma thì trả text thường.
+function supportsSchema(model) {
+  return /gemini/i.test(String(model || env.googleAiStudioModel || ""));
+}
+
+function googleBody(system, prompt, { temperature = 0.3, maxTokens = 8192, schema, jsonMode = true } = {}) {
   const generationConfig = {
     temperature,
     maxOutputTokens: maxTokens,
-    responseMimeType: "application/json"
   };
+  if (jsonMode) generationConfig.responseMimeType = "application/json";
   if (schema) generationConfig.responseSchema = schema;
   return {
     systemInstruction: { parts: [{ text: system }] },
@@ -303,11 +277,11 @@ function shouldRetry(status) {
   return status === 429 || status >= 500;
 }
 
-async function fetchGoogleWithRetry(body, attempts = 3) {
+async function fetchGoogleWithRetry(body, attempts = 3, model) {
   let lastText = "";
   let lastStatus = 0;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    const response = await fetch(googleGenerateUrl(), {
+    const response = await fetch(googleGenerateUrl(model), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
@@ -365,23 +339,25 @@ function parseAiJson(content) {
 
 async function chatJson(system, prompt, options = {}) {
   const { temperature = 0.3, maxTokens = 8192 } = options;
-  const schema = options.schema || JSON_SCHEMAS[options.type];
-  return withAiLogging(system, prompt, options, async () => {
+  const model = options.model || env.googleAiStudioModel;
+  const useSchema = supportsSchema(model);
+  const schema = useSchema ? (options.schema || JSON_SCHEMAS[options.type]) : null;
+  return withAiLogging(system, prompt, { ...options, model }, async () => {
     requireApiKey();
     let originalError;
     for (let attempt = 1; attempt <= 2; attempt += 1) {
       const retryPrompt = attempt === 1 ? prompt : `${prompt}\n\nReturn ONLY valid JSON. No markdown. No explanation. Complete all brackets.`;
-      const { bodyText } = await fetchGoogleWithRetry(googleBody(system, retryPrompt, { temperature, maxTokens, schema }));
+      const { bodyText } = await fetchGoogleWithRetry(googleBody(system, retryPrompt, { temperature, maxTokens, schema, jsonMode: useSchema }), 3, model);
       const payload = JSON.parse(bodyText);
       const finishReason = googleFinishReason(payload);
-      aiLogService.addAiLog({ type: options.type || "ai", status: "progress", message: "AI finishReason", model: env.googleAiStudioModel, user_id: options.user_id || options.userId || null, meta: { ...promptMeta(prompt), finishReason, json_attempt: attempt } });
+      aiLogService.addAiLog({ type: options.type || "ai", status: "progress", message: "AI finishReason", model, user_id: options.user_id || options.userId || null, meta: { ...promptMeta(prompt), finishReason, json_attempt: attempt } });
       if (finishReason === "MAX_TOKENS") throw new Error("AI response was cut off because max output tokens is too low.");
       try {
         return parseAiJson(extractGoogleText(payload));
       } catch (error) {
         if (attempt === 1) {
           originalError = error;
-          aiLogService.addAiLog({ type: options.type || "ai", status: "error", message: "AI invalid JSON; retrying once", model: env.googleAiStudioModel, user_id: options.user_id || options.userId || null, error: safeError(error), meta: { ...promptMeta(prompt), finishReason, json_attempt: attempt } });
+          aiLogService.addAiLog({ type: options.type || "ai", status: "error", message: "AI invalid JSON; retrying once", model, user_id: options.user_id || options.userId || null, error: safeError(error), meta: { ...promptMeta(prompt), finishReason, json_attempt: attempt } });
           continue;
         }
         throw originalError || error;

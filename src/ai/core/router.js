@@ -227,6 +227,24 @@ class FTKARouter {
     return { text: result, provider, cached: false, tier };
   }
 
+  /**
+   * Gọi ĐÚNG 1 provider ở 1 tier cụ thể (dùng cho chuỗi fallback cố định FALLBACK_CHAIN).
+   * Tôn trọng circuit breaker + quota; ném lỗi nếu provider không khả dụng hoặc thất bại
+   * (để caller chuyển sang bước kế tiếp trong chuỗi).
+   */
+  async callStep(providerName, tier, messages) {
+    if (!adapters[providerName]) throw new Error(`${providerName}: không có adapter`);
+    if (!this.apiKeys[providerName]) throw new Error(`${providerName}: chưa cấu hình API key`);
+    if (providerName === "cloudflare" && !this.apiKeys.cloudflareAccountId) {
+      throw new Error("cloudflare: thiếu accountId");
+    }
+    if (!this.circuitBreaker.isAvailable(providerName)) throw new Error(`${providerName}: circuit breaker đang mở`);
+    if (!this.quotaTracker.hasQuota(providerName)) throw new Error(`${providerName}: hết quota`);
+    // _callProvider tự retry 429 1 lần + ghi nhận success/failure + quota.
+    const text = await this._callProvider(providerName, messages, tier);
+    return { text, provider: providerName, tier };
+  }
+
   /** Trạng thái hệ thống - hữu ích cho dashboard/debug */
   getSystemStatus() {
     return {

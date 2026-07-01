@@ -60,7 +60,7 @@ const PROVIDERS_CONFIG = {
     taskPriority: [TASK_TYPES.SIMPLE],
     tier: MODEL_TIER.LIGHT,
     avgLatencyMs: 600,
-    models: { light: "@cf/meta/llama-3.1-8b-instruct", heavy: "@cf/meta/llama-3.1-8b-instruct" },
+    models: { light: "@cf/google/gemma-4-26b-a4b-it", heavy: "@cf/openai/gpt-oss-120b" },
   },
   openrouter: {
     name: "openrouter",
@@ -78,4 +78,16 @@ const PROVIDERS_CONFIG = {
 // Thứ tự fallback mặc định khi không xác định được task type
 const DEFAULT_FALLBACK_ORDER = ["google", "nvidia", "groq", "cloudflare", "openrouter"];
 
-module.exports = { TASK_TYPES, MODEL_TIER, PROVIDERS_CONFIG, DEFAULT_FALLBACK_ORDER };
+// Chuỗi fallback CỐ ĐỊNH (không phụ thuộc taskType): thử lần lượt từng bước (provider + tier)
+// tới khi có 1 bước thành công.
+const FALLBACK_CHAIN = [
+  { provider: "google", tier: "heavy" },
+  { provider: "google", tier: "light" },
+  { provider: "groq", tier: "heavy" },
+  { provider: "groq", tier: "light" },
+  { provider: "nvidia", tier: "heavy" },
+  { provider: "cloudflare", tier: "light" },
+  { provider: "openrouter", tier: "light" },
+];
+
+module.exports = { TASK_TYPES, MODEL_TIER, PROVIDERS_CONFIG, DEFAULT_FALLBACK_ORDER, FALLBACK_CHAIN };

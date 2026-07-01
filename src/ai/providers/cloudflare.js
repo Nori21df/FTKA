@@ -5,7 +5,7 @@
 
 const fetch = global.fetch || require("node-fetch");
 
-async function chat(messages, { model = "@cf/meta/llama-3.1-8b-instruct", apiKey, accountId } = {}) {
+async function chat(messages, { model = "@cf/google/gemma-4-26b-a4b-it", apiKey, accountId } = {}) {
   const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`;
 
   const res = await fetch(url, {

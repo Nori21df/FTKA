@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FTKA — UI/UX Redesign Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+<style>
+/* ============================================================
+   FTKA Studio — Design System (preview only, standalone)
+   ============================================================ */
+:root {
+  /* Neutrals */
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #f7f9fc;
+  --surface-3: #eef2f8;
+  --line: #e6eaf1;
+  --line-2: #d3dae6;
+  --text: #131a2b;
+  --text-2: #48526640;
+  --text-soft: #5a6580;
+  --muted: #8a94a8;
+  /* Brand */
+  --primary: #4361ee;
+  --primary-strong: #3049d6;
+  --primary-soft: #eaefff;
+  --accent: #11b981;      /* learned / correct */
+  --accent-soft: #d8f6ea;
+  --gold: #f5a524;        /* streak / xp */
+  --gold-soft: #fdeecd;
+  --violet: #7c5cff;
+  --violet-soft: #ece7ff;
+  --danger: #ef4444;
+  --danger-soft: #fde5e5;
+  /* Elevation */
+  --sh-1: 0 1px 2px rgba(19,26,43,.06), 0 1px 3px rgba(19,26,43,.04);
+  --sh-2: 0 4px 16px rgba(19,26,43,.08);
+  --sh-3: 0 18px 48px rgba(19,26,43,.16);
+  --ring: 0 0 0 4px rgba(67,97,238,.18);
+  /* Shape */
+  --r-sm: 10px; --r: 16px; --r-lg: 22px; --r-pill: 999px;
+  --f: "Inter","Noto Sans KR",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-kr: "Noto Sans KR","Inter",system-ui,sans-serif;
+  --sidebar: 260px;
+}
+[data-theme="dark"] {
+  --bg: #0b0f1a;
+  --surface: #141a28;
+  --surface-2: #10151f;
+  --surface-3: #1b2130;
+  --line: #232c3d;
+  --line-2: #33405a;
+  --text: #eef2fb;
+  --text-soft: #aab4c9;
+  --muted: #7b8398;
+  --primary: #7d97ff;
+  --primary-strong: #9fb2ff;
+  --primary-soft: #1c2743;
+  --accent: #34d39e;
+  --accent-soft: #12332a;
+  --gold: #f4b64a;
+  --gold-soft: #38290f;
+  --violet: #a58bff;
+  --violet-soft: #241f3d;
+  --danger: #f87171;
+  --danger-soft: #3a1e1e;
+  --sh-1: 0 1px 2px rgba(0,0,0,.4);
+  --sh-2: 0 6px 20px rgba(0,0,0,.4);
+  --sh-3: 0 20px 50px rgba(0,0,0,.55);
+  --ring: 0 0 0 4px rgba(125,151,255,.25);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--f);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+:lang(ko), .kr { font-family: var(--f-kr); word-break: keep-all; }
+.material-icons-outlined { font-size: 20px; line-height: 1; vertical-align: middle; }
+::selection { background: var(--primary-soft); }
+
+/* ---------- App shell ---------- */
+.app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; }
+.sidebar {
+  background: var(--surface); border-right: 1px solid var(--line);
+  padding: 20px 14px; display: flex; flex-direction: column; gap: 6px;
+  position: sticky; top: 0; height: 100vh;
+}
+.brand { display: flex; align-items: center; gap: 12px; padding: 6px 10px 18px; }
+.brand-logo {
+  width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center;
+  font-weight: 800; color: #fff; font-size: 16px;
+  background: linear-gradient(135deg, var(--primary), var(--violet));
+  box-shadow: var(--sh-2);
+}
+.brand h1 { font-size: 17px; font-weight: 800; letter-spacing: -.02em; }
+.brand p { font-size: 11.5px; color: var(--muted); font-weight: 500; }
+.nav-label { font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--muted); padding: 16px 12px 6px; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 11px;
+  color: var(--text-soft); text-decoration: none; font-weight: 600; font-size: 14px;
+  cursor: pointer; transition: .16s; border: 1px solid transparent;
+}
+.nav-item:hover { background: var(--surface-3); color: var(--text); }
+.nav-item.active { background: var(--primary-soft); color: var(--primary-strong); }
+.nav-item.active .material-icons-outlined { color: var(--primary); }
+.nav-item .material-icons-outlined { color: var(--muted); }
+.sidebar-foot { margin-top: auto; }
+.upsell {
+  border-radius: var(--r); padding: 16px; color:#fff; margin-top: 12px;
+  background: linear-gradient(140deg, var(--primary), var(--violet));
+  box-shadow: var(--sh-2);
+}
+.upsell h4 { font-size: 14px; font-weight: 800; }
+.upsell p { font-size: 12px; opacity: .9; margin: 4px 0 12px; }
+.upsell button { width: 100%; border: 0; border-radius: 10px; padding: 9px; font-weight: 700;
+  background: rgba(255,255,255,.95); color: var(--primary-strong); cursor: pointer; font-family: inherit; }
+
+/* ---------- Topbar ---------- */
+.main { display: flex; flex-direction: column; min-width: 0; }
+.topbar {
+  height: 68px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 80%, transparent);
+  backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 16px; padding: 0 26px;
+}
+.search {
+  display: flex; align-items: center; gap: 9px; background: var(--surface-3); border: 1px solid transparent;
+  border-radius: var(--r-pill); padding: 9px 16px; flex: 1; max-width: 420px; color: var(--muted);
+}
+.search input { border: 0; background: transparent; outline: none; color: var(--text); font-family: inherit; font-size: 14px; width: 100%; }
+.top-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: var(--r-pill);
+  font-weight: 700; font-size: 13px; border: 1px solid var(--line); background: var(--surface); cursor: pointer;
+}
+.pill.streak { background: var(--gold-soft); color: #9a6200; border-color: transparent; }
+[data-theme="dark"] .pill.streak { color: var(--gold); }
+.icon-btn { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);
+  display: grid; place-items: center; cursor: pointer; color: var(--text-soft); }
+.icon-btn:hover { background: var(--surface-3); }
+.avatar { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg,var(--violet),var(--primary));
+  color:#fff; display: grid; place-items: center; font-weight: 800; }
+
+/* ---------- Content ---------- */
+.content { padding: 26px; max-width: 1180px; width: 100%; margin: 0 auto; }
+.tabs { display: flex; gap: 6px; margin-bottom: 22px; background: var(--surface-3); padding: 5px; border-radius: 14px; width: fit-content; }
+.tab { padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 13.5px; color: var(--text-soft); cursor: pointer; border: 0; background: transparent; font-family: inherit; }
+.tab.active { background: var(--surface); color: var(--text); box-shadow: var(--sh-1); }
+.screen { display: none; animation: fade .3s ease; }
+.screen.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.page-head { margin-bottom: 20px; }
+.page-head h2 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.page-head p { color: var(--muted); margin-top: 4px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--sh-1); }
+.grid { display: grid; gap: 16px; }
+.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+/* Stat cards */
+.stat { padding: 18px; position: relative; overflow: hidden; }
+.stat .ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 12px; }
+.stat .num { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+.stat .lbl { color: var(--muted); font-size: 13px; font-weight: 600; }
+.stat .delta { font-size: 12px; font-weight: 700; margin-top: 6px; display: inline-flex; align-items: center; gap: 3px; }
+.up { color: var(--accent); } .flat { color: var(--muted); }
+.tint-blue { background: var(--primary-soft); color: var(--primary); }
+.tint-green { background: var(--accent-soft); color: var(--accent); }
+.tint-gold { background: var(--gold-soft); color: var(--gold); }
+.tint-violet { background: var(--violet-soft); color: var(--violet); }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent; border-radius: 12px;
+  padding: 10px 16px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; transition: .15s; }
+.btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.btn-primary { background: var(--primary); color: #fff; box-shadow: var(--sh-1); }
+.btn-primary:hover { background: var(--primary-strong); transform: translateY(-1px); }
+.btn-ghost { background: var(--surface); color: var(--text); border-color: var(--line); }
+.btn-ghost:hover { background: var(--surface-3); }
+.btn-soft { background: var(--primary-soft); color: var(--primary-strong); }
+
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: var(--r-pill);
+  font-size: 11.5px; font-weight: 800; letter-spacing: .02em; }
+.chip-topik1 { background: var(--accent-soft); color: var(--accent); }
+.chip-topik2 { background: var(--primary-soft); color: var(--primary); }
+.chip-topik3 { background: var(--violet-soft); color: var(--violet); }
+.chip-topik4 { background: var(--gold-soft); color: #9a6200; }
+[data-theme="dark"] .chip-topik4 { color: var(--gold); }
+
+/* Progress */
+.bar { height: 8px; border-radius: var(--r-pill); background: var(--surface-3); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,var(--primary),var(--violet)); }
+.ring { --p: 68; width: 128px; height: 128px; border-radius: 50%;
+  background: conic-gradient(var(--primary) calc(var(--p)*1%), var(--surface-3) 0);
+  display: grid; place-items: center; }
+.ring::before { content:""; position: absolute; width: 96px; height: 96px; border-radius: 50%; background: var(--surface); }
+.ring b { position: relative; font-size: 26px; font-weight: 800; }
+.ring span { position: relative; font-size: 11px; color: var(--muted); font-weight: 600; display: block; text-align: center; }
+
+/* Vocab card */
+.vcard { padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: .16s; }
+.vcard:hover { box-shadow: var(--sh-2); transform: translateY(-2px); border-color: var(--line-2); }
+.vcard .row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.vcard .kr { font-size: 25px; font-weight: 700; letter-spacing: -.01em; }
+.vcard .mean { color: var(--text-soft); font-weight: 600; }
+.vcard .ex { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; }
+.vcard .ex .kr { font-size: 15px; font-weight: 600; }
+.vcard .ex .vi { color: var(--muted); font-size: 12.5px; }
+.mini { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface);
+  display: grid; place-items: center; cursor: pointer; color: var(--text-soft); }
+.mini:hover { color: var(--primary); border-color: var(--primary-soft); background: var(--primary-soft); }
+.learned { color: var(--accent); border-color: var(--accent-soft); background: var(--accent-soft); }
+
+/* Quiz */
+.quiz-wrap { max-width: 720px; margin: 0 auto; }
+.quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; color: var(--muted); font-weight: 700; font-size: 13px; }
+.q-sentence { font-size: 30px; font-weight: 700; line-height: 1.5; margin: 8px 0 6px; }
+.q-blank { display: inline-block; min-width: 96px; border-bottom: 3px dashed var(--primary); color: var(--primary); text-align: center; }
+.q-vi { color: var(--muted); margin-bottom: 22px; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.opt { display: flex; align-items: center; gap: 12px; padding: 15px 16px; border-radius: 14px; border: 1.5px solid var(--line);
+  background: var(--surface); cursor: pointer; font-size: 17px; font-weight: 600; transition: .14s; text-align: left; font-family: inherit; color: var(--text); }
+.opt:hover { border-color: var(--primary); background: var(--primary-soft); }
+.opt .key { width: 28px; height: 28px; border-radius: 8px; background: var(--surface-3); display: grid; place-items: center;
+  font-size: 13px; font-weight: 800; color: var(--muted); }
+.opt.correct { border-color: var(--accent); background: var(--accent-soft); }
+.opt.correct .key { background: var(--accent); color: #fff; }
+.opt.wrong { border-color: var(--danger); background: var(--danger-soft); }
+
+/* Design system swatches */
+.sw { border-radius: 12px; height: 64px; box-shadow: var(--sh-1); display: flex; align-items: flex-end; padding: 8px; color: #fff; font-size: 11px; font-weight: 700; }
+.type-row { display: flex; align-items: baseline; gap: 16px; padding: 12px 0; border-bottom: 1px dashed var(--line); }
+.type-row span { color: var(--muted); font-size: 12px; width: 130px; }
+
+.section-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 26px 0 12px; }
+.list-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.list-row:last-child { border-bottom: 0; }
+.dot { width: 9px; height: 9px; border-radius: 50%; }
+
+@media (max-width: 920px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .cols-4 { grid-template-columns: repeat(2,1fr); }
+  .cols-3, .cols-2 { grid-template-columns: 1fr; }
+  .opts { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">FT</div>
+      <div><h1>FTKA</h1><p>Học tiếng Hàn</p></div>
+    </div>
+    <div class="nav-label">Học tập</div>
+    <a class="nav-item active"><span class="material-icons-outlined">dashboard</span> Tổng quan</a>
+    <a class="nav-item"><span class="material-icons-outlined">auto_awesome</span> Tạo từ vựng</a>
+    <a class="nav-item"><span class="material-icons-outlined">translate</span> Từ vựng</a>
+    <a class="nav-item"><span class="material-icons-outlined">quiz</span> Kiểm tra</a>
+    <a class="nav-item"><span class="material-icons-outlined">menu_book</span> Ngữ pháp</a>
+    <a class="nav-item"><span class="material-icons-outlined">school</span> Câu hỏi ngữ pháp</a>
+    <a class="nav-item"><span class="material-icons-outlined">headphones</span> Luyện nghe</a>
+    <div class="nav-label">Tài khoản</div>
+    <a class="nav-item"><span class="material-icons-outlined">palette</span> Giao diện</a>
+    <a class="nav-item"><span class="material-icons-outlined">settings</span> Cài đặt</a>
+    <div class="sidebar-foot">
+      <div class="upsell">
+        <h4>Chuỗi 12 ngày 🔥</h4>
+        <p>Học 5 từ nữa hôm nay để giữ chuỗi của bạn.</p>
+        <button>Tiếp tục học</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <div class="search"><span class="material-icons-outlined">search</span><input placeholder="Tìm từ vựng, ngữ pháp, bài nghe…"></div>
+      <div class="top-actions">
+        <button class="pill streak"><span class="material-icons-outlined">local_fire_department</span> 12</button>
+        <button class="icon-btn" id="themeBtn" title="Đổi giao diện"><span class="material-icons-outlined">dark_mode</span></button>
+        <button class="icon-btn"><span class="material-icons-outlined">notifications</span></button>
+        <div class="avatar">N</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="tabs">
+        <button class="tab active" data-s="dash">Tổng quan</button>
+        <button class="tab" data-s="vocab">Từ vựng</button>
+        <button class="tab" data-s="quiz">Quiz ngữ pháp</button>
+        <button class="tab" data-s="ds">Design system</button>
+      </div>
+
+      <!-- DASHBOARD -->
+      <section class="screen active" id="dash">
+        <div class="page-head">
+          <h2>Chào Nori 👋</h2>
+          <p>Hôm nay bạn đã học 18 phút — tiếp tục nào!</p>
+        </div>
+        <div class="grid cols-4" style="margin-bottom:22px">
+          <div class="card stat"><div class="ico tint-gold"><span class="material-icons-outlined">local_fire_department</span></div><div class="num">12</div><div class="lbl">Ngày liên tiếp</div><div class="delta up"><span class="material-icons-outlined" style="font-size:15px">trending_up</span> +2 tuần này</div></div>
+          <div class="card stat"><div class="ico tint-green"><span class="material-icons-outlined">translate</span></div><div class="num">348</div><div class="lbl">Từ đã thuộc</div><div class="delta up"><span class="material-icons-outlined" style="font-size:15px">trending_up</span> +24</div></div>
+          <div class="card stat"><div class="ico tint-blue"><span class="material-icons-outlined">menu_book</span></div><div class="num">20</div><div class="lbl">Mẫu ngữ pháp</div><div class="delta flat">Ổn định</div></div>
+          <div class="card stat"><div class="ico tint-violet"><span class="material-icons-outlined">headphones</span></div><div class="num">7</div><div class="lbl">Bài nghe</div><div class="delta up"><span class="material-icons-outlined" style="font-size:15px">trending_up</span> +1</div></div>
+        </div>
+        <div class="grid" style="grid-template-columns: 1.6fr 1fr; align-items:start">
+          <div class="card" style="padding:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <strong style="font-size:16px">Tiếp tục học</strong>
+              <a class="btn btn-soft" style="padding:7px 12px">Xem tất cả</a>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;gap:14px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:14px">
+                <div class="ico tint-blue" style="margin:0;width:46px;height:46px"><span class="material-icons-outlined">translate</span></div>
+                <div style="flex:1"><strong>Từ vựng chủ đề Công việc</strong><div style="color:var(--muted);font-size:13px">24/40 từ</div><div class="bar" style="margin-top:8px"><i style="width:60%"></i></div></div>
+                <button class="btn btn-primary">Học</button>
+              </div>
+              <div style="display:flex;gap:14px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:14px">
+                <div class="ico tint-violet" style="margin:0;width:46px;height:46px"><span class="material-icons-outlined">school</span></div>
+                <div style="flex:1"><strong>Quiz ngữ pháp — 은/는 반면에</strong><div style="color:var(--muted);font-size:13px">5/12 câu</div><div class="bar" style="margin-top:8px"><i style="width:42%"></i></div></div>
+                <button class="btn btn-primary">Tiếp</button>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="padding:20px;display:flex;flex-direction:column;align-items:center;gap:6px">
+            <strong style="align-self:flex-start;font-size:16px;margin-bottom:12px">Mục tiêu tuần</strong>
+            <div class="ring" style="position:relative;--p:68"><b>68%</b><span>34 / 50 từ</span></div>
+            <p style="color:var(--muted);font-size:13px;text-align:center;margin-top:10px">Còn 16 từ nữa để đạt mục tiêu tuần này 🎯</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- VOCAB -->
+      <section class="screen" id="vocab">
+        <div class="page-head"><h2>Từ vựng</h2><p>348 từ · 24 từ mới trong tuần</p></div>
+        <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+          <div class="search" style="max-width:none;flex:1"><span class="material-icons-outlined">search</span><input placeholder="Tìm từ tiếng Hàn hoặc nghĩa…"></div>
+          <button class="btn btn-ghost"><span class="material-icons-outlined">filter_list</span> Bộ lọc</button>
+          <button class="btn btn-primary"><span class="material-icons-outlined">auto_awesome</span> Tạo từ mới</button>
+        </div>
+        <div class="grid cols-3">
+          <div class="card vcard">
+            <div class="row"><span class="chip chip-topik2">TOPIK 2</span><button class="mini learned" title="Đã thuộc"><span class="material-icons-outlined">check</span></button></div>
+            <div class="kr">회사</div><div class="mean">công ty</div>
+            <div class="ex"><div class="kr">저는 회사에 다녀요.</div><div class="vi">Tôi đi làm ở công ty.</div></div>
+            <div class="row"><button class="mini"><span class="material-icons-outlined">volume_up</span></button><span style="color:var(--muted);font-size:12px">danh từ</span></div>
+          </div>
+          <div class="card vcard">
+            <div class="row"><span class="chip chip-topik1">TOPIK 1</span><button class="mini"><span class="material-icons-outlined">bookmark_border</span></button></div>
+            <div class="kr">긍정적</div><div class="mean">tích cực</div>
+            <div class="ex"><div class="kr">긍정적인 영향을 줘요.</div><div class="vi">Tạo ảnh hưởng tích cực.</div></div>
+            <div class="row"><button class="mini"><span class="material-icons-outlined">volume_up</span></button><span style="color:var(--muted);font-size:12px">tính từ</span></div>
+          </div>
+          <div class="card vcard">
+            <div class="row"><span class="chip chip-topik3">TOPIK 3</span><button class="mini"><span class="material-icons-outlined">bookmark_border</span></button></div>
+            <div class="kr">영향</div><div class="mean">ảnh hưởng</div>
+            <div class="ex"><div class="kr">회사 이미지에 영향을 줘요.</div><div class="vi">Ảnh hưởng đến hình ảnh công ty.</div></div>
+            <div class="row"><button class="mini"><span class="material-icons-outlined">volume_up</span></button><span style="color:var(--muted);font-size:12px">danh từ</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- QUIZ -->
+      <section class="screen" id="quiz">
+        <div class="quiz-wrap">
+          <div class="quiz-top"><span>Câu 5 / 12</span><span style="display:flex;gap:6px;align-items:center"><span class="material-icons-outlined" style="color:var(--gold)">stars</span> 40 điểm</span></div>
+          <div class="bar" style="margin-bottom:22px"><i style="width:42%"></i></div>
+          <div class="card" style="padding:28px">
+            <span class="chip chip-topik2" style="margin-bottom:14px">은/는 반면에</span>
+            <div class="q-sentence kr">형은 활발한 <span class="q-blank">___</span> 동생은 조용해요.</div>
+            <div class="q-vi">Anh trai thì năng động, trong khi em thì trầm tính.</div>
+            <div class="opts">
+              <button class="opt"><span class="key">A</span><span class="kr">반면에</span></button>
+              <button class="opt correct"><span class="key">B</span><span class="kr">는 반면에</span> <span class="material-icons-outlined" style="margin-left:auto;color:var(--accent)">check_circle</span></button>
+              <button class="opt"><span class="key">C</span><span class="kr">때문에</span></button>
+              <button class="opt"><span class="key">D</span><span class="kr">덕분에</span></button>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:18px">
+            <button class="btn btn-ghost"><span class="material-icons-outlined">refresh</span> Tạo lại câu hỏi</button>
+            <button class="btn btn-primary">Câu tiếp theo <span class="material-icons-outlined">arrow_forward</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- DESIGN SYSTEM -->
+      <section class="screen" id="ds">
+        <div class="page-head"><h2>Design system</h2><p>Nền tảng thống nhất cho toàn bộ giao diện</p></div>
+        <div class="section-title">Bảng màu</div>
+        <div class="grid cols-4">
+          <div class="sw" style="background:var(--primary)">Primary</div>
+          <div class="sw" style="background:var(--violet)">Violet</div>
+          <div class="sw" style="background:var(--accent)">Accent / Đúng</div>
+          <div class="sw" style="background:var(--gold);color:#5a3d00">Gold / Streak</div>
+        </div>
+        <div class="section-title">Typography</div>
+        <div class="card" style="padding:8px 20px">
+          <div class="type-row"><span>Display · Korean</span><b class="kr" style="font-size:30px;font-weight:700">안녕하세요</b></div>
+          <div class="type-row"><span>Heading · 26/800</span><b style="font-size:26px;font-weight:800">Tiêu đề trang</b></div>
+          <div class="type-row"><span>Body · 15/400</span><span>Nội dung mô tả và hướng dẫn cho người học.</span></div>
+          <div class="type-row" style="border:0"><span>Label · 11/800</span><span class="chip chip-topik1">TOPIK 1</span></div>
+        </div>
+        <div class="section-title">Buttons & chips</div>
+        <div class="card" style="padding:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-ghost">Ghost</button>
+          <button class="btn btn-soft">Soft</button>
+          <span class="chip chip-topik1">TOPIK 1</span>
+          <span class="chip chip-topik2">TOPIK 2</span>
+          <span class="chip chip-topik3">TOPIK 3</span>
+          <span class="chip chip-topik4">TOPIK 4</span>
+        </div>
+        <div class="section-title">Trạng thái hệ thống (AI providers)</div>
+        <div class="card">
+          <div class="list-row"><span class="dot" style="background:var(--accent)"></span><strong>Google · Gemini</strong><span style="color:var(--muted);margin-left:auto;font-size:13px">Sẵn sàng</span></div>
+          <div class="list-row"><span class="dot" style="background:var(--gold)"></span><strong>Groq · Llama 4 Scout</strong><span style="color:var(--muted);margin-left:auto;font-size:13px">Đang dùng (fallback)</span></div>
+          <div class="list-row"><span class="dot" style="background:var(--muted)"></span><strong>Cloudflare</strong><span style="color:var(--muted);margin-left:auto;font-size:13px">Chưa cấu hình</span></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.s).classList.add('active');
+  }));
+  // Theme toggle
+  const tb = document.getElementById('themeBtn');
+  tb.addEventListener('click', () => {
+    const root = document.documentElement;
+    const dark = root.getAttribute('data-theme') === 'dark';
+    root.setAttribute('data-theme', dark ? 'light' : 'dark');
+    tb.querySelector('span').textContent = dark ? 'dark_mode' : 'light_mode';
+  });
+  // Quiz option demo
+  document.querySelectorAll('.opt').forEach(o => o.addEventListener('click', () => {
+    document.querySelectorAll('.opt').forEach(x => { if(!x.classList.contains('correct')) x.classList.remove('wrong'); });
+    if (!o.classList.contains('correct')) o.classList.add('wrong');
+  }));
+</script>
+</body>
+</html>
