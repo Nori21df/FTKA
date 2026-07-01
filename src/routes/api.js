@@ -375,8 +375,8 @@ router.post("/manual_add", aiLimiter, loginRequired, asyncHandler(async (req, re
   res.json({ success: true, item: { ...item, id, korean } });
 }));
 
-router.get("/tts", asyncHandler(async (req, res) => {
-  const text = String(req.query.text || "").trim();
+router.get("/tts", aiLimiter, asyncHandler(async (req, res) => {
+  const text = String(req.query.text || "").trim().slice(0, 200);
   if (!text) return res.status(400).send("");
   if (req.currentUser) {
     const result = await energy.spendEnergy(req.currentUser.id, 1, "tts", "inline");
@@ -389,7 +389,7 @@ router.get("/tts", asyncHandler(async (req, res) => {
   res.send(buffer);
 }));
 
-router.get("/listening-practice/audio/:filename", (req, res) => {
+router.get("/listening-practice/audio/:filename", loginRequired, (req, res) => {
   const filePath = tts.safeAudioPath(req.params.filename);
   if (!filePath || !fs.existsSync(filePath)) return res.status(404).send("");
   res.type("audio/mpeg").sendFile(filePath);

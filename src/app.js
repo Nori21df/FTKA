@@ -1,4 +1,5 @@
 const path = require("path");
+const crypto = require("crypto");
 const express = require("express");
 const session = require("express-session");
 const helmet = require("helmet");
@@ -59,13 +60,23 @@ app.set("views", viewsDir);
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
+// Origin chuẩn (từ cấu hình, KHÔNG lấy từ header client) để tránh host-header injection khi redirect.
+const canonicalOrigin = (() => {
+  try {
+    const parsed = new URL(env.appUrl || env.baseUrl || "");
+    if (parsed.protocol === "https:") return parsed.origin;
+  } catch { /* cấu hình không hợp lệ → fallback bên dưới */ }
+  return null;
+})();
+
 // Ép HTTP -> HTTPS khi chạy sau proxy (Cloudflare gửi header x-forwarded-proto).
 // Chỉ chuyển hướng khi header nói rõ là "http"; gọi trực tiếp localhost (health-check,
 // không có header này) sẽ bỏ qua để không phá vòng nội bộ.
 app.use((req, res, next) => {
   const forwardedProto = req.headers["x-forwarded-proto"];
   if (forwardedProto && forwardedProto.split(",")[0].trim() === "http") {
-    return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
+    const base = canonicalOrigin || `https://${req.headers.host}`;
+    return res.redirect(301, base + req.originalUrl);
   }
   next();
 });
@@ -93,11 +104,18 @@ app.get(/^\/google[0-9a-f]+\.html$/, (req, res, next) => {
   });
 });
 
+// Không dùng chuỗi bí mật cố định công khai làm fallback: nếu thiếu SESSION_SECRET thì sinh
+// ngẫu nhiên lúc khởi động (session sẽ mất khi restart, nhưng không thể bị giả mạo chữ ký cookie).
+const sessionSecret = env.sessionSecret || crypto.randomBytes(32).toString("hex");
+if (!env.sessionSecret) {
+  console.warn("[session] SESSION_SECRET chưa được đặt — dùng khóa ngẫu nhiên tạm thời (đăng nhập sẽ mất khi khởi động lại).");
+}
+
 const sessionMiddleware = session({
   store: createSessionStore(),
   proxy: env.nodeEnv === "production",
   name: "ftka.sid",
-  secret: env.sessionSecret || "dev-only-change-me",
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   rolling: true,

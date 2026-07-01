@@ -183,12 +183,16 @@ function renderResults(items, topic, message = '', groupName = '') {
             ${explanation ? `<p class="gen-result-meaning">${explanation}</p>` : ''}
             ${exampleKr ? `<div class="gen-result-example"><strong lang="ko">${exampleKr}</strong><span>${exampleVi}</span></div>` : ''}
             <div class="gen-result-actions">
-                <button type="button" class="gen-audio" onclick="playTTS('${ttsText}')"><span class="material-icons-outlined">volume_up</span> Nghe</button>
+                <button type="button" class="gen-audio" data-tts="${ttsText}"><span class="material-icons-outlined">volume_up</span> Nghe</button>
                 <a href="{{ url_for('vocab') }}" class="gen-inline-link"><span class="material-icons-outlined">north_east</span> Xem trong từ điển</a>
             </div>
         </article>`;
     }).join('');
     document.getElementById('results').innerHTML = summary + `<div class="gen-results-grid">${cards}</div>`;
+    // Gắn handler qua data-attribute thay vì onclick nội tuyến (tránh XSS khi nội dung chứa dấu nháy).
+    document.querySelectorAll('#results .gen-audio').forEach((btn) => {
+        btn.addEventListener('click', () => playTTS(btn.dataset.tts || ''));
+    });
 }
 
 async function generateVocab() {

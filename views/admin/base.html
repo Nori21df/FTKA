@@ -30,7 +30,7 @@
     </nav>
     <main class="admin-main" data-component="admin-main">
         {% for category, message in get_flashed_messages(with_categories=true) %}
-        <script type="application/json" data-toast-message data-toast-type="{{ category }}">{{ message | dump | safe }}</script>
+        <script type="application/json" data-toast-message data-toast-type="{{ category }}">{{ message | tojson }}</script>
         {% endfor %}
         {% block admin_content %}{% endblock %}
     </main>

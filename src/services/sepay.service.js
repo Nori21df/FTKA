@@ -268,9 +268,17 @@ async function createSepayOrder(user, planId) {
   });
 }
 
+// Không lưu header nhạy cảm vào DB: x-secret-key CHÍNH LÀ SEPAY_IPN_SECRET, nếu lưu plaintext
+// thì ai đọc được bảng webhook_events (hoặc bản backup) có thể giả mạo webhook để tự cấp premium.
+const REDACTED_HEADERS = new Set(["x-secret-key", "authorization", "cookie", "proxy-authorization"]);
+
 function webhookHeaders(req) {
   const safeHeaders = {};
   for (const [key, value] of Object.entries(req.headers || {})) {
+    if (REDACTED_HEADERS.has(String(key).toLowerCase())) {
+      safeHeaders[key] = "[redacted]";
+      continue;
+    }
     safeHeaders[key] = Array.isArray(value) ? value.join(", ") : String(value || "");
   }
   return safeHeaders;
