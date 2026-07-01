@@ -104,6 +104,11 @@ app.get(/^\/google[0-9a-f]+\.html$/, (req, res, next) => {
   });
 });
 
+// Healthcheck nhẹ (đặt trước session/log để không tốn phiên và không làm nhiễu activity log).
+app.get("/healthz", (req, res) => {
+  res.json({ ok: true, uptime: Math.round(process.uptime()) });
+});
+
 // Không dùng chuỗi bí mật cố định công khai làm fallback: nếu thiếu SESSION_SECRET thì sinh
 // ngẫu nhiên lúc khởi động (session sẽ mất khi restart, nhưng không thể bị giả mạo chữ ký cookie).
 const sessionSecret = env.sessionSecret || crypto.randomBytes(32).toString("hex");

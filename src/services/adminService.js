@@ -322,6 +322,8 @@ async function listUserAudioRecords(userId, audioDir, db = dbGlobal) {
 
 async function getDashboardStats(db = dbGlobal) {
   const count = (table, where = "", params = []) => db.scalar(`SELECT COUNT(*) FROM ${table}${where ? ` WHERE ${where}` : ""}`, params).then(Number).catch(() => 0);
+  // Tổng hợp năng lượng (bảng user_energy / energy_transactions đã có sẵn dữ liệu); .catch trả 0 nếu bảng chưa tạo.
+  const scalarSafe = (sql, params = []) => db.scalar(sql, params).then(Number).catch(() => 0);
   return {
     total_users: await count("users"),
     new_users_today: await count("users", "created_at >= ?", [new Date(Date.now() - 86400000).toISOString()]),
@@ -331,8 +333,8 @@ async function getDashboardStats(db = dbGlobal) {
     total_listening_lessons: await count("listening_practice"),
     total_audio_files: await count("listening_practice", "audio_path IS NOT NULL AND TRIM(audio_path) != ''"),
     total_ai_generations: (await count("vocab", "source = ?", ["ai_generated"])) + (await count("grammar", "source = ?", ["ai_generated"])) + (await count("listening_practice", "source = ?", ["ai"])),
-    total_energy_balance: 0,
-    total_energy_spent: 0,
+    total_energy_balance: await scalarSafe("SELECT COALESCE(SUM(current_energy), 0) FROM user_energy"),
+    total_energy_spent: await scalarSafe("SELECT COALESCE(SUM(-amount), 0) FROM energy_transactions WHERE amount < 0"),
     grammar_count: await count("grammar"),
     learning_activity_count: await count("learning_activity"),
     recent_admin_actions: await count("admin_action_logs")
