@@ -34,6 +34,7 @@ _Phiên làm việc tự động (không đụng server production). Toàn bộ 
 - **`a369e6d`+`7c4a66d`** — KPI năng lượng ở admin dashboard: `total_energy_balance` / `total_energy_spent` giờ tính thật từ `user_energy`/`energy_transactions` (trước hardcode 0 "chưa khả dụng"), có `.catch(()=>0)`.
 - **`7c4a66d`** — endpoint `GET /healthz` (không auth, trước session/log) trả `{ok, uptime}`.
 - **`688c76f`** — trang **`/admin/transactions`** thật (trước là stub "chưa khả dụng"): danh sách giao dịch năng lượng có phân trang, chỉ đọc, cô lập trong admin.
+- **`2bc5186`** — trang **`/admin/energy`** thật (trước là stub): tổng quan số dư năng lượng theo người dùng, phân trang, chỉ đọc.
 - **`72667f1`** — trang **404 có thương hiệu** (theo theme) + `Cache-Control: no-store` cho các trang xác thực.
 
 ---
