@@ -18,7 +18,7 @@
     </div>
 
     <section class="anki-study-shell" aria-label="Khu vực học flashcard">
-        {% if vocab %}
+        {% if vocab|length %}
         <div id="flashcardStage" class="anki-card-stage"></div>
         <div id="flashcardActions" class="anki-actions-host"></div>
         <p class="anki-shortcuts" aria-label="Phím tắt"><kbd>Space</kbd> Lật · <kbd>A</kbd> Đã học · <kbd>R</kbd> Ôn lại · <kbd>S</kbd> Bỏ qua · <kbd>D</kbd> Ngẫu nhiên</p>
@@ -74,7 +74,7 @@
                     <input type="text" id="groupNameInput" class="dictionary-input" placeholder="Tên thư mục">
                     <button id="createGroupBtn" type="button" class="dictionary-add-button" onclick="createGroup()"><span class="material-icons-outlined">create_new_folder</span>Tạo thư mục</button>
                 </div>
-                {% if vocab_groups %}
+                {% if vocab_groups|length %}
                 <div class="dictionary-group-table-wrap" style="margin-top: 14px;">
                     <table class="dictionary-group-table">
                         <thead><tr><th>Thư mục</th><th>Số từ</th><th>Thao tác</th></tr></thead>

@@ -15,7 +15,7 @@
         </div>
     </div>
 
-    {% if quiz_items %}
+    {% if quiz_items|length %}
     <section class="qz-card dv-card">
         <div class="qz-top">
             <span id="grammarQuizProgress">Câu 1 / {{ quiz_items|length }}</span>
@@ -41,7 +41,7 @@
     {% endif %}
 </div>
 
-{% if quiz_items %}
+{% if quiz_items|length %}
 <script>
 const grammarQuizDeck = {{ quiz_items|tojson }};
 let grammarQuizIndex = 0;

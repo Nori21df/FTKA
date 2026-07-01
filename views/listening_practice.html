@@ -81,7 +81,7 @@
                 <span class="qz-pill">{{ saved_lessons|length }}</span>
             </div>
 
-            {% if saved_lessons %}
+            {% if saved_lessons|length %}
             <div class="saved-lessons-list">
                 {% for lesson in saved_lessons %}
                 <div class="saved-lesson-row">
@@ -181,7 +181,7 @@
                     <div class="listening-text-block listening-korean" lang="ko">{{ selected_lesson.korean_text }}</div>
                 </section>
 
-                {% if selected_lesson.sentences %}
+                {% if selected_lesson.sentences|length %}
                 <section class="lesson-section">
                     <h4>Phát từng câu</h4>
                     <div class="sentence-player" data-sentence-player>
@@ -224,7 +224,7 @@
                     <div class="listening-text-block">{{ selected_lesson.vietnamese_translation }}</div>
                 </section>
 
-                {% if selected_lesson.vocabulary %}
+                {% if selected_lesson.vocabulary|length %}
                 <section class="lesson-section">
                     <h4>Từ vựng</h4>
                     <div class="lesson-grid">
@@ -240,7 +240,7 @@
                 </section>
                 {% endif %}
 
-                {% if selected_lesson.questions %}
+                {% if selected_lesson.questions|length %}
                 <section class="lesson-section">
                     <h4>Câu hỏi luyện nghe</h4>
                     <div class="lesson-grid">

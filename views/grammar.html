@@ -159,7 +159,9 @@ function applyGrammarFilters() {
     const visibleCountEl = document.getElementById('grammarVisibleCount');
     if (visibleCountEl) visibleCountEl.textContent = `${visibleCount} đang hiển thị`;
     const emptyFilteredEl = document.getElementById('grammarEmptyFiltered');
-    if (emptyFilteredEl) emptyFilteredEl.style.display = visibleCount === 0 ? 'block' : 'none';
+    // Chỉ báo "không khớp bộ lọc" khi CÓ dữ liệu nhưng lọc ra rỗng; nếu chưa có ngữ pháp nào thì
+    // đã có empty-state "Chưa có ngữ pháp" trong lưới, không hiện chồng thêm hộp thứ hai.
+    if (emptyFilteredEl) emptyFilteredEl.style.display = (cards.length > 0 && visibleCount === 0) ? 'block' : 'none';
 }
 
 document.querySelectorAll('.grammar-filter-button').forEach((button) => {
@@ -221,7 +223,7 @@ async function addGrammarPattern() {
     } finally {
         stopAddWait();
         button.disabled = false;
-        button.innerHTML = '<span class="material-icons-outlined">auto_awesome</span>Tạo và lưu';
+        button.innerHTML = '<span class="material-icons-outlined">auto_awesome</span> Tạo ngữ pháp';
     }
 }
 

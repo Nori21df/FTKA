@@ -69,7 +69,7 @@
                 <h3>Cần ôn hôm nay</h3>
                 <a class="dv-link" href="{{ url_for('quiz') }}">Ôn tất cả</a>
             </div>
-            {% if focus_words %}
+            {% if focus_words|length %}
                 {% for item in focus_words %}
                 <div class="dv-rev">
                     <div>
@@ -92,7 +92,7 @@
                 <h3>Từ mới thêm</h3>
                 <a class="dv-link" href="{{ url_for('vocab') }}">Xem tất cả</a>
             </div>
-            {% if vocab %}
+            {% if vocab|length %}
                 {% for item in vocab %}
                 <div class="dv-row">
                     <div><span class="kr" lang="ko">{{ item.korean }}</span> <span class="mn">· {{ item.meaning_vi }}</span></div>
@@ -108,7 +108,7 @@
                 <h3>Ngữ pháp mới</h3>
                 <a class="dv-link" href="{{ url_for('grammar') }}">Xem tất cả</a>
             </div>
-            {% if grammar %}
+            {% if grammar|length %}
                 {% for item in grammar %}
                 <div class="dv-row">
                     <div><span class="kr" lang="ko">{{ item.grammar }}</span> <span class="mn">· {{ item.meaning_vi }}</span></div>
