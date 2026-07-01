@@ -6,7 +6,7 @@
     <title>{{ t('app.title') }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Sora:wght@600;700;800&family=Outfit:wght@500;600;700&family=Baloo+2:wght@500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     {% block head %}{% endblock %}
@@ -52,7 +52,7 @@
         }
     </script>
 </head>
-<body class="{{ ui_theme_class }} {% block body_class %}{% endblock %}" data-authenticated="{% if current_user %}true{% else %}false{% endif %}">
+<body class="{{ ui_theme_class }} {% block body_class %}{% endblock %}" data-style="{{ ui_style }}" data-authenticated="{% if current_user %}true{% else %}false{% endif %}">
     <div id="toast-root" class="toast-root" aria-live="polite" aria-atomic="false"></div>
     <!-- Confirmation Modal -->
     <div id="confirm-modal" class="confirm-modal-backdrop" hidden aria-modal="true" role="dialog">

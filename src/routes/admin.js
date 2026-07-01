@@ -10,6 +10,7 @@ const tts = require("../services/ttsService");
 const groups = require("../services/vocabGroupService");
 const sepay = require("../services/sepay.service");
 const aiLogService = require("../services/aiLogService");
+const activityLogService = require("../services/activityLogService");
 
 const router = express.Router();
 
@@ -448,6 +449,43 @@ router.post("/ai-logs/clear", ...named("admin.ai_logs_clear", (req, res) => {
   aiLogService.clearAiLogs();
   req.flash("success", "AI logs cleared.");
   res.redirect("/admin/ai-logs");
+}));
+
+// ── Console hoạt động realtime (hiển thị trên Bảng quản trị) ──
+router.get("/activity-console.json", ...named("admin.activity_console_json", (req, res) => {
+  res.json({ logs: activityLogService.listActivity(req.query) });
+}));
+
+router.get("/activity-console/stream", ...named("admin.activity_console_stream", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  req.socket?.setTimeout(0);
+  req.socket?.setNoDelay?.(true);
+  res.flushHeaders?.();
+  let closed = false;
+  const safeWrite = (chunk) => {
+    if (closed || res.destroyed || res.writableEnded) return false;
+    try { return res.write(chunk); } catch { closed = true; return false; }
+  };
+  const send = (event, data) => safeWrite(`event: ${event}\ndata: ${JSON.stringify(data || {})}\n\n`);
+  safeWrite(": connected\n\n");
+  const unsubscribe = activityLogService.subscribeActivity((payload) => {
+    if (payload.event === "activity") send("activity", payload.entry);
+    if (payload.event === "clear") send("activity-clear", {});
+  });
+  const heartbeat = setInterval(() => safeWrite(": heartbeat\n\n"), 15000);
+  req.on("close", () => {
+    closed = true;
+    clearInterval(heartbeat);
+    unsubscribe();
+  });
+}));
+
+router.post("/activity-console/clear", ...named("admin.activity_console_clear", (req, res) => {
+  activityLogService.clearActivity();
+  res.json({ success: true });
 }));
 
 router.get("/logs", ...named("admin.logs", asyncHandler(async (req, res) => {

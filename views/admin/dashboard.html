@@ -40,4 +40,95 @@
     <p class="admin-muted">Chưa có lỗi được lưu gần đây.</p>
     {% endif %}
 </section>
+
+<section class="admin-panel">
+    <div class="admin-header" style="margin-bottom:12px">
+        <div>
+            <h3>Console realtime</h3>
+            <p class="admin-muted">Hoạt động web đang diễn ra: request, lỗi, thời gian phản hồi. Cập nhật trực tiếp qua SSE.</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+            <span id="consoleStatus" class="admin-badge">Đang kết nối…</span>
+            <button id="consoleClear" class="admin-button" type="button">Xoá console</button>
+        </div>
+    </div>
+    <div class="rc-filters">
+        <button class="rc-filter active" type="button" data-level="">Tất cả</button>
+        <button class="rc-filter" type="button" data-level="success">2xx</button>
+        <button class="rc-filter" type="button" data-level="info">3xx</button>
+        <button class="rc-filter" type="button" data-level="warn">4xx</button>
+        <button class="rc-filter" type="button" data-level="error">5xx / lỗi</button>
+    </div>
+    <div id="rcConsole" class="rc-console" role="log" aria-live="polite" aria-label="Console hoạt động realtime"></div>
+</section>
+
+<style>
+.rc-filters{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+.rc-filter{ padding:6px 13px; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--text-soft); font-weight:700; font-size:12px; cursor:pointer; }
+.rc-filter.active{ background:var(--primary); color:#fff; border-color:transparent; }
+.rc-console{ background:#0c1018; color:#d7dce8; border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px 14px; height:360px; overflow:auto; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:12.5px; line-height:1.75; }
+.rc-line{ display:flex; gap:12px; white-space:nowrap; }
+.rc-line .t{ color:#5f6b86; }
+.rc-line .m{ font-weight:700; width:50px; color:#9aa4bd; }
+.rc-line .p{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; color:#c7cee0; }
+.rc-line .u{ width:78px; overflow:hidden; text-overflow:ellipsis; color:#7c86a0; }
+.rc-line .s{ width:40px; text-align:right; font-weight:700; font-variant-numeric:tabular-nums; }
+.rc-line .d{ width:66px; text-align:right; color:#5f6b86; font-variant-numeric:tabular-nums; }
+.rc-lvl-success .s{ color:#4cc78d; }
+.rc-lvl-info .s{ color:#6f92ff; }
+.rc-lvl-warn .s{ color:#e0a85b; }
+.rc-lvl-error{ color:#f0726a; }
+.rc-lvl-error .s{ color:#f0726a; }
+.rc-empty{ color:#5f6b86; }
+</style>
+
+<script>
+(function(){
+    const box = document.getElementById('rcConsole');
+    const statusEl = document.getElementById('consoleStatus');
+    const MAX_LINES = 300;
+    let filter = '';
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const fmtTime = (iso) => { try { return new Date(iso).toLocaleTimeString('vi-VN', {hour12:false}); } catch { return ''; } };
+    function makeLine(e){
+        const level = e.level || 'info';
+        const el = document.createElement('div');
+        el.className = 'rc-line rc-lvl-' + level;
+        el.dataset.level = level;
+        el.innerHTML = '<span class="t">' + esc(fmtTime(e.created_at)) + '</span>'
+            + '<span class="m">' + esc(e.method || '') + '</span>'
+            + '<span class="p">' + esc(e.path || e.message || '') + '</span>'
+            + '<span class="u">' + esc(e.user || '') + '</span>'
+            + '<span class="s">' + esc(e.status == null ? '' : e.status) + '</span>'
+            + '<span class="d">' + (e.duration_ms == null ? '' : esc(e.duration_ms) + 'ms') + '</span>';
+        if (filter && level !== filter) el.style.display = 'none';
+        return el;
+    }
+    const atBottom = () => box.scrollHeight - box.scrollTop - box.clientHeight < 48;
+    function append(e){
+        const stick = atBottom();
+        box.appendChild(makeLine(e));
+        while (box.children.length > MAX_LINES) box.removeChild(box.firstChild);
+        if (stick) box.scrollTop = box.scrollHeight;
+    }
+    fetch({{ url_for('admin.activity_console_json')|tojson }} + '?limit=150', { headers: { Accept: 'application/json' } })
+        .then((r) => r.json()).then((d) => { (d.logs || []).slice().reverse().forEach(append); }).catch(() => {});
+    const es = new EventSource({{ url_for('admin.activity_console_stream')|tojson }});
+    es.onopen = () => { statusEl.textContent = 'Trực tiếp'; statusEl.className = 'admin-badge'; };
+    es.onerror = () => { statusEl.textContent = 'Đang kết nối lại…'; statusEl.className = 'admin-badge danger'; };
+    es.addEventListener('activity', (ev) => { try { append(JSON.parse(ev.data)); } catch {} });
+    es.addEventListener('activity-clear', () => { box.innerHTML = ''; });
+    document.getElementById('consoleClear').addEventListener('click', async () => {
+        try { await fetch({{ url_for('admin.activity_console_clear')|tojson }}, { method: 'POST' }); } catch {}
+        box.innerHTML = '';
+    });
+    document.querySelectorAll('.rc-filter').forEach((b) => b.addEventListener('click', () => {
+        document.querySelectorAll('.rc-filter').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active');
+        filter = b.dataset.level;
+        box.querySelectorAll('.rc-line').forEach((l) => { l.style.display = (!filter || l.dataset.level === filter) ? '' : 'none'; });
+        box.scrollTop = box.scrollHeight;
+    }));
+})();
+</script>
 {% endblock %}

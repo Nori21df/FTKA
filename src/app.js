@@ -13,6 +13,7 @@ const { urlFor } = require("./utils/urls");
 const { loadCurrentUser } = require("./middleware/auth");
 const flash = require("./middleware/flash");
 const { viewContext } = require("./middleware/viewContext");
+const { activityLogger } = require("./middleware/activityLogger");
 const authService = require("./services/authService");
 const { createSessionStore } = require("./services/sessionStore");
 
@@ -126,6 +127,7 @@ app.use((req, res, next) => {
 app.use(loadCurrentUser);
 app.use(flash);
 app.use(viewContext);
+app.use(activityLogger);
 
 app.use("/", webhookRoutes);
 app.use("/", paymentRoutes);

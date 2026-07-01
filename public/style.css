@@ -108,6 +108,94 @@ body.ftka-dark-ui {
     background-attachment: fixed;
 }
 
+/* ============================================================
+   6 STYLE VARIANTS — chọn ở trang "Giao diện", áp qua body[data-style].
+   Tận dụng token semantic sẵn có: đổi token → toàn app đổi theo.
+   Đặt SAU block .ftka-dark-ui để thắng khi cùng độ đặc hiệu.
+   ============================================================ */
+:root { --font-display: var(--font-base); }
+h1, h2, h3, .logo-text h1 { font-family: var(--font-display); }
+
+/* Studio — indigo hiện đại, sạch */
+body[data-style="studio"] {
+  --bg:#f5f7fb; --surface:#fff; --surface-soft:#f7f9fc; --surface-blue:#eef2ff;
+  --line:#e6eaf1; --line-strong:#d3dae6; --text:#131a2b; --text-soft:#525c74; --muted:#79839a;
+  --primary:#4361ee; --primary-strong:#3049d6; --primary-soft:#eaefff;
+  --success:#0f9d6f; --success-soft:#d8f6ea; --warning:#c67c10; --warning-soft:#fdeecd;
+  --danger:#dc2626; --danger-soft:#fde5e5; --info:#0e7fb8; --info-soft:#e0f2fe;
+  --shadow-sm:0 1px 2px rgba(19,26,43,.06); --shadow-md:0 6px 20px rgba(19,26,43,.08); --shadow-lg:0 18px 48px rgba(19,26,43,.14);
+  --radius-sm:10px; --radius:16px; --radius-lg:22px;
+  --font-display:"Plus Jakarta Sans","Inter","Noto Sans KR",sans-serif;
+}
+/* Warm — kem/giấy, tiêu đề serif */
+body[data-style="warm"] {
+  --bg:#f6f1e7; --surface:#fffdf8; --surface-soft:#f9f4ea; --surface-blue:#f3ece0;
+  --line:#e7dcc6; --line-strong:#d8c9ac; --text:#33291c; --text-soft:#5f5136; --muted:#8a7a5c;
+  --primary:#bb5836; --primary-strong:#9c4726; --primary-soft:#f6e6dd;
+  --success:#5e7d18; --success-soft:#e9efd7; --warning:#a9760a; --warning-soft:#f6ecc9;
+  --danger:#c0392b; --danger-soft:#f6e0dc; --info:#2f6f7d; --info-soft:#dceef1;
+  --shadow-sm:0 1px 2px rgba(70,55,30,.08); --shadow-md:0 6px 18px rgba(70,55,30,.12); --shadow-lg:0 16px 40px rgba(70,55,30,.18);
+  --radius-sm:10px; --radius:16px; --radius-lg:20px;
+  --font-display:"Fraunces",Georgia,serif;
+  background-image:none;
+}
+/* Midnight — tối cao cấp */
+body[data-style="midnight"] {
+  --bg:#0a0e17; --surface:#121826; --surface-soft:#0f1420; --surface-blue:#152036;
+  --line:#232c3d; --line-strong:#33405a; --text:#eef2fb; --text-soft:#b2bccf; --muted:#828da3;
+  --primary:#6f92ff; --primary-strong:#93adff; --primary-soft:#1c2743;
+  --success:#34d399; --success-soft:#0f3328; --warning:#fbbf24; --warning-soft:#3a2e0f;
+  --danger:#f87171; --danger-soft:#3a1e1e; --info:#38bdf8; --info-soft:#0e2a3a;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.5); --shadow-md:0 8px 26px rgba(0,0,0,.5); --shadow-lg:0 20px 50px rgba(0,0,0,.6);
+  --radius-sm:10px; --radius:16px; --radius-lg:22px;
+  --font-display:"Sora","Inter",sans-serif;
+}
+/* Glass — kính mờ trên nền gradient */
+body[data-style="glass"] {
+  --bg:#eaf0ff; --surface:rgba(255,255,255,.62); --surface-soft:rgba(255,255,255,.46); --surface-blue:rgba(255,255,255,.5);
+  --line:rgba(255,255,255,.7); --line-strong:rgba(110,122,170,.35); --text:#161a30; --text-soft:#3b4262; --muted:#5b6486;
+  --primary:#5566ff; --primary-strong:#3d4ee6; --primary-soft:rgba(85,102,255,.16);
+  --success:#0d9488; --success-soft:rgba(13,148,136,.16); --warning:#c2790a; --warning-soft:rgba(194,121,10,.18);
+  --danger:#dc2626; --danger-soft:rgba(220,38,38,.14); --info:#0284c7; --info-soft:rgba(2,132,199,.14);
+  --shadow-sm:0 4px 24px rgba(50,60,120,.10); --shadow-md:0 12px 40px rgba(50,60,120,.16); --shadow-lg:0 20px 60px rgba(50,60,120,.22);
+  --radius-sm:14px; --radius:20px; --radius-lg:26px;
+  --font-display:"Outfit","Inter",sans-serif;
+  background-image:
+    radial-gradient(1100px 600px at 8% -8%, #b9c6ff 0%, transparent 55%),
+    radial-gradient(1000px 700px at 112% 18%, #ffd0e6 0%, transparent 52%),
+    linear-gradient(160deg,#eef1ff,#f6efff 60%,#eafaf6);
+}
+body[data-style="glass"] .sidebar,
+body[data-style="glass"] .topbar,
+body[data-style="glass"] .mobile-header {
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+}
+/* Clay — mềm, bóng màu nhẹ, bo góc lớn */
+body[data-style="clay"] {
+  --bg:#eef0fb; --surface:#ffffff; --surface-soft:#f5f6ff; --surface-blue:#eceefb;
+  --line:#eceefb; --line-strong:#dee2f6; --text:#2e3350; --text-soft:#5a6187; --muted:#8b93b4;
+  --primary:#6e77ff; --primary-strong:#565ee6; --primary-soft:#e9eaff;
+  --success:#12bd8c; --success-soft:#d5f6ec; --warning:#e0902a; --warning-soft:#ffeecd;
+  --danger:#e05260; --danger-soft:#fde5e8; --info:#5b8def; --info-soft:#e3ecff;
+  --shadow-sm:0 6px 18px rgba(110,119,255,.10); --shadow-md:0 12px 30px rgba(110,119,255,.16); --shadow-lg:0 22px 46px rgba(110,119,255,.22);
+  --radius-sm:16px; --radius:24px; --radius-lg:30px;
+  --font-display:"Baloo 2","Inter",sans-serif;
+  background-image:none;
+}
+/* Neo — brutalist: viền đậm, bóng cứng lệch */
+body[data-style="neo"] {
+  --bg:#fdfbf3; --surface:#ffffff; --surface-soft:#fffdf5; --surface-blue:#fff3bf;
+  --line:#111111; --line-strong:#111111; --text:#111; --text-soft:#2f2f2f; --muted:#565656;
+  --primary:#ff5c00; --primary-strong:#e04e00; --primary-soft:#ffe4d3;
+  --success:#008f6b; --success-soft:#c4f5e8; --warning:#b8860b; --warning-soft:#fff3bf;
+  --danger:#e5342b; --danger-soft:#ffe0dd; --info:#2b6fff; --info-soft:#dbe6ff;
+  --shadow-sm:2px 2px 0 #111; --shadow-md:4px 4px 0 #111; --shadow-lg:6px 6px 0 #111;
+  --radius-sm:6px; --radius:9px; --radius-lg:12px;
+  --font-display:"Space Grotesk","Inter",sans-serif;
+  background-image:none;
+}
+
 /* Korean text as the visual hero — proper Hangul line-breaking + dedicated face */
 :lang(ko),
 .kr,

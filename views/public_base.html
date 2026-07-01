@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     {% block head %}{% endblock %}
 </head>
-<body class="ftka-light-ui public-page {% block body_class %}{% endblock %}">
+<body class="{{ ui_theme_class or 'ftka-light-ui' }} public-page {% block body_class %}{% endblock %}" data-style="{{ ui_style or 'neo' }}">
     <div class="app-ambient" aria-hidden="true"></div>
     <div class="public-shell">
         <header class="public-header">

@@ -56,18 +56,31 @@ function pageUrl(req, targetPage, basePath) {
   return `${basePath || req.path}?${query.toString()}`;
 }
 
+const VALID_STYLES = ["studio", "warm", "midnight", "glass", "clay", "neo"];
+
+// Đọc style giao diện từ cookie (do người dùng chọn ở trang "Giao diện"); null nếu chưa đặt/không hợp lệ.
+function parseStyleCookie(req) {
+  const match = /(?:^|;\s*)ftka_style=([^;]+)/.exec(req.headers.cookie || "");
+  const value = match ? decodeURIComponent(match[1]).trim().toLowerCase() : "";
+  return VALID_STYLES.includes(value) ? value : null;
+}
+
 async function viewContext(req, res, next) {
   const config = settingsService.getConfig();
   const userTheme = req.currentUser && ["dark", "light"].includes(String(req.currentUser.ui_theme || "").toLowerCase())
     ? String(req.currentUser.ui_theme).toLowerCase()
     : null;
   const theme = userTheme || (config.dark_theme ? "dark" : "light");
+  // Style là "nguồn sự thật" cho giao diện. Mặc định cho user mới (chưa chọn): NEO.
+  const style = parseStyleCookie(req) || "neo";
+  const effectiveTheme = style === "midnight" ? "dark" : "light";
 
   res.locals.url_for = urlFor;
   res.locals.t = translate;
   res.locals.ui_html_lang = "vi";
-  res.locals.ui_theme = theme;
-  res.locals.ui_theme_class = theme === "light" ? "ftka-light-ui" : "ftka-dark-ui";
+  res.locals.ui_style = style;
+  res.locals.ui_theme = effectiveTheme;
+  res.locals.ui_theme_class = effectiveTheme === "light" ? "ftka-light-ui" : "ftka-dark-ui";
   res.locals.request = {
     endpoint: res.locals.endpoint || "",
     path: req.path,

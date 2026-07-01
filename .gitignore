@@ -22,3 +22,5 @@ data/
 .vscode/
 
 public/audio/*.mp3
+.claude/
+.agents/
