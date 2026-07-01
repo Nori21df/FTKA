@@ -85,6 +85,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/static", express.static(publicDir));
 app.use("/uploads", express.static(path.join(publicDir, "uploads")));
 
+// Google Search Console: phục vụ file xác minh quyền sở hữu domain tại đường dẫn gốc
+// (vd /google769af6b39f9024a7.html). basename chống path traversal, regex giới hạn tên.
+app.get(/^\/google[0-9a-f]+\.html$/, (req, res, next) => {
+  res.sendFile(path.join(publicDir, path.basename(req.path)), (err) => {
+    if (err) next();
+  });
+});
+
 const sessionMiddleware = session({
   store: createSessionStore(),
   proxy: env.nodeEnv === "production",
