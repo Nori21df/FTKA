@@ -195,6 +195,21 @@ async function listLearningActivity(filters, db = dbGlobal) {
   );
 }
 
+async function listUserEnergy(filters, db = dbGlobal) {
+  return paginate(
+    db,
+    `SELECT user_energy.user_id, user_energy.current_energy, user_energy.max_energy,
+            user_energy.last_refill_at, user_energy.updated_at,
+            users.username AS owner_username, users.email AS owner_email
+     FROM user_energy LEFT JOIN users ON users.id = user_energy.user_id
+     ORDER BY user_energy.current_energy DESC, user_energy.user_id ASC`,
+    "SELECT COUNT(*) FROM user_energy",
+    [],
+    page(filters.page),
+    perPage(filters.per_page)
+  );
+}
+
 async function listEnergyTransactions(filters, db = dbGlobal) {
   return paginate(
     db,
@@ -405,6 +420,7 @@ module.exports = {
   updateUserGrammar,
   deleteUserGrammar,
   listLearningActivity,
+  listUserEnergy,
   listEnergyTransactions,
   listListening,
   getListeningLesson,

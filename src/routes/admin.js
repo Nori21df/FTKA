@@ -376,7 +376,10 @@ router.post("/audio/:audio_reference/delete", ...named("admin.delete_audio", asy
   res.redirect("/admin/audio");
 })));
 
-router.get("/energy", ...named("admin.energy", (req, res) => renderUnavailable(res, "energy")));
+router.get("/energy", ...named("admin.energy", asyncHandler(async (req, res) => {
+  const [rows, pageInfo] = await admin.listUserEnergy(req.query);
+  res.render("admin/energy.html", { rows, page_info: pageInfo });
+})));
 router.get("/transactions", ...named("admin.transactions", asyncHandler(async (req, res) => {
   const [rows, pageInfo] = await admin.listEnergyTransactions(req.query);
   res.render("admin/transactions.html", { transactions: rows, page_info: pageInfo });

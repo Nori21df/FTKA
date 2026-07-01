@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <span class="gen-kicker">Quản trị · Tài chính</span>
+        <h2>Năng lượng người dùng</h2>
+        <p class="admin-muted">Số dư năng lượng hiện tại của từng người dùng (sắp xếp giảm dần).</p>
+    </div>
+    {% if page_info %}<span class="admin-count">{{ page_info.total }} người dùng</span>{% endif %}
+</div>
+
+<section class="admin-panel">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>Người dùng</th><th>Hiện có</th><th>Tối đa</th><th>Refill gần nhất</th><th>Cập nhật</th></tr></thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>{% if row.user_id %}<a href="{{ url_for('admin.user_detail', user_id=row.user_id) }}">{{ row.owner_username or row.owner_email or row.user_id }}</a>{% else %}Chưa có{% endif %}</td>
+                    <td>{{ row.current_energy }}</td>
+                    <td>{{ row.max_energy }}</td>
+                    <td>{{ row.last_refill_at or 'Chưa có' }}</td>
+                    <td>{{ row.updated_at or 'Chưa có' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">Chưa có dữ liệu năng lượng.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% set admin_pagination_base = '/admin/energy' %}
+    {% include "admin/_pagination.html" %}
+</section>
+{% endblock %}
