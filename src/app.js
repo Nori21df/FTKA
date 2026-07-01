@@ -178,7 +178,10 @@ app.use("/admin", adminRoutes);
 app.use("/", webRoutes);
 
 app.use((req, res) => {
-  res.status(404).send("Not found");
+  res.status(404);
+  if (req.path.startsWith("/api/")) return res.json({ error: "Not found" });
+  // render qua callback: nếu template lỗi thì fallback text, không ném ra error handler.
+  return res.render("404.html", (err, html) => (err ? res.send("Not found") : res.send(html)));
 });
 
 app.use((error, req, res, next) => {

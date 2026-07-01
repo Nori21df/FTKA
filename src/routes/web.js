@@ -15,6 +15,12 @@ const { emitEnergyUpdate } = require("../services/energySocket");
 
 const router = express.Router();
 
+// Không cache các trang xác thực (đăng nhập/đăng ký/đặt lại mật khẩu) ở trình duyệt hay proxy trung gian.
+router.use(["/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/verify-email-required"], (req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
+
 function safeNextUrl(raw, fallback = "/dashboard") {
   const value = String(raw || "").trim();
   if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\") || value.startsWith("/auth/")) {
