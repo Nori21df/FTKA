@@ -1,0 +1,37 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <span class="gen-kicker">Quản trị · Tài chính</span>
+        <h2>Giao dịch năng lượng</h2>
+        <p class="admin-muted">Lịch sử cộng/trừ năng lượng của người dùng (refill, tiêu dùng, thưởng).</p>
+    </div>
+    {% if page_info %}<span class="admin-count">{{ page_info.total }} giao dịch</span>{% endif %}
+</div>
+
+<section class="admin-panel">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>ID</th><th>Người dùng</th><th>Thay đổi</th><th>Số dư sau</th><th>Lý do</th><th>Tham chiếu</th><th>Ngày tạo</th></tr></thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td>{{ tx.id }}</td>
+                    <td>{% if tx.user_id %}<a href="{{ url_for('admin.user_detail', user_id=tx.user_id) }}">{{ tx.owner_username or tx.owner_email or tx.user_id }}</a>{% else %}Chưa có{% endif %}</td>
+                    <td><span class="admin-badge {% if tx.amount < 0 %}danger{% endif %}">{% if tx.amount > 0 %}+{% endif %}{{ tx.amount }}</span></td>
+                    <td>{{ tx.balance_after }}</td>
+                    <td>{{ tx.reason or '' }}</td>
+                    <td>{{ tx.ref or '' }}</td>
+                    <td>{{ tx.created_at }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7">Chưa có giao dịch năng lượng.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% set admin_pagination_base = '/admin/transactions' %}
+    {% include "admin/_pagination.html" %}
+</section>
+{% endblock %}

@@ -377,7 +377,10 @@ router.post("/audio/:audio_reference/delete", ...named("admin.delete_audio", asy
 })));
 
 router.get("/energy", ...named("admin.energy", (req, res) => renderUnavailable(res, "energy")));
-router.get("/transactions", ...named("admin.transactions", (req, res) => renderUnavailable(res, "transactions")));
+router.get("/transactions", ...named("admin.transactions", asyncHandler(async (req, res) => {
+  const [rows, pageInfo] = await admin.listEnergyTransactions(req.query);
+  res.render("admin/transactions.html", { transactions: rows, page_info: pageInfo });
+})));
 router.get("/purchases", ...named("admin.purchases", asyncHandler(async (req, res) => {
   res.render("admin/payment_debug.html", await sepay.getAdminPaymentDebug());
 })));

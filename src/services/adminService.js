@@ -195,6 +195,21 @@ async function listLearningActivity(filters, db = dbGlobal) {
   );
 }
 
+async function listEnergyTransactions(filters, db = dbGlobal) {
+  return paginate(
+    db,
+    `SELECT energy_transactions.id, energy_transactions.user_id, energy_transactions.amount,
+            energy_transactions.balance_after, energy_transactions.reason, energy_transactions.ref,
+            energy_transactions.created_at, users.username AS owner_username, users.email AS owner_email
+     FROM energy_transactions LEFT JOIN users ON users.id = energy_transactions.user_id
+     ORDER BY energy_transactions.created_at DESC, energy_transactions.id DESC`,
+    "SELECT COUNT(*) FROM energy_transactions",
+    [],
+    page(filters.page),
+    perPage(filters.per_page)
+  );
+}
+
 async function listListening(filters, db = dbGlobal) {
   const p = page(filters.page);
   const pp = perPage(filters.per_page);
@@ -390,6 +405,7 @@ module.exports = {
   updateUserGrammar,
   deleteUserGrammar,
   listLearningActivity,
+  listEnergyTransactions,
   listListening,
   getListeningLesson,
   getUserListeningLesson,
