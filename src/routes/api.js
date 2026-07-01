@@ -266,6 +266,68 @@ router.post("/regenerate_grammar_quiz_items", aiLimiter, loginRequired, asyncHan
   res.json({ success: true, item: learning.serializeGrammarApiItem({ ...existing, quiz_items: quizItems }), quiz_count: quizItems.length });
 }));
 
+// Tạo lại quiz cho TẤT CẢ mẫu ngữ pháp của người dùng, xử lý theo LÔ để tránh request quá dài
+// và tránh vượt rate-limit. Client gửi `offset` (con trỏ ổn định vì thứ tự sắp xếp không đổi) rồi
+// gọi lặp cho tới khi remaining = 0 hoặc hết năng lượng. Mỗi mẫu tốn 3 năng lượng như endpoint đơn lẻ.
+router.post("/regenerate_all_grammar_quiz_items", aiLimiter, loginRequired, asyncHandler(async (req, res) => {
+  const userId = req.currentUser.id;
+  const MAX_BATCH = 20;   // số mẫu tối đa mỗi request (chặn timeout)
+  const COST = 3;         // năng lượng mỗi mẫu
+
+  const offset = Math.max(0, Number.parseInt(req.body.offset, 10) || 0);
+  const total = Number(await db.scalar("SELECT COUNT(*) FROM grammar WHERE owner_user_id=?", [userId]));
+  if (!total) {
+    return res.json({ success: true, total: 0, updated: 0, failed: 0, updated_ids: [], failed_items: [], offset: 0, next_offset: 0, remaining: 0, out_of_energy: false });
+  }
+
+  const rows = await db.query(
+    "SELECT id, grammar FROM grammar WHERE owner_user_id=? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
+    [userId, MAX_BATCH, offset]
+  );
+
+  let updated = 0;
+  let failed = 0;
+  let outOfEnergy = false;
+  const updatedIds = [];
+  const failedItems = [];
+
+  for (const row of rows) {
+    // Dừng khi không còn đủ năng lượng (không tính mẫu này là đã xử lý → sẽ làm lại lần sau).
+    if (!(await energy.hasEnoughEnergy(userId, COST)).ok) { outOfEnergy = true; break; }
+    try {
+      const quizItems = await ai.generateGrammarQuizzesBatch(row.grammar, 3);
+      if (!Array.isArray(quizItems) || !quizItems.length) throw new Error("Không tạo được câu hỏi.");
+      await db.run("UPDATE grammar SET quiz_items=? WHERE id=? AND owner_user_id=?", [JSON.stringify(quizItems), row.id, userId]);
+      // Chỉ trừ năng lượng khi tạo + lưu thành công (giống thứ tự endpoint đơn lẻ).
+      const spent = await energy.spendEnergy(userId, COST, "regenerate_grammar_quiz_items", String(row.id));
+      if (!spent.ok) { outOfEnergy = true; break; }
+      updated += 1;
+      updatedIds.push(row.id);
+    } catch (error) {
+      failed += 1;
+      if (failedItems.length < 50) failedItems.push({ id: row.id, grammar: row.grammar });
+    }
+  }
+
+  await emitEnergyUpdate(userId);
+  const processed = updated + failed;           // số mẫu thực sự đã xử lý trong lô này
+  const nextOffset = offset + processed;
+  const remaining = Math.max(0, total - nextOffset);
+  res.json({
+    success: true,
+    total,
+    updated,
+    failed,
+    updated_ids: updatedIds,
+    failed_items: failedItems,
+    offset,
+    next_offset: nextOffset,
+    remaining,
+    out_of_energy: outOfEnergy,
+    energy: await energy.getEnergyStatus(userId)
+  });
+}));
+
 router.post("/add_grammar", aiLimiter, loginRequired, asyncHandler(async (req, res) => {
   const pattern = normalizeTopic(req.body.grammar || req.body.pattern);
   if (!pattern) return res.status(400).json({ error: "Vui lòng nhập mẫu ngữ pháp tiếng Hàn trước." });
@@ -349,6 +411,46 @@ router.post("/settings/test_api", adminRequired, asyncHandler(async (req, res) =
     res.json({ success: false, error: error.message });
   }
 }));
+
+router.get("/settings/ai_status", adminRequired, asyncHandler(async (req, res) => {
+  const env = require("../config/env");
+  const { PROVIDERS_CONFIG, DEFAULT_FALLBACK_ORDER } = require("../ai/core/providerConfig");
+
+  // Which providers have keys configured
+  const keyMap = {
+    google: env.googleAiStudioApiKey,
+    groq: env.groqApiKey,
+    nvidia: env.nvidiaApiKey,
+    cloudflare: env.cloudflareApiKey,
+    openrouter: env.openrouterApiKey,
+  };
+
+  const routerStatus = ai.getRouterStatus ? ai.getRouterStatus() : { circuitBreaker: {}, quota: {} };
+
+  const providers = DEFAULT_FALLBACK_ORDER.map((name) => {
+    const cfg = PROVIDERS_CONFIG[name];
+    const cb = routerStatus.circuitBreaker[name] || { state: "closed", failures: 0, openedAt: null };
+    const quota = routerStatus.quota[name] || { perMinuteRemaining: Infinity, perDayRemaining: Infinity };
+    return {
+      name,
+      configured: Boolean(keyMap[name]),
+      models: cfg.models,
+      taskPriority: cfg.taskPriority,
+      avgLatencyMs: cfg.avgLatencyMs,
+      circuitBreaker: cb,
+      quota: {
+        perMinuteRemaining: quota.perMinuteRemaining === Infinity ? null : quota.perMinuteRemaining,
+        perDayRemaining: quota.perDayRemaining === Infinity ? null : quota.perDayRemaining,
+      },
+    };
+  });
+
+  res.json({
+    activeModel: env.googleAiStudioModel || "gemma-4-31b-it",
+    providers,
+  });
+}));
+
 
 router.get("/learning_activity/chart_data", loginRequired, asyncHandler(async (req, res) => {
   const timeline = await learning.getLearningActivityTimeline(req.currentUser.id, 30);

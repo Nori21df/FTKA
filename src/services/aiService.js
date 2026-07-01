@@ -1,5 +1,48 @@
 const env = require("../config/env");
 const aiLogService = require("./aiLogService");
+const { FTKARouter, TASK_TYPES, MODEL_TIER } = require("../ai/core/router");
+const { PROVIDERS_CONFIG, FALLBACK_CHAIN } = require("../ai/core/providerConfig");
+
+/** Singleton router — lazily created on first use. */
+let _router = null;
+function getRouter() {
+  if (!_router) {
+    _router = new FTKARouter({
+      apiKeys: {
+        google: env.googleAiStudioApiKey,
+        groq: env.groqApiKey,
+        nvidia: env.nvidiaApiKey,
+        cloudflare: env.cloudflareApiKey,
+        cloudflareAccountId: env.cloudflareAccountId,
+        openrouter: env.openrouterApiKey,
+      },
+      quotaLimits: {
+        google: { perMinute: 15, perDay: 1500 },
+        groq: { perMinute: 30, perDay: 14400 },
+        nvidia: { perMinute: 20, perDay: 1000 },
+        cloudflare: { perDay: 10000 },
+        openrouter: { perMinute: 10, perDay: 200 },
+      },
+      circuitBreakerOptions: { failureThreshold: 3, cooldownMs: 60_000 },
+      cacheOptions: { ttlMs: 24 * 60 * 60 * 1000 },
+    });
+  }
+  return _router;
+}
+
+/**
+ * Cooldown cho Google: sau khi Google trả 429 (chạm rate-limit/quota), tạm dừng gọi
+ * Google trong GOOGLE_COOLDOWN_MS để không spam thêm; hết thời gian mới thử lại.
+ */
+const GOOGLE_COOLDOWN_MS = 2 * 60 * 1000; // 2 phút
+let googleCooldownUntil = 0;              // timestamp (ms) hết cooldown; 0 = không nghỉ
+
+function startGoogleCooldown() {
+  googleCooldownUntil = Date.now() + GOOGLE_COOLDOWN_MS;
+}
+function googleCooldownRemainingMs() {
+  return Math.max(0, googleCooldownUntil - Date.now());
+}
 
 function promptMeta(prompt) {
   const text = String(prompt == null ? "" : prompt);
@@ -74,17 +117,107 @@ function providerErrorMessage(status, bodyText) {
   }
 }
 
-async function loggedChatJson(type, system, prompt, options = {}) {
-  return chatJson(system, prompt, { ...options, type });
+/** Gộp system + prompt thành 1 user message cho provider chuẩn OpenAI (không có responseSchema). */
+function buildRouterPrompt(system, prompt) {
+  return [
+    `${system}`,
+    ``,
+    `${prompt}`,
+    ``,
+    `IMPORTANT: Return ONLY raw JSON — no markdown fences, no explanation, no extra text.`,
+  ].join("\n");
+}
+
+/** Tên model cụ thể của 1 provider theo tier (dùng để hiển thị log + chọn model Google). */
+function resolveModelName(provider, tier) {
+  const cfg = PROVIDERS_CONFIG[provider];
+  if (cfg) return cfg.models[tier] || cfg.models.light || provider;
+  return provider;
+}
+
+/**
+ * chatJsonWithFallback
+ * Thử lần lượt theo CHUỖI CỐ ĐỊNH (FALLBACK_CHAIN), KHÔNG phụ thuộc taskType:
+ *   google heavy → google light → groq heavy → groq light → nvidia → cloudflare → openrouter
+ * - Bước Google: gọi trực tiếp chatJson (model Gemini có responseSchema). Bỏ qua nếu đang cooldown 429.
+ * - Bước khác: gọi qua router.callStep (tôn trọng circuit breaker + quota), parse bằng parseAiJson.
+ * Trả về JSON của bước ĐẦU TIÊN thành công; nếu tất cả thất bại → ném lỗi tổng hợp.
+ *
+ * @param {string} type    - log type / JSON_SCHEMAS key
+ * @param {string} system  - system instruction
+ * @param {string} prompt  - user prompt
+ * @param {Object} options - temperature, maxTokens, user_id, …
+ * @returns {*}           - parsed JSON value
+ */
+async function chatJsonWithFallback(type, system, prompt, options = {}) {
+  const userId = options.user_id || options.userId || null;
+  const routerMessages = [{ role: "user", content: buildRouterPrompt(system, prompt) }];
+  const errors = [];
+
+  for (const step of FALLBACK_CHAIN) {
+    const { provider, tier } = step;
+    const startedAt = Date.now();
+
+    // ── Bước Google: đường trực tiếp (Gemini có responseSchema) ──
+    if (provider === "google") {
+      const cd = googleCooldownRemainingMs();
+      if (cd > 0) {
+        aiLogService.addAiLog({
+          type, provider: "google", model: resolveModelName("google", tier), status: "progress",
+          message: `Bỏ qua Google (${tier}) — đang tạm nghỉ do rate-limit (còn ${Math.ceil(cd / 1000)}s)`,
+          user_id: userId, meta: { ...promptMeta(prompt), google_cooldown_ms: cd },
+        });
+        continue;
+      }
+      try {
+        // chatJson tự log (withAiLogging) + tự bật cooldown khi gặp 429 (fetchGoogleWithRetry).
+        return await chatJson(system, prompt, { ...options, type, model: resolveModelName("google", tier) });
+      } catch (googleError) {
+        errors.push(`google/${tier}: ${safeError(googleError)}`);
+        continue;
+      }
+    }
+
+    // ── Bước provider khác: qua router (circuit breaker + quota) ──
+    try {
+      const result = await getRouter().callStep(provider, tier, routerMessages);
+      const model = resolveModelName(provider, tier);
+      const parsed = parseAiJson(result.text); // provider fallback không có schema → strip + trích JSON
+      aiLogService.addAiLog({
+        type, provider, model, status: "success",
+        message: `Fallback answered by ${provider} (${tier})`,
+        duration_ms: Date.now() - startedAt, user_id: userId,
+        meta: { ...promptMeta(prompt), provider, model, tier, fallback: true },
+      });
+      return parsed;
+    } catch (err) {
+      errors.push(`${provider}/${tier}: ${safeError(err)}`);
+      aiLogService.addAiLog({
+        type, provider, model: resolveModelName(provider, tier), status: "progress",
+        message: `Bỏ qua ${provider} (${tier}): ${safeError(err)}`,
+        duration_ms: Date.now() - startedAt, user_id: userId,
+        meta: { ...promptMeta(prompt), provider, tier },
+      });
+      continue;
+    }
+  }
+
+  aiLogService.addAiLog({
+    type, status: "error", message: "Tất cả provider trong chuỗi fallback đều thất bại",
+    user_id: userId, error: errors.join(" | ").slice(0, 500), meta: { ...promptMeta(prompt) },
+  });
+  throw new Error("Tất cả provider đều thất bại: " + errors.join(" | "));
 }
 
 async function withAiLogging(system, prompt, options, fn) {
   const startedAt = Date.now();
+  const model = options.model || env.googleAiStudioModel;
   const base = {
     type: options.type || "ai",
-    model: env.googleAiStudioModel,
+    provider: "google",
+    model,
     user_id: options.user_id || options.userId || null,
-    meta: promptMeta(prompt)
+    meta: { ...promptMeta(prompt), provider: "google", model }
   };
   aiLogService.addAiLog({ ...base, status: "started", message: "AI request started" });
   try {
@@ -104,16 +237,22 @@ function requireApiKey() {
   }
 }
 
-function googleGenerateUrl() {
-  return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(env.googleAiStudioModel)}:generateContent?key=${encodeURIComponent(env.googleAiStudioApiKey)}`;
+function googleGenerateUrl(model) {
+  const m = model || env.googleAiStudioModel;
+  return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent?key=${encodeURIComponent(env.googleAiStudioApiKey)}`;
 }
 
-function googleBody(system, prompt, { temperature = 0.3, maxTokens = 8192, schema } = {}) {
+// responseSchema/responseMimeType JSON chỉ được Gemini hỗ trợ; model Gemma thì trả text thường.
+function supportsSchema(model) {
+  return /gemini/i.test(String(model || env.googleAiStudioModel || ""));
+}
+
+function googleBody(system, prompt, { temperature = 0.3, maxTokens = 8192, schema, jsonMode = true } = {}) {
   const generationConfig = {
     temperature,
     maxOutputTokens: maxTokens,
-    responseMimeType: "application/json"
   };
+  if (jsonMode) generationConfig.responseMimeType = "application/json";
   if (schema) generationConfig.responseSchema = schema;
   return {
     systemInstruction: { parts: [{ text: system }] },
@@ -138,11 +277,11 @@ function shouldRetry(status) {
   return status === 429 || status >= 500;
 }
 
-async function fetchGoogleWithRetry(body, attempts = 3) {
+async function fetchGoogleWithRetry(body, attempts = 3, model) {
   let lastText = "";
   let lastStatus = 0;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    const response = await fetch(googleGenerateUrl(), {
+    const response = await fetch(googleGenerateUrl(model), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
@@ -151,6 +290,11 @@ async function fetchGoogleWithRetry(body, attempts = 3) {
     if (response.ok) return { bodyText, attempt };
     lastText = bodyText;
     lastStatus = response.status;
+    if (response.status === 429) {
+      // Đã chạm rate-limit/quota của Google → bật cooldown 2 phút và KHÔNG retry (tránh spam).
+      startGoogleCooldown();
+      break;
+    }
     if (!shouldRetry(response.status) || attempt === attempts) break;
     await sleep(800 * attempt);
   }
@@ -195,23 +339,25 @@ function parseAiJson(content) {
 
 async function chatJson(system, prompt, options = {}) {
   const { temperature = 0.3, maxTokens = 8192 } = options;
-  const schema = options.schema || JSON_SCHEMAS[options.type];
-  return withAiLogging(system, prompt, options, async () => {
+  const model = options.model || env.googleAiStudioModel;
+  const useSchema = supportsSchema(model);
+  const schema = useSchema ? (options.schema || JSON_SCHEMAS[options.type]) : null;
+  return withAiLogging(system, prompt, { ...options, model }, async () => {
     requireApiKey();
     let originalError;
     for (let attempt = 1; attempt <= 2; attempt += 1) {
       const retryPrompt = attempt === 1 ? prompt : `${prompt}\n\nReturn ONLY valid JSON. No markdown. No explanation. Complete all brackets.`;
-      const { bodyText } = await fetchGoogleWithRetry(googleBody(system, retryPrompt, { temperature, maxTokens, schema }));
+      const { bodyText } = await fetchGoogleWithRetry(googleBody(system, retryPrompt, { temperature, maxTokens, schema, jsonMode: useSchema }), 3, model);
       const payload = JSON.parse(bodyText);
       const finishReason = googleFinishReason(payload);
-      aiLogService.addAiLog({ type: options.type || "ai", status: "progress", message: "AI finishReason", model: env.googleAiStudioModel, user_id: options.user_id || options.userId || null, meta: { ...promptMeta(prompt), finishReason, json_attempt: attempt } });
+      aiLogService.addAiLog({ type: options.type || "ai", status: "progress", message: "AI finishReason", model, user_id: options.user_id || options.userId || null, meta: { ...promptMeta(prompt), finishReason, json_attempt: attempt } });
       if (finishReason === "MAX_TOKENS") throw new Error("AI response was cut off because max output tokens is too low.");
       try {
         return parseAiJson(extractGoogleText(payload));
       } catch (error) {
         if (attempt === 1) {
           originalError = error;
-          aiLogService.addAiLog({ type: options.type || "ai", status: "error", message: "AI invalid JSON; retrying once", model: env.googleAiStudioModel, user_id: options.user_id || options.userId || null, error: safeError(error), meta: { ...promptMeta(prompt), finishReason, json_attempt: attempt } });
+          aiLogService.addAiLog({ type: options.type || "ai", status: "error", message: "AI invalid JSON; retrying once", model, user_id: options.user_id || options.userId || null, error: safeError(error), meta: { ...promptMeta(prompt), finishReason, json_attempt: attempt } });
           continue;
         }
         throw originalError || error;
@@ -234,13 +380,13 @@ async function generateVocabularyBatch(count, existingWords = [], topic = "") {
     const batchCount = Math.min(batchSize, total - offset);
     const exclusionWords = existingWords.concat(out.map((item) => item.korean).filter(Boolean));
     const exclusion = exclusionWords.length ? `Do NOT generate these words: ${exclusionWords.slice(-500).join(", ")}.\n` : "";
-    const batch = await loggedChatJson(
+    const batch = await chatJsonWithFallback(
     "vocabulary",
     "You are a careful Korean language teacher for Vietnamese learners. Return only valid JSON, never markdown. All *_vi fields must be natural Vietnamese.",
     `Generate ${batchCount} unique TOPIK Korean vocabulary words relevant to: "${topic}".\n${exclusion}
 Reply ONLY with a JSON array. Each object must have these keys:
 [{"korean":"...","meaning_vi":"...","explanation_vi":"...","example_kr":"...","example_vi":"...","tts_text":"...","quiz_type":"word"}]`,
-    { temperature: 0.3, maxTokens: 8192, type: "vocabulary" }
+    { temperature: 0.3, maxTokens: 8192, type: "vocabulary", taskType: TASK_TYPES.TRANSLATE }
     );
     out.push(...(Array.isArray(batch) ? batch : []));
   }
@@ -248,49 +394,184 @@ Reply ONLY with a JSON array. Each object must have these keys:
 }
 
 async function translateSpecificWord(word) {
-  return loggedChatJson(
+  return chatJsonWithFallback(
     "translate",
     "You are a careful Korean language teacher for Vietnamese learners. Return only one valid JSON object, never markdown.",
     `Translate and explain this Korean word or expression exactly: ${word}
 Reply as JSON only with this shape:
 {"korean":"${word}","meaning_vi":"...","explanation_vi":"...","example_kr":"...","example_vi":"...","tts_text":"${word}","quiz_type":"word"}`,
-    { temperature: 0.3, maxTokens: 4096, type: "translate" }
+    { temperature: 0.3, maxTokens: 4096, type: "translate", taskType: TASK_TYPES.TRANSLATE }
   );
+}
+
+/**
+ * Chuẩn hoá + lọc bỏ quiz ngữ pháp kém chất lượng (đặc biệt khi fallback sang model yếu):
+ * - Bỏ item thiếu trường / sai cấu trúc / không có chỗ trống.
+ * - Bỏ item có question_kr lẫn chữ Latin hoặc tiếng Việt (vd "ảnh hưởng" lọt vào câu Hàn) — phải thuần Hàn.
+ * - Bảo đảm options phân biệt, correct_answer nằm trong options và correct_index khớp.
+ */
+const LATIN_OR_VIETNAMESE = /[A-Za-zÀ-ɏḀ-ỿ]/; // chữ Latin + dấu tiếng Việt
+function normalizeQuizItems(items) {
+  if (!Array.isArray(items)) return [];
+  const out = [];
+  for (const raw of items) {
+    if (!raw || typeof raw !== "object") continue;
+    const question_kr = String(raw.question_kr == null ? "" : raw.question_kr).trim();
+    const question_vi = String(raw.question_vi == null ? "" : raw.question_vi).trim();
+    const explanation_vi = String(raw.explanation_vi == null ? "" : raw.explanation_vi).trim();
+    let options = Array.isArray(raw.options)
+      ? [...new Set(raw.options.map((o) => String(o == null ? "" : o).trim()).filter(Boolean))]
+      : [];
+
+    if (!question_kr || !question_vi) continue;          // thiếu nội dung
+    if (!question_kr.includes("_")) continue;            // không có chỗ trống "___"
+    if (LATIN_OR_VIETNAMESE.test(question_kr)) continue; // câu Hàn bị lẫn chữ Latin/Việt -> loại
+    if (options.length < 2) continue;                    // cần tối thiểu 2 lựa chọn
+
+    // Xác định đáp án đúng: ưu tiên correct_answer nếu nằm trong options, nếu không thì dùng correct_index.
+    let correct_answer = String(raw.correct_answer == null ? "" : raw.correct_answer).trim();
+    let correct_index = Number.isInteger(raw.correct_index) ? raw.correct_index : -1;
+    if (correct_answer && options.includes(correct_answer)) {
+      correct_index = options.indexOf(correct_answer);
+    } else if (correct_index >= 0 && correct_index < options.length) {
+      correct_answer = options[correct_index];
+    } else {
+      continue; // không xác định được đáp án đúng -> loại
+    }
+
+    out.push({ question_kr, question_vi, options, correct_index, correct_answer, explanation_vi });
+  }
+  return out;
 }
 
 async function generateGrammarQuizzesBatch(grammar, count = 3) {
-  const result = await loggedChatJson(
+  const result = await chatJsonWithFallback(
     "grammar_quiz",
-    "You are an expert TOPIK-style Korean exam writer for Vietnamese learners. Return ONLY a valid JSON array with no markdown.",
-    `Create ${count} multiple-choice fill-in-the-blank questions for this Korean grammar pattern: ${grammar}
-Return a JSON array:
+    "You are an expert TOPIK-style Korean exam writer for Vietnamese learners. Return ONLY a valid JSON array, no markdown, no extra text.",
+    `Create ${count} multiple-choice fill-in-the-blank questions to practice this Korean grammar pattern: ${grammar}
+
+STRICT RULES:
+- "question_kr" MUST be a natural Korean sentence written ENTIRELY in Korean (Hangul only). Do NOT insert any Vietnamese or English words inside the Korean sentence.
+- Put exactly one blank "___" at the position where "${grammar}" (or its correct conjugated form) belongs.
+- "options": exactly 4 distinct, plausible Korean choices for the blank; exactly ONE is correct.
+- "correct_answer" MUST be exactly one of the "options"; "correct_index" is its 0-based position in "options".
+- "question_vi" = natural Vietnamese translation of the full sentence. "explanation_vi" = Vietnamese explanation of why the answer is correct.
+
+Return ONLY a JSON array:
 [{"question_kr":"... ___ ...","question_vi":"...","options":["...","...","...","..."],"correct_index":0,"correct_answer":"...","explanation_vi":"..."}]`,
-    { temperature: 0.3, maxTokens: 8192, type: "grammar_quiz" }
+    { temperature: 0.3, maxTokens: 8192, type: "grammar_quiz", taskType: TASK_TYPES.GRAMMAR }
   );
-  return Array.isArray(result) ? result : [];
+  const raw = Array.isArray(result) ? result : [];
+  const items = normalizeQuizItems(raw);
+  if (raw.length !== items.length) {
+    aiLogService.addAiLog({
+      type: "grammar_quiz",
+      status: "progress",
+      message: `Đã lọc bỏ ${raw.length - items.length}/${raw.length} câu quiz kém chất lượng (lẫn chữ Latin/Việt hoặc sai cấu trúc)`,
+      meta: { grammar: String(grammar).slice(0, 80), kept: items.length, total: raw.length },
+    });
+  }
+  return items;
 }
 
 async function generateGrammarData(pattern) {
-  const result = await loggedChatJson(
+  const result = await chatJsonWithFallback(
     "grammar",
     "You are an expert Korean teacher for Vietnamese learners. Return ONLY one valid JSON object with no markdown. All *_vi fields must be natural Vietnamese.",
     `Analyze this Korean grammar pattern: ${pattern}
+
+STRICT RULES for quiz_items:
+- Each "question_kr" MUST be a natural Korean sentence written ENTIRELY in Korean (Hangul only) — never insert Vietnamese/English words inside the Korean sentence.
+- Put exactly one blank "___" where the grammar belongs; "options" = 4 distinct Korean choices, exactly one correct.
+- "correct_answer" MUST be one of "options"; "correct_index" is its 0-based position.
+
 Return JSON with exactly these keys:
 {"grammar":"...","meaning_vi":"...","explanation_vi":"...","example_kr":"...","example_vi":"...","level":"topik1|topik2|topik3|topik4|topik5|topik6","usage_notes_vi":"...","common_mistakes_vi":"...","quiz_items":[{"question_kr":"... ___ ...","question_vi":"...","options":["...","...","...","..."],"correct_index":0,"correct_answer":"...","explanation_vi":"..."}]}`,
-    { temperature: 0.3, maxTokens: 12000, type: "grammar" }
+    { temperature: 0.3, maxTokens: 12000, type: "grammar", taskType: TASK_TYPES.GRAMMAR }
   );
-  if (!Array.isArray(result.quiz_items) || result.quiz_items.length < 2) {
+  // Lọc quiz kém chất lượng; nếu còn quá ít câu hợp lệ thì tạo lại (đã tự lọc bên trong).
+  result.quiz_items = normalizeQuizItems(result.quiz_items);
+  if (result.quiz_items.length < 2) {
     result.quiz_items = await generateGrammarQuizzesBatch(result.grammar || pattern, 3);
   }
   return result;
 }
 
 async function generateJsonObject(system, prompt, options = {}) {
-  const result = await loggedChatJson(options.type || "json_object", system, prompt, options);
+  const result = await chatJsonWithFallback(
+    options.type || "json_object",
+    system,
+    prompt,
+    { taskType: TASK_TYPES.SIMPLE, ...options }
+  );
   if (!result || Array.isArray(result) || typeof result !== "object") {
     throw new Error("AI returned invalid JSON object.");
   }
   return result;
+}
+
+/**
+ * chatWithRouter - gọi multi-provider router với AI logging.
+ *
+ * @param {Array}  messages  - [{role, content}]
+ * @param {Object} options   - taskType, sessionId, mode, raceCount, useCache, forceTier, user_id
+ * @returns {{ text, provider, cached, tier }}
+ */
+async function chatWithRouter(messages, options = {}) {
+  const startedAt = Date.now();
+  const promptText = messages.map((m) => m.content).join(" ");
+  const logBase = {
+    type: options.type || "router",
+    model: "routing…",
+    provider: "router",
+    user_id: options.user_id || options.userId || null,
+    meta: { ...promptMeta(promptText), taskType: options.taskType || "simple" },
+  };
+  aiLogService.addAiLog({ ...logBase, status: "started", message: "Router: dispatching request" });
+  try {
+    const result = await getRouter().chat(messages, options);
+
+    // Resolve actual model name from providerConfig
+    let resolvedModel = result.provider;
+    if (result.provider && result.provider !== "cache") {
+      try {
+        const { PROVIDERS_CONFIG } = require("../ai/core/providerConfig");
+        const cfg = PROVIDERS_CONFIG[result.provider];
+        if (cfg) resolvedModel = cfg.models[result.tier] || cfg.models.light || result.provider;
+      } catch { /* ignore */ }
+    }
+
+    aiLogService.addAiLog({
+      ...logBase,
+      model: resolvedModel,
+      provider: result.provider,
+      status: "success",
+      message: result.cached ? "Router: served from cache" : `Router: answered by ${result.provider}`,
+      duration_ms: Date.now() - startedAt,
+      meta: {
+        ...logBase.meta,
+        provider: result.provider,
+        model: resolvedModel,
+        tier: result.tier || null,
+        cached: result.cached || false,
+      },
+    });
+    return result;
+  } catch (error) {
+    aiLogService.addAiLog({
+      ...logBase,
+      status: "error",
+      message: "Router: all providers failed",
+      duration_ms: Date.now() - startedAt,
+      error: safeError(error),
+    });
+    throw error;
+  }
+}
+
+/** Trả về trạng thái circuit breaker + quota còn lại của tất cả provider (kèm cooldown Google). */
+function getRouterStatus() {
+  return { ...getRouter().getSystemStatus(), googleCooldownMs: googleCooldownRemainingMs() };
 }
 
 module.exports = {
@@ -299,5 +580,10 @@ module.exports = {
   translateSpecificWord,
   generateGrammarData,
   generateGrammarQuizzesBatch,
-  generateJsonObject
+  generateJsonObject,
+  // Multi-provider router
+  chatWithRouter,
+  getRouterStatus,
+  TASK_TYPES,
+  MODEL_TIER,
 };

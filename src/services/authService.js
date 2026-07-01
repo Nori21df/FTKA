@@ -77,6 +77,34 @@ function isEmailVerified(user) {
   return Boolean(user.email_verified_at || user.email_verified);
 }
 
+function safeSessionId(req) {
+  return req?.sessionID ? `${String(req.sessionID).slice(0, 8)}...` : "none";
+}
+
+function saveSession(req) {
+  return new Promise((resolve, reject) => {
+    if (!req.session) return resolve();
+    req.session.save((error) => (error ? reject(error) : resolve()));
+  });
+}
+
+function destroySession(req) {
+  return new Promise((resolve) => {
+    if (!req.session) return resolve();
+    req.session.destroy((error) => {
+      if (error) console.error("[auth] Session destroy failed:", error);
+      resolve();
+    });
+  });
+}
+
+function regenerateSession(req) {
+  return new Promise((resolve, reject) => {
+    if (!req.session) return resolve();
+    req.session.regenerate((error) => (error ? reject(error) : resolve()));
+  });
+}
+
 function tokenHash(token) {
   return crypto.createHash("sha256").update(String(token || "")).digest("hex");
 }
@@ -355,15 +383,37 @@ async function updateUserThemePreference(userId, theme) {
   return getUserById(userId);
 }
 
-function loginSession(req, user) {
+function setSessionUser(req, user, reason = "login") {
   req.session.user_id = user.id;
   req.session.username = user.username;
   req.session.email = user.email;
   req.session.role = user.role;
+  req.session.authenticated_at = currentTimestamp();
+  console.log(`[auth] Session user set (${reason})`, {
+    sessionId: safeSessionId(req),
+    userId: user.id,
+    provider: user.auth_provider || LOCAL_PROVIDER
+  });
 }
 
-function logoutSession(req) {
-  req.session.destroy(() => {});
+async function loginSession(req, user, reason = "password") {
+  const previousSessionId = safeSessionId(req);
+  await regenerateSession(req);
+  setSessionUser(req, user, reason);
+  await saveSession(req);
+  console.log("[auth] Session created", {
+    previousSessionId,
+    sessionId: safeSessionId(req),
+    userId: user.id,
+    reason
+  });
+}
+
+async function logoutSession(req) {
+  const sessionId = safeSessionId(req);
+  const userId = req.session?.user_id;
+  await destroySession(req);
+  console.log("[auth] Session destroyed", { sessionId, userId });
 }
 
 module.exports = {
@@ -390,6 +440,7 @@ module.exports = {
   resetPassword,
   getOrCreateGoogleUser,
   updateUserThemePreference,
+  setSessionUser,
   loginSession,
   logoutSession
 };

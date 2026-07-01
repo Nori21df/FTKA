@@ -2,35 +2,27 @@
 
 {% block content %}
 <div class="anki-vocab-shell" data-component="vocab-flashcards">
-    <section class="anki-vocab-hero" aria-labelledby="vocabPageTitle">
+    <div class="vk-head" aria-labelledby="vocabPageTitle">
         <div>
-            <span class="anki-vocab-kicker">Anki mode</span>
-            <h2 id="vocabPageTitle" class="anki-vocab-title">Từ vựng tiếng Hàn</h2>
+            <span class="gen-kicker">Chế độ thẻ ghi nhớ</span>
+            <h2 id="vocabPageTitle">Từ vựng tiếng Hàn</h2>
         </div>
-        <div class="anki-vocab-hero-actions">
-            <a href="{{ url_for('generator') }}" class="dictionary-action">
-                <span class="material-icons-outlined">auto_awesome</span>
-                Tạo từ mới
+        <div class="vk-actions">
+            <a href="{{ url_for('generator') }}" class="dv-cta">
+                <span class="material-icons-outlined" aria-hidden="true">auto_awesome</span> Tạo từ mới
             </a>
-            <button type="button" class="dictionary-secondary-action" onclick="resetLearned()">
-                <span class="material-icons-outlined">replay</span>
-                Đặt lại tiến độ
+            <button type="button" class="dv-cta ghost" onclick="resetLearned()">
+                <span class="material-icons-outlined" aria-hidden="true">replay</span> Đặt lại tiến độ
             </button>
         </div>
-    </section>
-
-    <section class="anki-vocab-stats" aria-label="Thống kê từ vựng">
-        <article class="anki-vocab-stat"><span>Tổng số từ</span><strong id="metricTotal">{{ count }}</strong></article>
-        <article class="anki-vocab-stat"><span>Đã học</span><strong id="metricLearned">{{ learned_count }}</strong></article>
-        <article class="anki-vocab-stat"><span>Còn lại</span><strong id="metricUnlearned">{{ unlearned_count }}</strong></article>
-    </section>
+    </div>
 
     <section class="anki-study-shell" aria-label="Khu vực học flashcard">
         {% if vocab %}
-        <div id="vocabProgress" class="anki-progress-host"></div>
         <div id="flashcardStage" class="anki-card-stage"></div>
         <div id="flashcardActions" class="anki-actions-host"></div>
         <p class="anki-shortcuts" aria-label="Phím tắt"><kbd>Space</kbd> Lật · <kbd>A</kbd> Đã học · <kbd>R</kbd> Ôn lại · <kbd>S</kbd> Bỏ qua · <kbd>D</kbd> Ngẫu nhiên</p>
+        <div id="vocabProgress" class="anki-progress-host"></div>
         {% else %}
         <div class="dictionary-empty-state">
             {% if search_q %}

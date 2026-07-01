@@ -2,21 +2,17 @@
 
 {% block content %}
 <div class="review-shell">
-    <section class="review-hero">
+    <header class="rv-head">
         <div>
-            <h2 class="page-title">Ôn tập từ vựng</h2>
+            <span class="gen-kicker">Ôn luyện từ vựng</span>
+            <h2>Ôn tập từ vựng</h2>
+            <p>Trả lời nhanh, xem đáp án, rồi tự quyết định đã thuộc hay cần ôn lại.</p>
         </div>
-        <div class="review-hero-meta">
-            <div class="review-stat-pill">
-                <span class="material-icons-outlined">style</span>
-                Từ vựng {{ quiz_words|length }}
-            </div>
-            <div class="review-stat-pill review-stat-pill-accent">
-                <span class="material-icons-outlined">schedule</span>
-                {{ total_unlearned }} chưa học
-            </div>
+        <div class="qz-pills">
+            <span class="qz-pill">{{ quiz_words|length }} thẻ</span>
+            <span class="qz-pill">{{ total_unlearned }} chưa học</span>
         </div>
-    </section>
+    </header>
 
     {% if quiz_words|length == 0 %}
     <section class="study-empty-state">
@@ -24,16 +20,17 @@
         <h3>Bạn đã ôn xong</h3>
         <p>Tất cả từ trong thư viện hiện tại đã được đánh dấu là đã học. Hãy thêm từ mới hoặc đặt lại tiến độ khi muốn luyện tiếp.</p>
         <div class="study-empty-actions">
-            <a href="{{ url_for('vocab') }}" class="primary-cta">Mở từ vựng</a>
-            <a href="{{ url_for('generator') }}" class="secondary-cta">Tạo từ mới</a>
+            <a href="{{ url_for('vocab') }}" class="dv-cta">Mở từ vựng</a>
+            <a href="{{ url_for('generator') }}" class="dv-cta ghost">Tạo từ mới</a>
         </div>
     </section>
     {% else %}
     <div class="review-layout">
         <section class="study-main-panel">
-            <div class="session-progress-block">
-                <div class="session-progress-meta">
+            <div class="rv-progress dv-card">
+                <div class="rv-progress-top">
                     <span id="queue-summary">Đang chuẩn bị phiên học...</span>
+                    <span id="current-direction-badge" class="direction-badge">Đang chuẩn bị...</span>
                 </div>
                 <div class="session-progress-track">
                     <div id="session-progress-bar" class="session-progress-fill"></div>
@@ -44,11 +41,8 @@
         </section>
 
         <aside class="study-sidebar">
-
-
             <div class="sidebar-card">
-                <p class="review-kicker">Chế độ hiện tại</p>
-                <div id="current-direction-badge" class="direction-badge">Preparing...</div>
+                <p class="review-kicker">Gợi ý ôn tập</p>
                 <p id="mode-copy" class="sidebar-copy">Trang sẽ tự đổi chiều câu hỏi để bạn luyện nhận diện cả tiếng Hàn và tiếng Việt.</p>
             </div>
 

@@ -13,7 +13,9 @@ const { urlFor } = require("./utils/urls");
 const { loadCurrentUser } = require("./middleware/auth");
 const flash = require("./middleware/flash");
 const { viewContext } = require("./middleware/viewContext");
+const { activityLogger } = require("./middleware/activityLogger");
 const authService = require("./services/authService");
+const { createSessionStore } = require("./services/sessionStore");
 
 const webRoutes = require("./routes/web");
 const apiRoutes = require("./routes/api");
@@ -73,15 +75,18 @@ app.use("/static", express.static(publicDir));
 app.use("/uploads", express.static(path.join(publicDir, "uploads")));
 
 const sessionMiddleware = session({
+  store: createSessionStore(),
   proxy: env.nodeEnv === "production",
   name: "ftka.sid",
   secret: env.sessionSecret || "dev-only-change-me",
   resave: false,
   saveUninitialized: false,
+  rolling: true,
   cookie: {
     httpOnly: true,
-    sameSite: "lax",
-    secure: env.nodeEnv === "production"
+    sameSite: env.sessionSameSite,
+    secure: env.nodeEnv === "production",
+    maxAge: env.sessionMaxAgeDays * 24 * 60 * 60 * 1000
   }
 });
 
@@ -115,13 +120,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use((req, res, next) => {
   if (req.user && !req.session.user_id) {
-    authService.loginSession(req, req.user);
+    authService.setSessionUser(req, req.user, "passport");
   }
   next();
 });
 app.use(loadCurrentUser);
 app.use(flash);
 app.use(viewContext);
+app.use(activityLogger);
 
 app.use("/", webhookRoutes);
 app.use("/", paymentRoutes);

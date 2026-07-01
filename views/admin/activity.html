@@ -3,9 +3,11 @@
 {% block admin_content %}
 <div class="admin-header">
     <div>
+        <span class="gen-kicker">Quản trị · Hoạt động</span>
         <h2>Hoạt động học</h2>
         <p class="admin-muted">Các dòng hoạt động được tạo khi từ vựng được đánh dấu đã học.</p>
     </div>
+    {% if page_info %}<span class="admin-count">{{ page_info.total }} dòng</span>{% endif %}
 </div>
 
 <section class="admin-panel">

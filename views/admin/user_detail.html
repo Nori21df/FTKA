@@ -3,7 +3,8 @@
 {% block admin_content %}
 <div class="admin-header">
     <div>
-        <h2>{{ user.username }}</h2>
+        <span class="gen-kicker">Quản trị · Người dùng</span>
+        <h2>{{ user.username }} <span class="admin-badge {% if user.status != 'active' %}danger{% endif %}">{{ user.status }}</span></h2>
         <p class="admin-muted">Người dùng id {{ user.id }} · {{ user.email }}</p>
     </div>
     <div class="admin-actions">
@@ -49,7 +50,7 @@
     </article>
 </section>
 
-<section class="admin-panel">
+<section class="admin-panel admin-danger-zone">
     <h3>Xoá người dùng</h3>
     <p class="admin-muted">Cảnh báo: vocab, grammar, listening, audio liên quan có thể cũng bị xoá theo ràng buộc DB. Không thể hoàn tác.</p>
     <div class="admin-actions">

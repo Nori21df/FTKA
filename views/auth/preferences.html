@@ -1,55 +1,63 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-
-{% set selected_theme = (user.ui_theme or ui_theme or 'dark')|lower %}
-
 <section class="prefs-panel">
     <h2>Giao diện</h2>
-    <form class="prefs-form" id="preferencesForm">
-        <div class="prefs-field">
-            <div class="prefs-label">Chế độ hiển thị</div>
-            <span>Chọn giao diện sáng hoặc tối.</span>
-            <div class="prefs-segment">
-                <input id="themeDark" type="radio" name="theme" value="dark" {% if selected_theme != 'light' %}checked{% endif %}>
-                <label for="themeDark">Tối</label>
-                <input id="themeLight" type="radio" name="theme" value="light" {% if selected_theme == 'light' %}checked{% endif %}>
-                <label for="themeLight">Sáng</label>
-            </div>
-        </div>
+    <p class="prefs-hint">Chọn phong cách hiển thị cho toàn bộ ứng dụng. Áp dụng ngay và được lưu trên trình duyệt này.</p>
 
-        <div id="preferencesMessage" class="prefs-message" aria-live="polite"></div>
-        <button class="prefs-button" type="submit">Lưu</button>
-    </form>
+    <div class="style-grid" id="styleGrid" role="group" aria-label="Chọn phong cách giao diện">
+        <button type="button" class="style-card" data-style="studio" aria-pressed="false">
+            <span class="sw" style="background:#4361ee"></span><b>Studio</b><small>Indigo hiện đại, sạch</small>
+        </button>
+        <button type="button" class="style-card" data-style="warm" aria-pressed="false">
+            <span class="sw" style="background:#bb5836"></span><b>Warm</b><small>Kem / giấy, serif</small>
+        </button>
+        <button type="button" class="style-card" data-style="midnight" aria-pressed="false">
+            <span class="sw" style="background:linear-gradient(135deg,#0a0e17,#6f92ff)"></span><b>Midnight</b><small>Tối cao cấp</small>
+        </button>
+        <button type="button" class="style-card" data-style="glass" aria-pressed="false">
+            <span class="sw" style="background:linear-gradient(135deg,#8b9cff,#ffb0d4)"></span><b>Glass</b><small>Kính mờ</small>
+        </button>
+        <button type="button" class="style-card" data-style="clay" aria-pressed="false">
+            <span class="sw" style="background:#6e77ff"></span><b>Clay</b><small>Mềm / pastel</small>
+        </button>
+        <button type="button" class="style-card" data-style="neo" aria-pressed="false">
+            <span class="sw" style="background:#ff5c00"></span><b>Neo</b><small>Brutalist</small>
+        </button>
+    </div>
+
+    <div id="preferencesMessage" class="prefs-message" aria-live="polite"></div>
 </section>
 
+<style>
+.prefs-hint{ color:var(--muted); margin:-4px 0 18px; }
+.style-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(158px,1fr)); gap:12px; }
+.style-card{ display:flex; flex-direction:column; gap:2px; align-items:flex-start; text-align:left; padding:14px; border-radius:var(--radius); border:1px solid var(--line); background:var(--surface); box-shadow:var(--shadow-sm); color:var(--text); cursor:pointer; font-family:inherit; transition:box-shadow .16s,border-color .16s,transform .12s; }
+.style-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.style-card .sw{ width:100%; height:38px; border-radius:10px; margin-bottom:8px; border:1px solid var(--line); }
+.style-card b{ font-weight:700; }
+.style-card small{ color:var(--muted); }
+.style-card[aria-pressed="true"]{ border-color:var(--primary); box-shadow:0 0 0 2px var(--primary-soft); }
+.style-card:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+</style>
+
 <script>
-document.getElementById('preferencesForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const message = document.getElementById('preferencesMessage');
-    const payload = {
-        theme: document.querySelector('input[name="theme"]:checked').value
-    };
-
-    message.className = 'prefs-message';
-    message.textContent = '';
-
-    try {
-        const response = await fetch({{ url_for('api_update_preferences')|tojson }}, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || data.error) {
-            throw new Error(data.error || 'Không lưu được cài đặt.');
-        }
-        window.location.reload();
-    } catch (error) {
-        message.textContent = error.message || 'Không lưu được cài đặt.';
-        message.className = 'prefs-message visible error';
+(function(){
+    const current = {{ ui_style|tojson }};
+    const grid = document.getElementById('styleGrid');
+    const msg = document.getElementById('preferencesMessage');
+    function mark(v){ grid.querySelectorAll('.style-card').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.style === v))); }
+    function apply(v){
+        document.body.setAttribute('data-style', v);
+        document.body.classList.toggle('ftka-dark-ui', v === 'midnight');
+        document.body.classList.toggle('ftka-light-ui', v !== 'midnight');
+        document.cookie = 'ftka_style=' + v + ';path=/;max-age=31536000;samesite=lax';
+        mark(v);
+        msg.textContent = 'Đã áp dụng phong cách. Mọi trang sẽ dùng giao diện này.';
+        msg.className = 'prefs-message visible';
     }
-});
+    mark(current);
+    grid.querySelectorAll('.style-card').forEach((c) => c.addEventListener('click', () => apply(c.dataset.style)));
+})();
 </script>
 {% endblock %}

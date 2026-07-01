@@ -3,9 +3,11 @@
 {% block admin_content %}
 <div class="admin-header" data-component="admin-logs-page">
     <div>
+        <span class="gen-kicker">Quản trị · Hoạt động</span>
         <h2>Nhật ký quản trị</h2>
         <p class="admin-muted">Các thao tác quản trị quan trọng được ghi lại tại đây.</p>
     </div>
+    {% if page_info %}<span class="admin-count">{{ page_info.total }} bản ghi</span>{% endif %}
 </div>
 
 <section class="admin-panel">

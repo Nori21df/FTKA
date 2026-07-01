@@ -33,6 +33,7 @@ function addAiLog(log = {}) {
     status: VALID_STATUSES.has(log.status) ? log.status : "progress",
     message: safeText(log.message || "", 500),
     user_id: log.user_id == null ? null : log.user_id,
+    provider: safeText(log.provider || "", 60),
     model: safeText(log.model || "", 120),
     duration_ms: Number.isFinite(Number(log.duration_ms)) ? Number(log.duration_ms) : null,
     error: log.error ? safeText(log.error, 500) : "",
@@ -44,13 +45,15 @@ function addAiLog(log = {}) {
   return entry;
 }
 
-function listAiLogs({ limit = 100, status = "", type = "" } = {}) {
+function listAiLogs({ limit = 100, status = "", type = "", provider = "" } = {}) {
   const max = Math.max(1, Math.min(Number.parseInt(limit, 10) || 100, MAX_LOGS));
   const statusFilter = safeText(status, 40);
   const typeFilter = safeText(type, 80).toLowerCase();
+  const providerFilter = safeText(provider, 60).toLowerCase();
   return logs
     .filter((log) => !statusFilter || log.status === statusFilter)
     .filter((log) => !typeFilter || String(log.type || "").toLowerCase() === typeFilter)
+    .filter((log) => !providerFilter || String(log.provider || "").toLowerCase() === providerFilter)
     .slice(0, max);
 }
 

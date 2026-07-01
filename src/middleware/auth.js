@@ -15,10 +15,20 @@ async function loadCurrentUser(req, res, next) {
       res.locals.current_user = user;
       res.locals.currentUser = user;
     } else {
-      req.session.destroy(() => {});
+      console.warn("[auth] Session validation failed; destroying session", {
+        sessionId: req.sessionID ? `${String(req.sessionID).slice(0, 8)}...` : "none",
+        userId: req.session.user_id,
+        reason: user ? "inactive_user" : "missing_user"
+      });
+      await authService.logoutSession(req);
     }
     return next();
   } catch (error) {
+    console.error("[auth] Session validation error:", {
+      sessionId: req.sessionID ? `${String(req.sessionID).slice(0, 8)}...` : "none",
+      userId: req.session?.user_id,
+      message: error.message
+    });
     return next(error);
   }
 }

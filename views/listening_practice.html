@@ -4,142 +4,139 @@
 
 
 <div class="listening-shell">
-    <section class="listening-hero">
-        <h2 class="listening-hero-title">Luyện nghe tiếng Hàn</h2>
-    </section>
+    <header class="rv-head">
+        <div>
+            <span class="gen-kicker">Luyện nghe</span>
+            <h2>Luyện nghe tiếng Hàn</h2>
+            <p>Tạo bài nghe theo cấp độ và chủ đề, nghe từng câu rồi luyện với câu hỏi.</p>
+        </div>
+        <div class="qz-pills">
+            <span class="qz-pill">{{ saved_lessons|length }} bài đã lưu</span>
+        </div>
+    </header>
 
-    <div class="listening-layout">
-        <aside class="listening-sidebar">
-            <section class="listening-panel">
-                <div class="listening-panel-head">
-                    <div>
-                        <h3>Thiết lập</h3>  
-                    </div>
+    <form class="ls-createbar dv-card" method="post" action="{{ url_for('generate_listening_practice') }}">
+        <div class="listening-field">
+            <label for="levelInput">Cấp độ</label>
+            <select id="levelInput" name="level" class="listening-select" required>
+                {% for level in levels %}
+                <option value="{{ level }}">
+                    {% if level == 'beginner' %}Sơ cấp
+                    {% elif level == 'intermediate' %}Trung cấp
+                    {% elif level == 'advanced' %}Cao cấp
+                    {% else %}{{ level|replace('_', ' ')|title }}{% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="listening-field">
+            <label for="topicInput">Chủ đề</label>
+            <input id="topicInput" name="topic" class="listening-select" list="topicSuggestions" placeholder="Nhập chủ đề hoặc chọn gợi ý" required>
+            <datalist id="topicSuggestions">
+                <option value="Đời sống hàng ngày"></option>
+                <option value="Trường học"></option>
+                <option value="Công việc"></option>
+                <option value="Du lịch"></option>
+                <option value="Mua sắm"></option>
+                <option value="Ẩm thực"></option>
+                <option value="Thời tiết"></option>
+                <option value="Văn hóa"></option>
+            </datalist>
+        </div>
+
+        <div class="listening-field">
+            <label for="lengthInput">Độ dài</label>
+            <select id="lengthInput" name="length" class="listening-select" required>
+                {% for length in lengths %}
+                <option value="{{ length }}">
+                    {% if length == 'short' %}Ngắn
+                    {% elif length == 'medium' %}Vừa
+                    {% else %}{{ length|title }}{% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="listening-field ls-createbar-submit">
+            <label aria-hidden="true">&nbsp;</label>
+            <button class="listening-generate-button" type="submit">
+                <span class="material-icons-outlined">auto_awesome</span>
+                Tạo bài nghe
+            </button>
+        </div>
+
+        {% if request.args["message"] %}
+        <div class="listening-status success ls-createbar-msg" aria-live="polite">{{ request.args["message"] }}</div>
+        {% endif %}
+        {% if generation_error %}
+        <div class="listening-status ls-createbar-msg" aria-live="polite">{{ generation_error }}</div>
+        {% endif %}
+    </form>
+
+    <div class="ls-body">
+        <aside class="ls-saved dv-card">
+            <div class="ls-saved-head">
+                <h3>Bài đã lưu</h3>
+                <span class="qz-pill">{{ saved_lessons|length }}</span>
+            </div>
+
+            {% if saved_lessons %}
+            <div class="saved-lessons-list">
+                {% for lesson in saved_lessons %}
+                <div class="saved-lesson-row">
+                    <a
+                        class="saved-lesson-item {% if lesson.id == selected_lesson_id %}active{% endif %}"
+                        href="{{ url_for('listening_practice', lesson_id=lesson.id) }}"
+                    >
+                        <span class="saved-lesson-title">{{ lesson.title }}</span>
+                        <span class="saved-lesson-meta">
+                            <span class="listening-chip">
+                                {% if lesson.level == 'beginner' %}Sơ cấp
+                                {% elif lesson.level == 'intermediate' %}Trung cấp
+                                {% elif lesson.level == 'advanced' %}Cao cấp
+                                {% else %}{{ lesson.level|replace('_', ' ')|title }}{% endif %}
+                            </span>
+                            <span class="listening-chip">
+                                {% if lesson.topic == 'daily_life' %}Đời sống hàng ngày
+                                {% elif lesson.topic == 'school' %}Trường học
+                                {% elif lesson.topic == 'work' %}Công việc
+                                {% elif lesson.topic == 'travel' %}Du lịch
+                                {% elif lesson.topic == 'shopping' %}Mua sắm
+                                {% elif lesson.topic == 'food' %}Ẩm thực
+                                {% elif lesson.topic == 'weather' %}Thời tiết
+                                {% elif lesson.topic == 'culture' %}Văn hóa
+                                {% else %}{{ lesson.topic|replace('_', ' ')|title }}{% endif %}
+                            </span>
+                            <span class="listening-chip">
+                                {% if lesson.length == 'short' %}Ngắn
+                                {% elif lesson.length == 'medium' %}Vừa
+                                {% else %}{{ lesson.length|title }}{% endif %}
+                            </span>
+                        </span>
+                        <span class="saved-lesson-date">{{ lesson.created_label or lesson.created_at }}</span>
+                    </a>
+                    <form
+                        class="saved-lesson-delete-form"
+                        method="post"
+                        action="{{ url_for('delete_listening_practice_lesson', lesson_id=lesson.id) }}"
+                        onsubmit="return confirm('Xoá bài nghe đã lưu này?');"
+                    >
+                        <button class="saved-lesson-delete-button" type="submit" title="Xoá bài nghe" aria-label="Xoá bài nghe">
+                            <span class="material-icons-outlined">delete_outline</span>
+                        </button>
+                    </form>
                 </div>
-
-                <form class="listening-form" method="post" action="{{ url_for('generate_listening_practice') }}">
-                    <div class="listening-field">
-                        <label for="levelInput">Cấp độ</label>
-                        <select id="levelInput" name="level" class="listening-select" required>
-                            {% for level in levels %}
-                            <option value="{{ level }}">
-                                {% if level == 'beginner' %}Sơ cấp
-                                {% elif level == 'intermediate' %}Trung cấp
-                                {% elif level == 'advanced' %}Cao cấp
-                                {% else %}{{ level|replace('_', ' ')|title }}{% endif %}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="listening-field">
-                        <label for="topicInput">Chủ đề</label>
-                        <input id="topicInput" name="topic" class="listening-select" list="topicSuggestions" placeholder="Nhập chủ đề hoặc chọn gợi ý" required>
-                        <datalist id="topicSuggestions">
-                            <option value="Đời sống hàng ngày"></option>
-                            <option value="Trường học"></option>
-                            <option value="Công việc"></option>
-                            <option value="Du lịch"></option>
-                            <option value="Mua sắm"></option>
-                            <option value="Ẩm thực"></option>
-                            <option value="Thời tiết"></option>
-                            <option value="Văn hóa"></option>
-                        </datalist>
-                    </div>
-
-                    <div class="listening-field">
-                        <label for="lengthInput">Độ dài</label>
-                        <select id="lengthInput" name="length" class="listening-select" required>
-                            {% for length in lengths %}
-                            <option value="{{ length }}">
-                                {% if length == 'short' %}Ngắn
-                                {% elif length == 'medium' %}Vừa
-                                {% else %}{{ length|title }}{% endif %}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <button class="listening-generate-button" type="submit">
-                        <span class="material-icons-outlined">auto_awesome</span>
-                        Tạo
-                    </button>
-                    {% if request.args["message"] %}
-                    <div class="listening-status success" aria-live="polite">{{ request.args["message"] }}</div>
-                    {% endif %}
-                    {% if generation_error %}
-                    <div class="listening-status" aria-live="polite">{{ generation_error }}</div>
-                    {% endif %}
-                </form>
-            </section>
-
-            <section class="saved-lessons-card">
-                <details open>
-                    <summary class="saved-lessons-summary">
-                        <div>
-                            <h3>Bài đã lưu</h3>
-                        </div>
-                        <span class="saved-lessons-count">{{ saved_lessons|length }} bài</span>
-                    </summary>
-
-                    {% if saved_lessons %}
-                    <div class="saved-lessons-list">
-                        {% for lesson in saved_lessons %}
-                        <div class="saved-lesson-row">
-                            <a
-                                class="saved-lesson-item {% if lesson.id == selected_lesson_id %}active{% endif %}"
-                                href="{{ url_for('listening_practice', lesson_id=lesson.id) }}"
-                            >
-                                <span class="saved-lesson-title">{{ lesson.title }}</span>
-                                <span class="saved-lesson-meta">
-                                    <span class="listening-chip">
-                                        {% if lesson.level == 'beginner' %}Sơ cấp
-                                        {% elif lesson.level == 'intermediate' %}Trung cấp
-                                        {% elif lesson.level == 'advanced' %}Cao cấp
-                                        {% else %}{{ lesson.level|replace('_', ' ')|title }}{% endif %}
-                                    </span>
-                                    <span class="listening-chip">
-                                        {% if lesson.topic == 'daily_life' %}Đời sống hàng ngày
-                                        {% elif lesson.topic == 'school' %}Trường học
-                                        {% elif lesson.topic == 'work' %}Công việc
-                                        {% elif lesson.topic == 'travel' %}Du lịch
-                                        {% elif lesson.topic == 'shopping' %}Mua sắm
-                                        {% elif lesson.topic == 'food' %}Ẩm thực
-                                        {% elif lesson.topic == 'weather' %}Thời tiết
-                                        {% elif lesson.topic == 'culture' %}Văn hóa
-                                        {% else %}{{ lesson.topic|replace('_', ' ')|title }}{% endif %}
-                                    </span>
-                                    <span class="listening-chip">
-                                        {% if lesson.length == 'short' %}Ngắn
-                                        {% elif lesson.length == 'medium' %}Vừa
-                                        {% else %}{{ lesson.length|title }}{% endif %}
-                                    </span>
-                                </span>
-                                <span class="saved-lesson-date">{{ lesson.created_label or lesson.created_at }}</span>
-                            </a>
-                            <form
-                                class="saved-lesson-delete-form"
-                                method="post"
-                                action="{{ url_for('delete_listening_practice_lesson', lesson_id=lesson.id) }}"
-                                onsubmit="return confirm('Xoá bài nghe đã lưu này?');"
-                            >
-                                <button class="saved-lesson-delete-button" type="submit" title="Xoá bài nghe" aria-label="Xoá bài nghe">
-                                    <span class="material-icons-outlined">delete_outline</span>
-                                </button>
-                            </form>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="listening-empty-state" style="margin-top: 12px;">
-                        Chưa có bài nghe đã lưu.
-                    </div>
-                    {% endif %}
-                </details>
-            </section>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="listening-empty-state" style="margin-top: 12px;">
+                Chưa có bài nghe đã lưu.
+            </div>
+            {% endif %}
         </aside>
 
-        <main class="listening-main">
+        <main class="ls-main">
             {% if selected_lesson %}
             <article class="lesson-detail-card">
                 <div class="lesson-detail-head">

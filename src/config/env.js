@@ -1,19 +1,36 @@
-﻿const path = require("path");
+const path = require("path");
 const dotenv = require("dotenv");
 
 const rootDir = path.resolve(__dirname, "..", "..");
 dotenv.config({ path: path.join(rootDir, ".env") });
+
+function positiveNumber(value, fallback) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function sameSite(value) {
+  const normalized = String(value || "lax").trim().toLowerCase();
+  return ["lax", "strict", "none"].includes(normalized) ? normalized : "lax";
+}
 
 module.exports = {
   rootDir,
   port: Number(process.env.PORT || 3000),
   nodeEnv: process.env.NODE_ENV || "development",
   sessionSecret: process.env.SESSION_SECRET || "",
+  sessionMaxAgeDays: positiveNumber(process.env.SESSION_MAX_AGE_DAYS, 14),
+  sessionSameSite: sameSite(process.env.SESSION_SAME_SITE),
   databaseUrl: process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/ftka",
   baseUrl: process.env.BASE_URL || "http://localhost:3000",
   appUrl: process.env.APP_URL || process.env.BASE_URL || "http://localhost:3000",
   googleAiStudioApiKey: (process.env.GOOGLE_AI_STUDIO_API_KEY || process.env.GEMINI_API_KEY || "").trim(),
   googleAiStudioModel: process.env.GOOGLE_AI_STUDIO_MODEL || "gemma-4-31b-it",
+  groqApiKey: (process.env.GROQ_API_KEY || "").trim(),
+  nvidiaApiKey: (process.env.NVIDIA_API_KEY || "").trim(),
+  cloudflareApiKey: (process.env.CLOUDFLARE_API_KEY || "").trim(),
+  cloudflareAccountId: (process.env.CLOUDFLARE_ACCOUNT_ID || "").trim(),
+  openrouterApiKey: (process.env.OPENROUTER_API_KEY || "").trim(),
   googleClientId: process.env.GOOGLE_CLIENT_ID || "",
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
   googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL || "http://localhost:3000/auth/google/callback",

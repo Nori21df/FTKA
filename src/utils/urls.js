@@ -88,6 +88,9 @@ const routes = {
   "admin.ai_logs_json": "/admin/ai-logs.json",
   "admin.ai_logs_stream": "/admin/ai-logs/stream",
   "admin.ai_logs_clear": "/admin/ai-logs/clear",
+  "admin.activity_console_json": "/admin/activity-console.json",
+  "admin.activity_console_stream": "/admin/activity-console/stream",
+  "admin.activity_console_clear": "/admin/activity-console/clear",
   "admin.logs": "/admin/logs"
 };
 

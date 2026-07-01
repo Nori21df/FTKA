@@ -7,20 +7,26 @@
 <div class="admin-shell" data-component="admin-layout">
     <nav class="admin-nav" aria-label="Điều hướng quản trị">
         <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">Tổng quan</a>
+
+        <span class="admin-nav-label">Nội dung</span>
         <a href="{{ url_for('admin.users') }}" class="{% if request.endpoint|startsWith('admin.user') %}active{% endif %}">Người dùng</a>
         <a href="{{ url_for('admin.vocab') }}" class="{% if request.endpoint|startsWith('admin.vocab') %}active{% endif %}">Từ vựng</a>
         <a href="{{ url_for('admin.grammar') }}" class="{% if request.endpoint == 'admin.grammar' %}active{% endif %}">Ngữ pháp</a>
         <a href="{{ url_for('admin.listening') }}" class="{% if request.endpoint|startsWith('admin.listening') %}active{% endif %}">Luyện nghe</a>
         <a href="{{ url_for('admin.audio') }}" class="{% if request.endpoint == 'admin.audio' %}active{% endif %}">Âm thanh</a>
-        <a href="{{ url_for('admin.activity') }}" class="{% if request.endpoint == 'admin.activity' %}active{% endif %}">Hoạt động học</a>
         <a href="{{ url_for('admin.writing') }}">Bài viết</a>
-        <a href="{{ url_for('admin.energy') }}">Năng lượng</a>
-        <a href="{{ url_for('admin.transactions') }}">Giao dịch</a>
-        <a href="{{ url_for('admin.purchases') }}" class="{% if request.endpoint == 'admin.purchases' %}active{% endif %}">Thanh toán</a>
+
+        <span class="admin-nav-label">Hoạt động &amp; AI</span>
+        <a href="{{ url_for('admin.activity') }}" class="{% if request.endpoint == 'admin.activity' %}active{% endif %}">Hoạt động học</a>
         <a href="{{ url_for('admin.streaks') }}">Chuỗi học</a>
         <a href="{{ url_for('admin.ai_usage') }}">Sử dụng AI</a>
         <a href="{{ url_for('admin.ai_logs') }}" class="{% if request.endpoint and request.endpoint|startsWith('admin.ai_logs') %}active{% endif %}">AI Activity</a>
         <a href="{{ url_for('admin.logs') }}" class="{% if request.endpoint == 'admin.logs' %}active{% endif %}">Nhật ký quản trị</a>
+
+        <span class="admin-nav-label">Tài chính</span>
+        <a href="{{ url_for('admin.energy') }}">Năng lượng</a>
+        <a href="{{ url_for('admin.transactions') }}">Giao dịch</a>
+        <a href="{{ url_for('admin.purchases') }}" class="{% if request.endpoint == 'admin.purchases' %}active{% endif %}">Thanh toán</a>
     </nav>
     <main class="admin-main" data-component="admin-main">
         {% for category, message in get_flashed_messages(with_categories=true) %}
