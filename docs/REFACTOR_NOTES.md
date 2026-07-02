@@ -112,6 +112,30 @@ Nguyên tắc: refactor thuần — UI/hành vi giữ nguyên; mọi khác biệ
 
 ---
 
+## Phase 4 — Hợp nhất style.css — BƯỚC 1: INVENTORY (DỪNG CHỜ XÁC NHẬN)
+
+Công cụ: `scripts/css-inventory.mjs` (giữ lại để chạy kiểm tra trong lúc gộp). Kết quả trên `public/style.css` 5342 dòng:
+
+### Hiện trạng
+- **21 khối @media, 8 điều kiện**: `prefers-reduced-motion` ×5 (212, 584, 924, 1247, 5330); `900px` ×5 (554, 608, 3622, 4513, 5242); `640px` ×5 (637, 686, 4074, 4488, 5263); `1180px` ×2 (3551, 5236); `960px`/`560px`/`768px`/`min-901px` ×1 (658, 663, 3735, 3575). 688 rule top-level.
+- **Sidebar drawer transform khai báo 6 dòng ở 3 khối**: 900@3627/3636, 768@4029/4038, 900@4518/4529 (giá trị transform giống hệt nhau).
+- **Selector lặp trong cùng điều kiện**: 900px — `.app-container`, `.sidebar`, `.sidebar.is-open` (mỗi cái 2 lần); 768px — `html`/`body` ×3, `.dashboard-content` ×3, ~20 selector dictionary ×2; 640px — 5 cặp.
+- **DANGER media↔top-level khi dời media xuống cuối** (2 mục, đã tra giá trị — cả 2 là khai báo CHẾT hiện nay):
+  1. `.dictionary-group-table-wrap .dictionary-group-table { min-width: 0 }` (768@3994) — bị top-level 4484 (`min-width: 460px`) đè ở mọi viewport ≤768. → Khi gộp: **xoá dòng `min-width: 0`** (giữ `table-layout: fixed`).
+  2. `.admin-table-wrap .admin-table { min-width: 760px }` (768@4064) — bị top-level 4484 (460px) đè. → **xoá dòng `min-width: 760px`** (giữ `width: max-content`).
+- **Xung đột chéo điều kiện** (17 cặp): hầu hết theo hướng tự nhiên "điều kiện hẹp thắng" → thứ tự rộng→hẹp bảo toàn. **1 ngoại lệ phải xử lý tay**: `.sidebar { height }` — 900@4518 `100dvh` đang THẮNG 768@4029 `100vh` nhờ đứng sau trong file. Khi gộp: **giữ `100dvh`, bỏ `100vh`** (dòng chết). Toàn bộ rule sidebar-drawer của khối 768 sẽ hợp nhất per-property vào khối 900 theo "người thắng hiện tại" (winner = dòng sau).
+
+### Kế hoạch gộp (xin xác nhận)
+1. **Chỉ di chuyển khối @media** xuống cuối file thành mục `/* ===== Responsive ===== */`; **KHÔNG xáo trộn thứ tự rule top-level** (trong đó có các khối token `body[data-style=…]` phải đứng sau `.ftka-dark-ui` — xáo trộn top-level là rủi ro không cần thiết). Việc "tổ chức TOC" thực hiện bằng **comment đánh dấu mục trên cấu trúc hiện có** thay vì dời code — đây là cách đọc "ít xâm lấn" của bước 4.4 trong plan; nếu bạn muốn dời vật lý cả top-level thì báo lại.
+2. Mỗi điều kiện còn **một** khối, thứ tự rộng→hẹp: `min-width:901` → `1180` → `960` → `900` → `768` → `640` → `560` → cuối cùng `prefers-reduced-motion` (bản chất override, hiện khối cuối 5330 cũng đã ở cuối file).
+3. Trong mỗi khối gộp: giữ nguyên thứ tự tương đối các rule (khối gốc trước → rule trước); khai báo trùng hệt → giữ bản đang thắng; 3 khai báo chết nêu trên bị xoá (ghi rõ trong commit); `html/body`/`.dashboard-content` lặp trong cùng khối 768 → hợp nhất theo last-wins.
+4. Sidebar drawer: về **một nơi duy nhất** trong khối 900px (đóng + mở), breakpoint chuẩn 900 khớp `min-width:901` của rail desktop.
+5. **Gia cố lưới test trước khi gộp**: baseline hiện chỉ có 1440/899/390 — band 641–768 và 561–640 (nơi có 3 khai báo chết + khối 768 khổng lồ 49 rule) chưa được phủ. Đề xuất thêm 2 viewport **768×900** và **640×900** (thành 15 trang × 5 viewport = 75 snapshot, giữ luôn về sau).
+
+**Verification Phase 4**: 75/75 snapshot pass ×2; kiểm tay drawer sidebar tại 899px vs 901px; báo cáo số dòng + số khối @media trước/sau; `node scripts/css-inventory.mjs` sau gộp phải ra: 8 khối / 8 điều kiện, 0 selector lặp cùng điều kiện, sidebar transform đúng 2 dòng (đóng/mở).
+
+---
+
 ### Điều chỉnh kế hoạch các phase sau (từ kết quả xác minh)
 - **Phase 1**: sửa thêm 6 gate còn sót (billing ×2, payment_debug ×2, admin dashboard ×1, admin audio ×1).
 - **Phase 3**: quiz.html là 602 dòng (to gần gấp đôi ước tính); base.html giữ nguyên (helper chung — ngoài phạm vi); settings/ai_logs có thể đề xuất riêng sau.
