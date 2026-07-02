@@ -134,6 +134,17 @@ Công cụ: `scripts/css-inventory.mjs` (giữ lại để chạy kiểm tra tro
 
 **Verification Phase 4**: 75/75 snapshot pass ×2; kiểm tay drawer sidebar tại 899px vs 901px; báo cáo số dòng + số khối @media trước/sau; `node scripts/css-inventory.mjs` sau gộp phải ra: 8 khối / 8 điều kiện, 0 selector lặp cùng điều kiện, sidebar transform đúng 2 dòng (đóng/mở).
 
+### KẾT QUẢ THỰC HIỆN (sau duyệt)
+- Lưới test gia cố trước: +2 viewport 768×900/640×900 → **75 baseline**, pass ×2 trước khi đụng CSS.
+- `scripts/css-merge-media.mjs` thực hiện dời + gộp cơ học (giữ nguyên thứ tự rule trong từng điều kiện); các chỉnh tay làm bằng edit riêng để soát diff:
+  - Drawer sidebar hợp nhất về MỘT nơi trong khối 900px, giá trị = "người thắng" cascade cũ (`height:100dvh`, giữ `transition`/`box-shadow` từ bản 3622, `margin/border-radius/top` từ bản 4513); bản trong khối 768 xoá hẳn (mọi property hoặc trùng hoặc chết; `max-width: calc(100vw - 44px)` thừa vì `width` đã dùng `min()` với cùng giá trị — 0 khác biệt render).
+  - Xoá 3 khai báo chết như kế hoạch (2 `min-width` bảng + `height:100vh`), để lại comment giải thích tại chỗ.
+  - TOC: banner mục lục đầu file + banner mục Responsive; **không dời rule top-level nào**.
+- **Số liệu**: khối @media **21 → 8** (mỗi điều kiện đúng 1 khối, thứ tự min-901 → 1180 → 960 → 900 → 768 → 640 → 560 → reduced-motion); dòng 5342 → 5376 (tăng do comment TOC/giải thích; số rule giảm: bỏ 1 bộ `.app-container/.sidebar/.sidebar.is-open` trùng + 3 khai báo chết); ngoặc cân 850/850.
+- **Verification đạt**: visual **75/75 ×2** — không trang nào đổi pixel; inventory sau gộp: 8 khối/8 điều kiện, 900px hết selector trùng, sidebar transform đúng 2 dòng, DANGER media↔top-level = 0; đo bằng Chromium thật: rail sticky 82px tại 901/1440, drawer fixed 320px đóng (−336)/mở (0) tại 899 và 768.
+- **Điều chỉnh so với câu chữ kế hoạch**: mục tiêu "0 selector lặp cùng điều kiện" đạt cho lặp **chéo khối** (nguồn gốc của bug cascade); các cặp lặp **trong cùng một khối gốc** (khối 768 cũ: `html/body` ×3, `.dashboard-content` ×3, ~20 selector dictionary ×2; khối 640 cũ: 5 cặp anki/dictionary) giữ nguyên — gộp last-wins các cặp này đòi phân tích thứ tự với các rule xen giữa, rủi ro cao mà không đổi hành vi; ghi lại làm follow-up tùy chọn.
+- Renderer của preview panel trả số đo sai (width 2px) khi kiểm tay — đã kiểm chứng lại bằng Playwright/Chromium thật (chuẩn); lưu ý này để lần sau đừng tin số đo preview khi bất thường.
+
 ---
 
 ### Điều chỉnh kế hoạch các phase sau (từ kết quả xác minh)

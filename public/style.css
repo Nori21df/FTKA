@@ -1,3 +1,11 @@
+/* ============================================================
+   MỤC LỤC (TOC) — cấu trúc giữ nguyên vị trí, chỉ đánh dấu mục:
+   1. Tokens & theme  — :root, .ftka-dark-ui, body[data-style=…] (thứ tự QUAN TRỌNG)
+   2. Base & shared   — nút, input, card, bảng, layout khung (sidebar/topbar)
+   3. Pages           — dv-*(dashboard) gen-* qz-* gr-* rv-* ls-* anki-* admin-* …
+   4. Responsive      — cuối file, mỗi breakpoint đúng MỘT khối @media
+   ============================================================ */
+
 :root {
     color-scheme: light;
     /* Calm, focused light theme — soft neutral canvas, single refined blue accent */
@@ -209,7 +217,7 @@ body[data-style="neo"] {
   animation: ftka-shimmer 1.4s infinite;
 }
 @keyframes ftka-shimmer { to { transform: translateX(100%); } }
-@media (prefers-reduced-motion: reduce) { .ftka-skel-line::after { animation: none; } }
+
 
 /* Korean text as the visual hero — proper Hangul line-breaking + dedicated face */
 :lang(ko),
@@ -551,10 +559,7 @@ body[data-style="neo"] .dv-cta { color: #111; }
 .dv-row .mn { color: var(--muted); font-size: 12.5px; }
 .dv-tag { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; }
 .dv-empty { color: var(--muted); font-size: 13.5px; padding: 14px 0; }
-@media (max-width: 900px) {
-    .dv-c4 { grid-template-columns: 1fr 1fr; }
-    .dv-main, .dv-c2 { grid-template-columns: 1fr; }
-}
+
 
 /* ── Trang Tạo từ vựng (bố cục mới, theo token) ── */
 .gen-wrap { display: flex; flex-direction: column; gap: 16px; }
@@ -581,7 +586,7 @@ body[data-style="neo"] .dv-cta { color: #111; }
 .gen-loading.is-visible { display: flex; }
 .gen-loading .material-icons-outlined { color: var(--primary); animation: gen-spin 1s linear infinite; }
 @keyframes gen-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .gen-loading .material-icons-outlined { animation: none; } }
+
 .gen-results { margin-top: 16px; }
 .gen-results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .gen-summary { margin-bottom: 12px; }
@@ -605,11 +610,7 @@ body[data-style="neo"] .dv-cta { color: #111; }
 .gen-field input { border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
     font: inherit; padding: 11px 13px; min-height: 44px; }
 .gen-field input:focus-visible { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
-@media (max-width: 900px) {
-    .gen-layout { grid-template-columns: 1fr; }
-    .gen-results-grid { grid-template-columns: 1fr; }
-    .gen-generate { margin-left: 0; width: 100%; justify-content: center; }
-}
+
 
 /* ── Trang Câu hỏi ngữ pháp (bố cục mới) ── */
 .qz-wrap { display: flex; flex-direction: column; gap: 16px; max-width: 760px; margin: 0 auto; width: 100%; }
@@ -634,7 +635,7 @@ body[data-style="neo"] .dv-cta { color: #111; }
     color: var(--text-soft); font-size: 13.5px; line-height: 1.6; display: none; }
 .qz-card .grammar-quiz-feedback.is-visible { display: block; }
 .qz-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
-@media (max-width: 640px) { .qz-options { grid-template-columns: 1fr; } }
+
 
 /* ── Trang Ôn tập từ vựng (bố cục mới) ── */
 .rv-head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
@@ -655,14 +656,8 @@ body[data-style="neo"] .dv-cta { color: #111; }
 .ls-saved-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
 .ls-saved-head h3 { font-size: 15px; font-weight: 800; margin: 0; }
 .ls-main { min-width: 0; }
-@media (max-width: 960px) {
-    .ls-createbar { grid-template-columns: 1fr 1fr; }
-    .ls-createbar-submit { grid-column: 1 / -1; }
-    .ls-body { grid-template-columns: 1fr; }
-}
-@media (max-width: 560px) {
-    .ls-createbar { grid-template-columns: 1fr; }
-}
+
+
 
 /* ── Trang Ngữ pháp (bố cục mới) ── */
 .gr-wrap { display: flex; flex-direction: column; gap: 16px; }
@@ -683,7 +678,7 @@ body[data-style="neo"] .dv-cta { color: #111; }
 .vk-head h2 { font-size: 24px; font-weight: 800; letter-spacing: -.02em; margin: 2px 0 0; }
 .vk-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .vk-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-@media (max-width: 640px) { .vk-stats { grid-template-columns: 1fr; } }
+
 
 .main-content {
     width: 100%;
@@ -921,12 +916,7 @@ body.ftka-dark-ui .energy-pill {
     }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .public-index-page .app-ambient {
-        animation: none;
-        will-change: auto;
-    }
-}
+
 
 .public-shell {
     width: min(1180px, calc(100% - 40px));
@@ -1244,9 +1234,7 @@ body[data-style="neo"] .nav-item.active .material-icons-outlined { color: #111; 
     box-shadow: var(--shadow-md);
     border-color: var(--line-strong);
 }
-@media (prefers-reduced-motion: reduce) {
-    .grammar-card:hover, .dictionary-card:hover, .lesson-mini-card:hover, .lesson-row:hover, .admin-card:hover { transform: none; }
-}
+
 
 .public-study-preview {
     padding: 22px;
@@ -3548,660 +3536,15 @@ body.ftka-dark-ui .grammar-quiz-actions {
     white-space: pre-wrap;
 }
 
-@media (max-width: 1180px) {
-    .dashboard-grid,
-    .dashboard-lower-grid,
-    .studio-layout,
-    .listening-layout,
-    .review-layout,
-    .settings-layout {
-        grid-template-columns: 1fr;
-    }
 
-    .public-features,
-    .dashboard-metrics,
-    .admin-grid,
-    .admin-kpi {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
 
-    .study-sidebar,
-    .studio-side-stack,
-    .listening-sidebar {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
 
-@media (min-width: 901px) {
-    .sidebar {
-        width: var(--sidebar-compact);
-        transition: width .18s ease, box-shadow .18s ease;
-    }
 
-    .app-container {
-        grid-template-columns: var(--sidebar-compact) minmax(0, 1fr);
-    }
 
-    .sidebar:hover,
-    .sidebar:focus-within {
-        width: var(--sidebar-width);
-        box-shadow: var(--shadow-lg);
-    }
 
-    .sidebar .logo-text,
-    .sidebar .nav-label {
-        opacity: 0;
-        white-space: nowrap;
-        transition: opacity .12s ease;
-    }
 
-    .sidebar:hover .logo-text,
-    .sidebar:focus-within .logo-text,
-    .sidebar:hover .nav-label,
-    .sidebar:focus-within .nav-label {
-        opacity: 1;
-    }
 
-    /* Nhãn nhóm: ẩn khi rail thu gọn, hiện khi hover (giống .nav-label) */
-    .sidebar .nav-group { opacity: 0; white-space: nowrap; transition: opacity .12s ease; }
-    .sidebar:hover .nav-group,
-    .sidebar:focus-within .nav-group { opacity: 1; }
 
-    /* Ô người dùng: rail thu gọn chỉ hiện avatar; hover mới hiện tên + đăng xuất */
-    .sidebar .sidebar-user { margin: 8px; padding: 8px; justify-content: center; }
-    .sidebar .sidebar-user .su-who,
-    .sidebar .sidebar-user form { display: none; }
-    .sidebar:hover .sidebar-user,
-    .sidebar:focus-within .sidebar-user { margin: 8px 12px 12px; padding: 10px; justify-content: flex-start; }
-    .sidebar:hover .sidebar-user .su-who,
-    .sidebar:focus-within .sidebar-user .su-who { display: block; }
-    .sidebar:hover .sidebar-user form,
-    .sidebar:focus-within .sidebar-user form { display: block; }
-}
-
-@media (max-width: 900px) {
-    .app-container {
-        display: block;
-    }
-
-    .sidebar {
-        position: fixed;
-        inset: 0 auto 0 0;
-        width: min(320px, calc(100vw - 44px));
-        transform: translateX(-105%);
-        transition: transform .18s ease;
-        box-shadow: var(--shadow-lg);
-    }
-
-    .sidebar.is-open {
-        transform: translateX(0);
-    }
-
-    .sidebar-backdrop:not([hidden]) {
-        position: fixed;
-        inset: 0;
-        z-index: 45;
-        background: rgba(15, 23, 42, .42);
-    }
-
-    .mobile-header {
-        position: sticky;
-        top: 0;
-        z-index: 44;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 64px;
-        padding: 10px 18px;
-        border-bottom: 1px solid var(--line);
-        background: rgba(255, 255, 255, .94);
-        backdrop-filter: blur(14px);
-    }
-
-    body.ftka-dark-ui .mobile-header {
-        background: rgba(23, 32, 51, .94);
-    }
-
-    .topbar {
-        position: static;
-        margin: 0;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-        border-top: none;
-        box-shadow: none;
-        padding: 14px 18px;
-    }
-
-    .topbar-status {
-        display: none;
-    }
-
-    .dashboard-content {
-        padding: 20px 18px 34px;
-    }
-
-    .dashboard-hero,
-    .studio-hero,
-    .dictionary-hero,
-    .grammar-hero,
-    .listening-hero,
-    .review-hero,
-    .grammar-quiz-hero,
-    .settings-hero {
-        display: grid;
-        padding: 20px;
-    }
-
-    .dictionary-control-grid,
-    .admin-detail-grid,
-    .admin-shell,
-    .admin-form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .admin-nav {
-        position: static;
-        display: flex;
-        overflow-x: auto;
-    }
-
-    .admin-nav a {
-        white-space: nowrap;
-    }
-
-    .study-sidebar,
-    .studio-side-stack,
-    .listening-sidebar {
-        grid-template-columns: 1fr;
-    }
-
-    .public-hero {
-        grid-template-columns: 1fr;
-        min-height: auto;
-        padding-top: 26px;
-    }
-
-    .public-features {
-        grid-template-columns: 1fr;
-    }
-
-    .pricing-plan-grid,
-    .billing-summary-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    html,
-    body,
-    body.ftka-light-ui {
-        background-image: none;
-    }
-
-    html,
-    body {
-        width: 100%;
-        max-width: 100%;
-        overflow-x: hidden;
-    }
-
-    html,
-    body,
-    .app-container,
-    .main-content,
-    .dashboard-content,
-    .mobile-header,
-    .dictionary-shell,
-    .dictionary-hero,
-    .dictionary-metrics,
-    .dictionary-control-grid,
-    .dictionary-group-section,
-    .dictionary-shelf,
-    .dictionary-grid,
-    .dictionary-panel,
-    .dictionary-card,
-    .dictionary-card-main,
-    .dictionary-card-detail,
-    .dictionary-pagination,
-    .dictionary-pagination-list,
-    .admin-shell,
-    .admin-main,
-    .admin-panel {
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-    }
-
-    .app-container {
-        display: block;
-        grid-template-columns: none;
-    }
-
-    .main-content,
-    .dashboard-content {
-        min-width: 0;
-        margin-left: 0;
-        margin-right: 0;
-    }
-
-    .dashboard-content {
-        width: 100%;
-        max-width: 100%;
-        padding: 12px 12px 26px;
-        overflow-x: hidden;
-    }
-
-    .mobile-header {
-        left: 0;
-        right: 0;
-        margin: 0;
-        min-height: 64px;
-        padding: 8px 12px;
-        overflow: hidden;
-        gap: 10px;
-    }
-
-    .mobile-brand {
-        min-width: 0;
-        max-width: calc(100% - 54px);
-        gap: 8px;
-        font-size: 15px;
-        line-height: 1;
-    }
-
-    .mobile-brand .logo-icon {
-        width: 44px;
-        height: 44px;
-        flex-basis: 44px;
-        border-radius: 12px;
-        font-size: 14px;
-    }
-
-    .mobile-menu-button {
-        width: 44px;
-        height: 44px;
-        flex: 0 0 44px;
-    }
-
-    .mobile-menu-button .material-icons-outlined {
-        font-size: 24px;
-    }
-
-    .dictionary-shell {
-        gap: 14px;
-        min-width: 0;
-        overflow: hidden;
-    }
-
-    .dictionary-hero {
-        gap: 14px;
-        padding: 14px;
-        border-radius: 14px;
-    }
-
-    .dictionary-hero-title {
-        font-size: 30px;
-        line-height: 1.1;
-        overflow-wrap: anywhere;
-    }
-
-    .dictionary-metrics {
-        gap: 12px;
-    }
-
-    .dictionary-metric {
-        padding: 14px;
-    }
-
-    .dictionary-metric span {
-        font-size: 16px;
-        text-transform: none;
-    }
-
-    .dictionary-metric strong {
-        font-size: 34px;
-    }
-
-    .dictionary-hero-actions,
-    .dictionary-filter-row {
-        display: grid;
-        grid-template-columns: 1fr;
-        width: 100%;
-        gap: 8px;
-        margin-top: 14px;
-    }
-
-    .dictionary-action,
-    .dictionary-secondary-action,
-    .dictionary-add-button,
-    .dictionary-filter-button,
-    .dictionary-inline-button,
-    .dictionary-input,
-    .dictionary-search-input,
-    .dictionary-select,
-    .dictionary-practice-input,
-    #importFile,
-    #importBtn,
-    #manualAddBtn,
-    #createGroupBtn {
-        width: 100%;
-        max-width: 100%;
-        min-height: 50px;
-        padding: 10px 12px;
-        font-size: 15px;
-        line-height: 1.2;
-    }
-
-    .dictionary-action .material-icons-outlined,
-    .dictionary-secondary-action .material-icons-outlined,
-    .dictionary-add-button .material-icons-outlined,
-    .dictionary-filter-button .material-icons-outlined,
-    .dictionary-inline-button .material-icons-outlined,
-    .dictionary-status-button .material-icons-outlined {
-        font-size: 20px;
-    }
-
-    .dictionary-control-grid,
-    .dictionary-card-detail {
-        grid-template-columns: 1fr;
-    }
-
-    .dictionary-panel,
-    .dictionary-metric,
-    .dictionary-card,
-    .dictionary-folder-panel,
-    .dictionary-example,
-    .dictionary-practice {
-        width: 100%;
-        max-width: 100%;
-        border-radius: 14px;
-    }
-
-    .dictionary-panel {
-        padding: 14px;
-    }
-
-    .dictionary-card {
-        width: 100%;
-        max-width: 100%;
-        margin-bottom: 14px;
-        border-radius: 16px;
-        overflow: hidden;
-    }
-
-    .dictionary-card-main {
-        grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 18px 16px;
-    }
-
-    .dictionary-card-title {
-        font-size: 22px;
-    }
-
-    .dictionary-card-meaning,
-    .dictionary-card-copy,
-    .dictionary-folder-empty,
-    .dictionary-example-content,
-    .dictionary-practice-input,
-    .dictionary-input,
-    .dictionary-search-input,
-    .dictionary-select {
-        font-size: 15px;
-    }
-
-    .dictionary-card-detail {
-        padding: 14px 16px 16px;
-    }
-
-    .dictionary-card-actions,
-    .dictionary-group-assign {
-        width: 100%;
-        min-width: 0;
-        justify-content: stretch;
-    }
-
-    .dictionary-card-actions {
-        display: grid;
-        grid-template-columns: 42px minmax(0, 1fr) 42px;
-        gap: 8px;
-    }
-
-    .dictionary-icon-button {
-        width: 42px;
-        min-width: 42px;
-        min-height: 48px;
-    }
-
-    .dictionary-icon-button .material-icons-outlined {
-        font-size: 20px;
-    }
-
-    .dictionary-status-button {
-        min-width: 0;
-        width: 100%;
-        min-height: 48px;
-        font-size: 15px;
-    }
-
-    .dictionary-example-content,
-    .dictionary-group-assign {
-        display: grid;
-        grid-template-columns: 1fr;
-    }
-
-    .dictionary-group-table-wrap .dictionary-group-table {
-        min-width: 0;
-        table-layout: fixed;
-    }
-
-    .dictionary-group-table th,
-    .dictionary-group-table td {
-        padding: 10px 8px;
-        overflow-wrap: anywhere;
-        font-size: 13px;
-    }
-
-    .dictionary-group-file,
-    .dictionary-group-name {
-        overflow-wrap: anywhere;
-    }
-
-    .dictionary-pagination {
-        margin-top: 14px;
-    }
-
-    .dictionary-pagination-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(44px, max-content));
-        justify-content: center;
-        gap: 7px;
-    }
-
-    .dictionary-pagination-link {
-        width: auto;
-        min-height: 42px;
-        padding: 8px 11px;
-        font-size: 14px;
-    }
-
-    .sidebar {
-        position: fixed;
-        inset: 0 auto 0 0;
-        width: min(320px, calc(100vw - 44px));
-        max-width: calc(100vw - 44px);
-        height: 100vh;
-        transform: translateX(-105%);
-    }
-
-    .sidebar.is-open {
-        transform: translateX(0);
-    }
-
-    .admin-shell {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    .admin-nav {
-        max-width: 100%;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .admin-panel {
-        min-width: 0;
-        overflow: hidden;
-    }
-
-    .admin-table-wrap {
-        margin-inline: 0;
-    }
-
-    .admin-table-wrap .admin-table {
-        width: max-content;
-        min-width: 760px;
-    }
-
-    .topbar {
-        display: none;
-    }
-}
-
-@media (max-width: 640px) {
-    body {
-        font-size: 14px;
-    }
-
-    .public-shell {
-        width: min(1180px, calc(100% - 28px));
-    }
-
-    .topbar,
-    .user-profile,
-    .dashboard-panel-head,
-    .studio-card-head,
-    .dictionary-panel-head,
-    .dictionary-shelf-head,
-    .grammar-panel-head,
-    .listening-panel-head,
-    .settings-card-head,
-    .session-overview-card,
-    .lesson-detail-head,
-    .admin-header {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    .topbar-context strong {
-        max-width: 100%;
-    }
-
-    .dashboard-metrics,
-    .dictionary-metrics,
-    .grammar-metrics,
-    .session-metrics,
-    .admin-grid,
-    .admin-kpi,
-    .option-grid,
-    .grammar-quiz-options,
-    .result-actions {
-        grid-template-columns: 1fr;
-    }
-
-    .dashboard-panel,
-    .studio-main-card,
-    .dictionary-panel,
-    .grammar-panel,
-    .listening-panel,
-    .saved-lessons-card,
-    .study-main-panel,
-    .sidebar-card,
-    .grammar-quiz-card,
-    .profile-panel,
-    .prefs-panel,
-    .settings-panel,
-    .admin-panel,
-    .auth-panel {
-        padding: 16px;
-    }
-
-    .auth-panel {
-        width: 100% !important;
-        max-width: 100%;
-        margin-left: 0;
-        margin-right: 0;
-    }
-
-    .auth-form,
-    .auth-panel form,
-    .auth-panel input,
-    .auth-panel button,
-    .auth-panel a.auth-button {
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .dictionary-panel {
-        padding: 14px;
-    }
-
-    .dictionary-hero-title {
-        font-size: 28px;
-    }
-
-    .dictionary-manual-row,
-    .dictionary-group-row,
-    .studio-compose-footer,
-    .sentence-controls,
-    .grammar-quiz-actions {
-        display: grid;
-        grid-template-columns: 1fr;
-    }
-
-    .dictionary-card-main,
-    .dictionary-card-detail,
-    .dictionary-example-content,
-    .grammar-card-main,
-    .grammar-card-detail {
-        grid-template-columns: 1fr;
-    }
-
-    .grammar-card-actions {
-        justify-content: flex-start;
-        flex-wrap: wrap;
-        min-width: 0;
-    }
-
-    .public-header {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 12px;
-        align-items: center;
-    }
-
-    .public-nav {
-        width: auto;
-        justify-content: flex-end;
-        gap: 6px;
-    }
-
-    .public-nav a {
-        padding: 9px 10px;
-        white-space: nowrap;
-    }
-
-    .public-page .public-nav {
-        display: none;
-    }
-
-    .topbar-username {
-        max-width: none;
-    }
-}
 
 /* ============================================================
    CONFIRMATION MODAL
@@ -4485,51 +3828,10 @@ body.ftka-dark-ui .grammar-quiz-actions {
     min-width: 460px;
 }
 
-@media (max-width: 640px) {
-    .admin-table-wrap .admin-table,
-    .dictionary-group-table-wrap .dictionary-group-table {
-        min-width: 360px;
-    }
 
-    .vocab-progress-section {
-        padding: 14px 16px;
-    }
-
-    .confirm-modal-box {
-        padding: 20px 18px;
-    }
-
-    .confirm-modal-actions {
-        flex-direction: column-reverse;
-    }
-
-    .confirm-modal-cancel,
-    .confirm-modal-confirm {
-        width: 100%;
-    }
-}
 
 /* Sidebar: responsive overrides */
-@media (max-width: 900px) {
-    .app-container {
-        display: block;
-    }
 
-    .sidebar {
-        position: fixed;
-        inset: 0 auto 0 0;
-        width: min(320px, calc(100vw - 44px));
-        height: 100dvh;
-        margin: 0;
-        border-radius: 0;
-        top: 0;
-        transform: translateX(-105%);
-    }
-
-    .sidebar.is-open {
-        transform: translateX(0);
-    }
-}
 
 /* === Premium Anki-style vocab flashcards === */
 .anki-vocab-shell {
@@ -5233,13 +4535,241 @@ body.ftka-dark-ui .anki-shortcuts kbd {
     background: rgba(15, 23, 42, .48);
 }
 
+
+
+
+
+
+
+
+
+/* ── Trang lỗi (404) ── */
+.error-page { max-width: 520px; margin: 8vh auto; padding: 40px 24px; text-align: center; }
+.error-page .error-code { display: block; font-size: 72px; font-weight: 900; line-height: 1; color: var(--primary); letter-spacing: -.03em; }
+.error-page h1 { margin: 12px 0 6px; font-size: 24px; font-weight: 800; }
+.error-page p { color: var(--muted); margin-bottom: 22px; }
+
+/* ============================================================
+   RESPONSIVE — mỗi breakpoint đúng MỘT khối, thứ tự rộng → hẹp.
+   Gộp từ 21 khối rải rác (refactor Phase 4 — docs/refactor-plan.md).
+   Thêm rule responsive mới: đặt vào ĐÚNG khối breakpoint dưới đây.
+   ============================================================ */
+
+@media (min-width: 901px) {
+
+    .sidebar {
+        width: var(--sidebar-compact);
+        transition: width .18s ease, box-shadow .18s ease;
+    }
+
+    .app-container {
+        grid-template-columns: var(--sidebar-compact) minmax(0, 1fr);
+    }
+
+    .sidebar:hover,
+    .sidebar:focus-within {
+        width: var(--sidebar-width);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .sidebar .logo-text,
+    .sidebar .nav-label {
+        opacity: 0;
+        white-space: nowrap;
+        transition: opacity .12s ease;
+    }
+
+    .sidebar:hover .logo-text,
+    .sidebar:focus-within .logo-text,
+    .sidebar:hover .nav-label,
+    .sidebar:focus-within .nav-label {
+        opacity: 1;
+    }
+
+    /* Nhãn nhóm: ẩn khi rail thu gọn, hiện khi hover (giống .nav-label) */
+    .sidebar .nav-group { opacity: 0; white-space: nowrap; transition: opacity .12s ease; }
+    .sidebar:hover .nav-group,
+    .sidebar:focus-within .nav-group { opacity: 1; }
+
+    /* Ô người dùng: rail thu gọn chỉ hiện avatar; hover mới hiện tên + đăng xuất */
+    .sidebar .sidebar-user { margin: 8px; padding: 8px; justify-content: center; }
+    .sidebar .sidebar-user .su-who,
+    .sidebar .sidebar-user form { display: none; }
+    .sidebar:hover .sidebar-user,
+    .sidebar:focus-within .sidebar-user { margin: 8px 12px 12px; padding: 10px; justify-content: flex-start; }
+    .sidebar:hover .sidebar-user .su-who,
+    .sidebar:focus-within .sidebar-user .su-who { display: block; }
+    .sidebar:hover .sidebar-user form,
+    .sidebar:focus-within .sidebar-user form { display: block; }
+}
+
 @media (max-width: 1180px) {
+
+    .dashboard-grid,
+    .dashboard-lower-grid,
+    .studio-layout,
+    .listening-layout,
+    .review-layout,
+    .settings-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .public-features,
+    .dashboard-metrics,
+    .admin-grid,
+    .admin-kpi {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .study-sidebar,
+    .studio-side-stack,
+    .listening-sidebar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+
     .anki-actions {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
+@media (max-width: 960px) {
+
+    .ls-createbar { grid-template-columns: 1fr 1fr; }
+    .ls-createbar-submit { grid-column: 1 / -1; }
+    .ls-body { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 900px) {
+
+    .dv-c4 { grid-template-columns: 1fr 1fr; }
+    .dv-main, .dv-c2 { grid-template-columns: 1fr; }
+
+
+    .gen-layout { grid-template-columns: 1fr; }
+    .gen-results-grid { grid-template-columns: 1fr; }
+    .gen-generate { margin-left: 0; width: 100%; justify-content: center; }
+
+
+    .app-container {
+        display: block;
+    }
+
+    /* Drawer sidebar mobile — nơi định nghĩa DUY NHẤT cho trạng thái đóng/mở
+       (hợp nhất từ 3 khối cũ; giá trị = "người thắng" theo cascade cũ, height dùng 100dvh). */
+    .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        top: 0;
+        width: min(320px, calc(100vw - 44px));
+        height: 100dvh;
+        margin: 0;
+        border-radius: 0;
+        transform: translateX(-105%);
+        transition: transform .18s ease;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .sidebar.is-open {
+        transform: translateX(0);
+    }
+
+    .sidebar-backdrop:not([hidden]) {
+        position: fixed;
+        inset: 0;
+        z-index: 45;
+        background: rgba(15, 23, 42, .42);
+    }
+
+    .mobile-header {
+        position: sticky;
+        top: 0;
+        z-index: 44;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, .94);
+        backdrop-filter: blur(14px);
+    }
+
+    body.ftka-dark-ui .mobile-header {
+        background: rgba(23, 32, 51, .94);
+    }
+
+    .topbar {
+        position: static;
+        margin: 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+        box-shadow: none;
+        padding: 14px 18px;
+    }
+
+    .topbar-status {
+        display: none;
+    }
+
+    .dashboard-content {
+        padding: 20px 18px 34px;
+    }
+
+    .dashboard-hero,
+    .studio-hero,
+    .dictionary-hero,
+    .grammar-hero,
+    .listening-hero,
+    .review-hero,
+    .grammar-quiz-hero,
+    .settings-hero {
+        display: grid;
+        padding: 20px;
+    }
+
+    .dictionary-control-grid,
+    .admin-detail-grid,
+    .admin-shell,
+    .admin-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-nav {
+        position: static;
+        display: flex;
+        overflow-x: auto;
+    }
+
+    .admin-nav a {
+        white-space: nowrap;
+    }
+
+    .study-sidebar,
+    .studio-side-stack,
+    .listening-sidebar {
+        grid-template-columns: 1fr;
+    }
+
+    .public-hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding-top: 26px;
+    }
+
+    .public-features {
+        grid-template-columns: 1fr;
+    }
+
+    .pricing-plan-grid,
+    .billing-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* (.app-container / .sidebar drawer đã hợp nhất lên đầu khối này) */
+
     .anki-vocab-hero {
         align-items: flex-start;
         flex-direction: column;
@@ -5260,7 +4790,498 @@ body.ftka-dark-ui .anki-shortcuts kbd {
     }
 }
 
+@media (max-width: 768px) {
+
+    html,
+    body,
+    body.ftka-light-ui {
+        background-image: none;
+    }
+
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    html,
+    body,
+    .app-container,
+    .main-content,
+    .dashboard-content,
+    .mobile-header,
+    .dictionary-shell,
+    .dictionary-hero,
+    .dictionary-metrics,
+    .dictionary-control-grid,
+    .dictionary-group-section,
+    .dictionary-shelf,
+    .dictionary-grid,
+    .dictionary-panel,
+    .dictionary-card,
+    .dictionary-card-main,
+    .dictionary-card-detail,
+    .dictionary-pagination,
+    .dictionary-pagination-list,
+    .admin-shell,
+    .admin-main,
+    .admin-panel {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .app-container {
+        display: block;
+        grid-template-columns: none;
+    }
+
+    .main-content,
+    .dashboard-content {
+        min-width: 0;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .dashboard-content {
+        width: 100%;
+        max-width: 100%;
+        padding: 12px 12px 26px;
+        overflow-x: hidden;
+    }
+
+    .mobile-header {
+        left: 0;
+        right: 0;
+        margin: 0;
+        min-height: 64px;
+        padding: 8px 12px;
+        overflow: hidden;
+        gap: 10px;
+    }
+
+    .mobile-brand {
+        min-width: 0;
+        max-width: calc(100% - 54px);
+        gap: 8px;
+        font-size: 15px;
+        line-height: 1;
+    }
+
+    .mobile-brand .logo-icon {
+        width: 44px;
+        height: 44px;
+        flex-basis: 44px;
+        border-radius: 12px;
+        font-size: 14px;
+    }
+
+    .mobile-menu-button {
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+    }
+
+    .mobile-menu-button .material-icons-outlined {
+        font-size: 24px;
+    }
+
+    .dictionary-shell {
+        gap: 14px;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .dictionary-hero {
+        gap: 14px;
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .dictionary-hero-title {
+        font-size: 30px;
+        line-height: 1.1;
+        overflow-wrap: anywhere;
+    }
+
+    .dictionary-metrics {
+        gap: 12px;
+    }
+
+    .dictionary-metric {
+        padding: 14px;
+    }
+
+    .dictionary-metric span {
+        font-size: 16px;
+        text-transform: none;
+    }
+
+    .dictionary-metric strong {
+        font-size: 34px;
+    }
+
+    .dictionary-hero-actions,
+    .dictionary-filter-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+        gap: 8px;
+        margin-top: 14px;
+    }
+
+    .dictionary-action,
+    .dictionary-secondary-action,
+    .dictionary-add-button,
+    .dictionary-filter-button,
+    .dictionary-inline-button,
+    .dictionary-input,
+    .dictionary-search-input,
+    .dictionary-select,
+    .dictionary-practice-input,
+    #importFile,
+    #importBtn,
+    #manualAddBtn,
+    #createGroupBtn {
+        width: 100%;
+        max-width: 100%;
+        min-height: 50px;
+        padding: 10px 12px;
+        font-size: 15px;
+        line-height: 1.2;
+    }
+
+    .dictionary-action .material-icons-outlined,
+    .dictionary-secondary-action .material-icons-outlined,
+    .dictionary-add-button .material-icons-outlined,
+    .dictionary-filter-button .material-icons-outlined,
+    .dictionary-inline-button .material-icons-outlined,
+    .dictionary-status-button .material-icons-outlined {
+        font-size: 20px;
+    }
+
+    .dictionary-control-grid,
+    .dictionary-card-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .dictionary-panel,
+    .dictionary-metric,
+    .dictionary-card,
+    .dictionary-folder-panel,
+    .dictionary-example,
+    .dictionary-practice {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 14px;
+    }
+
+    .dictionary-panel {
+        padding: 14px;
+    }
+
+    .dictionary-card {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 14px;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .dictionary-card-main {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 18px 16px;
+    }
+
+    .dictionary-card-title {
+        font-size: 22px;
+    }
+
+    .dictionary-card-meaning,
+    .dictionary-card-copy,
+    .dictionary-folder-empty,
+    .dictionary-example-content,
+    .dictionary-practice-input,
+    .dictionary-input,
+    .dictionary-search-input,
+    .dictionary-select {
+        font-size: 15px;
+    }
+
+    .dictionary-card-detail {
+        padding: 14px 16px 16px;
+    }
+
+    .dictionary-card-actions,
+    .dictionary-group-assign {
+        width: 100%;
+        min-width: 0;
+        justify-content: stretch;
+    }
+
+    .dictionary-card-actions {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr) 42px;
+        gap: 8px;
+    }
+
+    .dictionary-icon-button {
+        width: 42px;
+        min-width: 42px;
+        min-height: 48px;
+    }
+
+    .dictionary-icon-button .material-icons-outlined {
+        font-size: 20px;
+    }
+
+    .dictionary-status-button {
+        min-width: 0;
+        width: 100%;
+        min-height: 48px;
+        font-size: 15px;
+    }
+
+    .dictionary-example-content,
+    .dictionary-group-assign {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .dictionary-group-table-wrap .dictionary-group-table {
+        /* min-width 0 cũ là khai báo chết — rule top-level "folder table" (460px)
+           đứng sau trong cascade cũ luôn thắng; đã xoá khi gộp Phase 4. */
+        table-layout: fixed;
+    }
+
+    .dictionary-group-table th,
+    .dictionary-group-table td {
+        padding: 10px 8px;
+        overflow-wrap: anywhere;
+        font-size: 13px;
+    }
+
+    .dictionary-group-file,
+    .dictionary-group-name {
+        overflow-wrap: anywhere;
+    }
+
+    .dictionary-pagination {
+        margin-top: 14px;
+    }
+
+    .dictionary-pagination-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(44px, max-content));
+        justify-content: center;
+        gap: 7px;
+    }
+
+    .dictionary-pagination-link {
+        width: auto;
+        min-height: 42px;
+        padding: 8px 11px;
+        font-size: 14px;
+    }
+
+    /* (Drawer .sidebar định nghĩa duy nhất ở khối 900px phía trên — bản cũ ở đây bị
+       cascade đè toàn bộ: height 100vh thua 100dvh, max-width thừa vì width đã dùng min()). */
+
+    .admin-shell {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .admin-nav {
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .admin-panel {
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .admin-table-wrap {
+        margin-inline: 0;
+    }
+
+    .admin-table-wrap .admin-table {
+        width: max-content;
+        /* min-width 760px cũ là khai báo chết — rule top-level "folder table" (460px)
+           đứng sau trong cascade cũ luôn thắng; đã xoá khi gộp Phase 4. */
+    }
+
+    .topbar {
+        display: none;
+    }
+}
+
 @media (max-width: 640px) {
+ .qz-options { grid-template-columns: 1fr; }
+
+ .vk-stats { grid-template-columns: 1fr; }
+
+
+    body {
+        font-size: 14px;
+    }
+
+    .public-shell {
+        width: min(1180px, calc(100% - 28px));
+    }
+
+    .topbar,
+    .user-profile,
+    .dashboard-panel-head,
+    .studio-card-head,
+    .dictionary-panel-head,
+    .dictionary-shelf-head,
+    .grammar-panel-head,
+    .listening-panel-head,
+    .settings-card-head,
+    .session-overview-card,
+    .lesson-detail-head,
+    .admin-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .topbar-context strong {
+        max-width: 100%;
+    }
+
+    .dashboard-metrics,
+    .dictionary-metrics,
+    .grammar-metrics,
+    .session-metrics,
+    .admin-grid,
+    .admin-kpi,
+    .option-grid,
+    .grammar-quiz-options,
+    .result-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-panel,
+    .studio-main-card,
+    .dictionary-panel,
+    .grammar-panel,
+    .listening-panel,
+    .saved-lessons-card,
+    .study-main-panel,
+    .sidebar-card,
+    .grammar-quiz-card,
+    .profile-panel,
+    .prefs-panel,
+    .settings-panel,
+    .admin-panel,
+    .auth-panel {
+        padding: 16px;
+    }
+
+    .auth-panel {
+        width: 100% !important;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .auth-form,
+    .auth-panel form,
+    .auth-panel input,
+    .auth-panel button,
+    .auth-panel a.auth-button {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .dictionary-panel {
+        padding: 14px;
+    }
+
+    .dictionary-hero-title {
+        font-size: 28px;
+    }
+
+    .dictionary-manual-row,
+    .dictionary-group-row,
+    .studio-compose-footer,
+    .sentence-controls,
+    .grammar-quiz-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .dictionary-card-main,
+    .dictionary-card-detail,
+    .dictionary-example-content,
+    .grammar-card-main,
+    .grammar-card-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .grammar-card-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .public-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .public-nav {
+        width: auto;
+        justify-content: flex-end;
+        gap: 6px;
+    }
+
+    .public-nav a {
+        padding: 9px 10px;
+        white-space: nowrap;
+    }
+
+    .public-page .public-nav {
+        display: none;
+    }
+
+    .topbar-username {
+        max-width: none;
+    }
+
+
+    .admin-table-wrap .admin-table,
+    .dictionary-group-table-wrap .dictionary-group-table {
+        min-width: 360px;
+    }
+
+    .vocab-progress-section {
+        padding: 14px 16px;
+    }
+
+    .confirm-modal-box {
+        padding: 20px 18px;
+    }
+
+    .confirm-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .confirm-modal-cancel,
+    .confirm-modal-confirm {
+        width: 100%;
+    }
+
+
     .anki-vocab-shell {
         gap: 14px;
     }
@@ -5327,16 +5348,29 @@ body.ftka-dark-ui .anki-shortcuts kbd {
     }
 }
 
+@media (max-width: 560px) {
+
+    .ls-createbar { grid-template-columns: 1fr; }
+}
+
 @media (prefers-reduced-motion: reduce) {
+ .ftka-skel-line::after { animation: none; }
+
+ .gen-loading .material-icons-outlined { animation: none; }
+
+
+    .public-index-page .app-ambient {
+        animation: none;
+        will-change: auto;
+    }
+
+
+    .grammar-card:hover, .dictionary-card:hover, .lesson-mini-card:hover, .lesson-row:hover, .admin-card:hover { transform: none; }
+
+
     .anki-progress-fill,
     .anki-action-btn,
     .anki-manage-chevron {
         transition: none;
     }
 }
-
-/* ── Trang lỗi (404) ── */
-.error-page { max-width: 520px; margin: 8vh auto; padding: 40px 24px; text-align: center; }
-.error-page .error-code { display: block; font-size: 72px; font-weight: 900; line-height: 1; color: var(--primary); letter-spacing: -.03em; }
-.error-page h1 { margin: 12px 0 6px; font-size: 24px; font-weight: 800; }
-.error-page p { color: var(--muted); margin-bottom: 22px; }
