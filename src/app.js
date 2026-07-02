@@ -47,6 +47,11 @@ nunjucksEnv.addFilter("tojson", (value, spaces) => {
 });
 nunjucksEnv.addFilter("forceescape", (value) => String(value == null ? "" : value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"));
 nunjucksEnv.addFilter("startsWith", (value, prefix) => String(value || "").startsWith(String(prefix || "")));
+// Nhãn tiếng Việt cho bài luyện nghe (thay chuỗi if/elif lặp trong template) — src/utils/labels.js
+const labels = require("./utils/labels");
+nunjucksEnv.addFilter("levelLabel", labels.levelLabel);
+nunjucksEnv.addFilter("topicLabel", labels.topicLabel);
+nunjucksEnv.addFilter("lengthLabel", labels.lengthLabel);
 nunjucksEnv.addFilter("datetime", (value) => {
   if (!value) return "";
   const date = new Date(value);

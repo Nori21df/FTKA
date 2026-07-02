@@ -68,6 +68,27 @@ Nguyên tắc: refactor thuần — UI/hành vi giữ nguyên; mọi khác biệ
 
 ---
 
+## Phase 2 — Filter nhãn level/topic/length (HOÀN THÀNH)
+
+### Đã đổi
+- `src/utils/labels.js` (module thuần, unit-test được): `levelLabel` (beginner/intermediate/advanced → Sơ/Trung/Cao cấp), `topicLabel` (8 chủ đề), `lengthLabel` (short/medium → Ngắn/Vừa). Fallback giữ đúng hành vi template cũ: level/topic lạ → `replace('_',' ')` + titleize (mô phỏng đúng `|title` Nunjucks — hoa chữ đầu, thường phần còn lại); length lạ → titleize không replace; topic tiếng Việt tự nhập (datalist) pass-through.
+- Đăng ký 3 filter trong `src/app.js` (cạnh các filter sẵn có).
+- `views/listening_practice.html`: thay đủ **8 chuỗi if/elif** (form ×2, list ×3, detail ×3) bằng `|levelLabel` / `|topicLabel` / `|lengthLabel`.
+- Unit test: `tests/unit/labels.test.mjs` (10 test — giá trị chuẩn, hoa thường, giá trị lạ, rỗng/undefined). Scripts: `test:unit`; `npm test` = lint + unit.
+
+### Khác biệt hành vi (chấp nhận, theo spec plan)
+- Giá trị **rỗng/undefined** trước render chuỗi rỗng, nay render `—` (plan quy định). Dữ liệu thực tế luôn có giá trị (form validate) nên không trang nào đổi — visual xác nhận.
+
+### Sự cố phát hiện khi verify
+- `.env` local có `PORT=8080` đứng sau **BOM** nên grep `^PORT=` trước đó không thấy — server tự chạy lên :8080 khi Playwright khởi động thay vì :3000 (trước giờ preview launcher tự ép PORT=3000 nên không lộ). Fix: `playwright.config.ts` webServer set `env.PORT="3000"` (dotenv không override env sẵn có).
+
+### Verification
+- `grep "== 'beginner'"` (và mọi giá trị level/topic/length) trong views/ → **0 kết quả**.
+- `npm test` pass (lint 0 vi phạm + 10 unit test).
+- Visual 45/45 pass ×2 lần — 3 snapshot listening **không đổi pixel nào** (refactor thuần).
+
+---
+
 ### Điều chỉnh kế hoạch các phase sau (từ kết quả xác minh)
 - **Phase 1**: sửa thêm 6 gate còn sót (billing ×2, payment_debug ×2, admin dashboard ×1, admin audio ×1).
 - **Phase 3**: quiz.html là 602 dòng (to gần gấp đôi ước tính); base.html giữ nguyên (helper chung — ngoài phạm vi); settings/ai_logs có thể đề xuất riêng sau.

@@ -11,7 +11,8 @@
     "test:visual": "playwright test tests/visual.spec.ts",
     "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots",
     "lint:templates": "node scripts/lint-templates.mjs",
-    "test": "npm run lint:templates"
+    "test": "npm run lint:templates && npm run test:unit",
+    "test:unit": "vitest run tests/unit"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

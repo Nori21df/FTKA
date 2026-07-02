@@ -27,6 +27,8 @@ export default defineConfig({
     command: "npm run dev",
     port: 3000,
     reuseExistingServer: true,
-    timeout: 30_000
+    timeout: 30_000,
+    // .env local có PORT=8080 (sau BOM); dotenv không override env sẵn có nên ép 3000 tại đây
+    env: { ...process.env, PORT: "3000" }
   }
 });

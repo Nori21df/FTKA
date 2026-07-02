@@ -20,12 +20,7 @@
             <label for="levelInput">Cấp độ</label>
             <select id="levelInput" name="level" class="listening-select" required>
                 {% for level in levels %}
-                <option value="{{ level }}">
-                    {% if level == 'beginner' %}Sơ cấp
-                    {% elif level == 'intermediate' %}Trung cấp
-                    {% elif level == 'advanced' %}Cao cấp
-                    {% else %}{{ level|replace('_', ' ')|title }}{% endif %}
-                </option>
+                <option value="{{ level }}">{{ level|levelLabel }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -49,11 +44,7 @@
             <label for="lengthInput">Độ dài</label>
             <select id="lengthInput" name="length" class="listening-select" required>
                 {% for length in lengths %}
-                <option value="{{ length }}">
-                    {% if length == 'short' %}Ngắn
-                    {% elif length == 'medium' %}Vừa
-                    {% else %}{{ length|title }}{% endif %}
-                </option>
+                <option value="{{ length }}">{{ length|lengthLabel }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -91,28 +82,9 @@
                     >
                         <span class="saved-lesson-title">{{ lesson.title }}</span>
                         <span class="saved-lesson-meta">
-                            <span class="listening-chip">
-                                {% if lesson.level == 'beginner' %}Sơ cấp
-                                {% elif lesson.level == 'intermediate' %}Trung cấp
-                                {% elif lesson.level == 'advanced' %}Cao cấp
-                                {% else %}{{ lesson.level|replace('_', ' ')|title }}{% endif %}
-                            </span>
-                            <span class="listening-chip">
-                                {% if lesson.topic == 'daily_life' %}Đời sống hàng ngày
-                                {% elif lesson.topic == 'school' %}Trường học
-                                {% elif lesson.topic == 'work' %}Công việc
-                                {% elif lesson.topic == 'travel' %}Du lịch
-                                {% elif lesson.topic == 'shopping' %}Mua sắm
-                                {% elif lesson.topic == 'food' %}Ẩm thực
-                                {% elif lesson.topic == 'weather' %}Thời tiết
-                                {% elif lesson.topic == 'culture' %}Văn hóa
-                                {% else %}{{ lesson.topic|replace('_', ' ')|title }}{% endif %}
-                            </span>
-                            <span class="listening-chip">
-                                {% if lesson.length == 'short' %}Ngắn
-                                {% elif lesson.length == 'medium' %}Vừa
-                                {% else %}{{ lesson.length|title }}{% endif %}
-                            </span>
+                            <span class="listening-chip">{{ lesson.level|levelLabel }}</span>
+                            <span class="listening-chip">{{ lesson.topic|topicLabel }}</span>
+                            <span class="listening-chip">{{ lesson.length|lengthLabel }}</span>
                         </span>
                         <span class="saved-lesson-date">{{ lesson.created_label or lesson.created_at }}</span>
                     </a>
@@ -142,28 +114,9 @@
                 <div class="lesson-detail-head">
                     <div>
                         <div class="lesson-meta">
-                            <span class="listening-chip">
-                                {% if selected_lesson.level == 'beginner' %}Sơ cấp
-                                {% elif selected_lesson.level == 'intermediate' %}Trung cấp
-                                {% elif selected_lesson.level == 'advanced' %}Cao cấp
-                                {% else %}{{ selected_lesson.level|replace('_', ' ')|title }}{% endif %}
-                            </span>
-                            <span class="listening-chip">
-                                {% if selected_lesson.topic == 'daily_life' %}Đời sống hàng ngày
-                                {% elif selected_lesson.topic == 'school' %}Trường học
-                                {% elif selected_lesson.topic == 'work' %}Công việc
-                                {% elif selected_lesson.topic == 'travel' %}Du lịch
-                                {% elif selected_lesson.topic == 'shopping' %}Mua sắm
-                                {% elif selected_lesson.topic == 'food' %}Ẩm thực
-                                {% elif selected_lesson.topic == 'weather' %}Thời tiết
-                                {% elif selected_lesson.topic == 'culture' %}Văn hóa
-                                {% else %}{{ selected_lesson.topic|replace('_', ' ')|title }}{% endif %}
-                            </span>
-                            <span class="listening-chip">
-                                {% if selected_lesson.length == 'short' %}Ngắn
-                                {% elif selected_lesson.length == 'medium' %}Vừa
-                                {% else %}{{ selected_lesson.length|title }}{% endif %}
-                            </span>
+                            <span class="listening-chip">{{ selected_lesson.level|levelLabel }}</span>
+                            <span class="listening-chip">{{ selected_lesson.topic|topicLabel }}</span>
+                            <span class="listening-chip">{{ selected_lesson.length|lengthLabel }}</span>
                         </div>
                         <h3 class="lesson-title">{{ selected_lesson.title }}</h3>
                     </div>
