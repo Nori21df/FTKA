@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { AUTH_FILE } from "./global-setup";
+import { AUTH_FILE, ADMIN_AUTH_FILE } from "./global-setup";
 
 /**
  * Lưới an toàn visual cho refactor frontend (Phase 0 — docs/REFACTOR_NOTES.md).
@@ -34,6 +34,16 @@ const AUTHED_PAGES = [
   { name: "quiz", path: "/quiz" },
   { name: "listening", path: "/listening-practice" },
   { name: "preferences", path: "/preferences" }
+] as const;
+
+// Trang admin: mask vùng động — console realtime (SSE, log đổi liên tục), badge trạng thái
+// kết nối, dòng "+x hôm nay" (đổi khi sang ngày), cột "Đăng nhập gần nhất" (đổi mỗi lần
+// global-setup đăng nhập user test).
+const ADMIN_PAGES = [
+  { name: "admin-dashboard", path: "/admin", mask: ["#rcConsole", "#consoleStatus", ".admin-kpi p"] },
+  { name: "admin-users", path: "/admin/users", mask: [".admin-table td:nth-child(7)"] },
+  { name: "admin-vocab", path: "/admin/vocab" },
+  { name: "settings", path: "/settings" }
 ] as const;
 
 async function settle(page: Page) {
@@ -72,6 +82,20 @@ for (const vp of VIEWPORTS) {
       reducedMotion: "reduce"
     });
     for (const p of AUTHED_PAGES) {
+      test(`${p.name} @ ${vp.name}`, async ({ page }) => {
+        await page.goto(p.path);
+        await shoot(page, p.name, vp.name, (p as any).mask ?? []);
+      });
+    }
+  });
+
+  test.describe(`admin @ ${vp.name}`, () => {
+    test.use({
+      viewport: { width: vp.width, height: vp.height },
+      storageState: ADMIN_AUTH_FILE,
+      reducedMotion: "reduce"
+    });
+    for (const p of ADMIN_PAGES) {
       test(`${p.name} @ ${vp.name}`, async ({ page }) => {
         await page.goto(p.path);
         await shoot(page, p.name, vp.name, (p as any).mask ?? []);

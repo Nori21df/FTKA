@@ -32,8 +32,10 @@ Nguyên tắc: refactor thuần — UI/hành vi giữ nguyên; mọi khác biệ
 
 ### Quyết định & giới hạn
 - **Tài khoản test**: `uxreviewer` / `ReviewPass2026!` — user thường, tạo từ trước qua luồng đăng ký + verify chính thức (link verify lấy từ log server `[DEV VERIFY EMAIL URL]` ở chế độ dev). Nếu DB dev bị xoá: đăng ký lại qua UI rồi mở link trong log.
+- **Tài khoản admin test** (được chủ repo duyệt tạo sau báo cáo Phase 0): `uxadmin` / `AdminReview2026!` — đăng ký qua UI + verify như trên, rồi promote `role='admin'` bằng UPDATE trực tiếp DB dev. Nếu DB bị xoá: lặp lại 2 bước đó.
+- **Baseline mở rộng sau duyệt**: thêm 4 trang admin × 3 viewport (tổng **15 trang × 3 = 45 snapshot**, chạy lại pass 45/45): `/admin` (mask `#rcConsole`, `#consoleStatus` — console SSE đổi liên tục; `.admin-kpi p` — "+x hôm nay" đổi khi sang ngày), `/admin/users` (mask cột 7 "Đăng nhập gần nhất" — đổi mỗi lần global-setup login), `/admin/vocab`, `/settings`.
 - **Trang BỎ QUA visual test (so tay khi refactor đụng tới)**:
-  - `/admin/*` và `/settings` — cần tài khoản **admin**; việc tự tạo admin trong DB bị chặn bởi permission trước đây. → *Cần bạn quyết: cấp tài khoản admin test, hoặc chấp nhận so tay.*
+  - Các trang admin còn lại (grammar, listening, audio, logs, ai_logs, energy, transactions, user_detail…) — cùng chung khung `admin/base.html` + bảng `admin-table` đã được 4 trang trên phủ; so tay khi phase nào đụng riêng chúng.
   - Chi tiết listening (`?lesson_id=`) — cần bài nghe do AI tạo (tốn quota, không deterministic). So tay.
   - `/account/billing` — feature flag đang tắt (redirect về dashboard).
 - Phụ thuộc ngoài: Google Fonts + Material Icons tải từ network — mất mạng khi chạy test sẽ lệch font hàng loạt (rủi ro chấp nhận, máy dev có mạng).
