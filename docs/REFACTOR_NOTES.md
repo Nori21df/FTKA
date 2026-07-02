@@ -89,6 +89,29 @@ Nguyên tắc: refactor thuần — UI/hành vi giữ nguyên; mọi khác biệ
 
 ---
 
+## Phase 3 — Tách JS inline ra module (HOÀN THÀNH)
+
+### Đã đổi
+- **Quiz** (`views/quiz.html` 767 → **72 dòng**, hết JS inline):
+  - `public/js/quiz/quizEngine.js` — logic thuần export được: `normalizeText/escapeHtml/formatText/shuffle/buildCards/buildOptions/buildTurn/requeueSpacing` (port 1:1 từ bản inline; `buildOptions`/`buildTurn` được tham số hoá `cards`/`exampleViPool` thay vì closure).
+  - `public/js/quiz/quizPage.js` — DOM binding + state + render (giữ nguyên chuỗi HTML render và `onclick=` → vẫn gắn `window.*` như cũ).
+  - Data island: `{% set quiz_page_data = {...} %}` + `<script id="quiz-data" type="application/json">{{ quiz_page_data|tojson }}</script>` (tojson escape `<>&` nên an toàn `</script`); URL `/vocab` truyền qua island (`vocab_url`) thay vì nội suy `url_for` trong JS.
+  - `pluralize` không nơi nào gọi → giữ trong engine kèm `// TODO(dead-code?)` theo nguyên tắc plan.
+- **Grammar** (`views/grammar.html` 384 → **142 dòng**, hết JS inline):
+  - `public/js/grammar/grammarFilters.js` — thuần: `cardMatches`, `shouldShowFilteredEmpty`.
+  - `public/js/grammar/grammarPage.js` — toàn bộ handler fetch/status (port nguyên văn); `addGrammarPattern` + `regenerateAllGrammarQuizzes` gắn `window.*` vì markup dùng `onclick=`. Script gốc không có nội suy Nunjucks nên không cần data island.
+- Unit tests mới: `tests/unit/quizEngine.test.mjs` (16) + `tests/unit/grammarFilters.test.mjs` (8) — tổng unit 34.
+
+### Verification
+- Hành vi (browser thật, user test): `/quiz` — thẻ self-check render, "Hiện đáp án" → banner kết quả, "Ôn lại" → chèn lại hàng đợi, "Xong hôm nay" → màn hoàn thành với link `/vocab` đúng từ island, progress 100%; `/grammar` — filter/search cập nhật "đang hiển thị", hộp lọc-rỗng ẩn đúng khi chưa có dữ liệu, window fns đủ. **0 lỗi console.**
+- `npm test` pass (lint + 34 unit). Visual **45/45 ×2** — quiz + grammar không đổi pixel.
+- Chưa kiểm tay được trên tài khoản CÓ dữ liệu grammar (thêm mẫu cần gọi AI): các handler mutation là port nguyên văn + filter đã unit-test; khuyến nghị chủ repo bấm thử "Tạo ngữ pháp"/"Quiz"/xoá 1 lần khi tiện.
+
+### Ngoài phạm vi (đề xuất sau)
+- `settings.html` (222 dòng inline), `admin/ai_logs.html` (161), `base.html` (171 — helper chung), `generator.html` (158): plan chỉ yêu cầu quiz + grammar; các file này để đợt riêng nếu muốn.
+
+---
+
 ### Điều chỉnh kế hoạch các phase sau (từ kết quả xác minh)
 - **Phase 1**: sửa thêm 6 gate còn sót (billing ×2, payment_debug ×2, admin dashboard ×1, admin audio ×1).
 - **Phase 3**: quiz.html là 602 dòng (to gần gấp đôi ước tính); base.html giữ nguyên (helper chung — ngoài phạm vi); settings/ai_logs có thể đề xuất riêng sau.
