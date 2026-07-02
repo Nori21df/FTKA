@@ -24,7 +24,7 @@
             <h3>Orders</h3>
             <a class="secondary-cta" href="{{ url_for('pricing') }}">Buy Premium</a>
         </div>
-        {% if orders %}
+        {% if orders|length %}
         <div class="admin-table-wrap">
             <table class="admin-table">
                 <thead>
@@ -53,7 +53,7 @@
         <div class="billing-panel-head">
             <h3>Payment history</h3>
         </div>
-        {% if payments %}
+        {% if payments|length %}
         <div class="admin-table-wrap">
             <table class="admin-table">
                 <thead>

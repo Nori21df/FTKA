@@ -10,7 +10,7 @@
 
 <section class="admin-panel">
     <h3>Latest orders</h3>
-    {% if orders %}
+    {% if orders|length %}
     <div class="admin-table-wrap">
         <table class="admin-table">
             <thead>
@@ -46,7 +46,7 @@
 
 <section class="admin-panel">
     <h3>Latest webhook events</h3>
-    {% if webhook_events %}
+    {% if webhook_events|length %}
     <div class="admin-table-wrap">
         <table class="admin-table">
             <thead>

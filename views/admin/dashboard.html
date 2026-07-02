@@ -30,7 +30,7 @@
 
 <section class="admin-panel">
     <h3>Lỗi gần đây</h3>
-    {% if recent_errors %}
+    {% if recent_errors|length %}
     <div class="admin-table-wrap">
         <table class="admin-table">
             <thead><tr><th>Nguồn</th><th>Tham chiếu</th><th>Thông báo</th><th>Ngày tạo</th></tr></thead>

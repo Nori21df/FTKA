@@ -41,6 +41,33 @@ Nguyên tắc: refactor thuần — UI/hành vi giữ nguyên; mọi khác biệ
 - Phụ thuộc ngoài: Google Fonts + Material Icons tải từ network — mất mạng khi chạy test sẽ lệch font hàng loạt (rủi ro chấp nhận, máy dev có mạng).
 - `AUDIT_REPORT.md` đang bị xoá trong working tree từ trước khi bắt đầu — không thuộc refactor này, không commit thay đổi đó.
 
+---
+
+## Phase 1 — Chốt lỗi Nunjucks array-truthiness (HOÀN THÀNH)
+
+### Đã đổi
+- Sửa nốt **6 gate biến-mảng còn sót** sang `|length`: `account/billing.html:27,56` (orders/payments), `admin/payment_debug.html:13,49` (orders/webhook_events), `admin/dashboard.html:33` (recent_errors), `admin/audio.html:10` (records — gate chip đếm).
+- Viết `scripts/lint-templates.mjs` + registry `scripts/template-array-vars.json`:
+  - Bắt `{% if X %}` / `{% elif X %}` / `{% if not X %}` với X là identifier đơn (kể cả `a.b.c`).
+  - Khớp registry (tên đầy đủ hoặc segment cuối) → **vi phạm, exit 1**; hậu tố kiểu mảng (`*s`, `*List`, `*Items`, `*Array`) ngoài registry → **cảnh báo, không fail** (tránh false-positive như `status`, `success`).
+  - Ngoại lệ cố ý: comment `{# lint-ok #}` cùng dòng hoặc danh sách `allow` trong JSON (`exists`, `stats`, `status`…).
+- Scripts: `lint:templates`; `npm test` = `lint:templates` (Phase 8 sẽ nối thêm unit test).
+
+### Vì sao / quyết định
+- Heuristic hậu tố chỉ cảnh báo chứ không fail: tên tiếng Anh kết thúc bằng `s` quá phổ biến (status/success/progress) — registry mới là nguồn chặn cứng; khi thêm biến-mảng mới vào template thì thêm vào registry.
+- `record.exists` (boolean) bị heuristic nghi nhầm → thêm `exists` vào allow.
+
+### Thay đổi hình ảnh CÓ CHỦ ĐÍCH (bug fix của phase)
+- `/admin` (3 viewport): panel "Lỗi gần đây" với DB không có lỗi trước đây render **bảng rỗng chỉ có header**, nay hiện đúng message "Chưa có lỗi được lưu gần đây." → đã cập nhật 3 snapshot admin-dashboard. Không còn diff nào khác.
+- billing/payment_debug/audio có cùng loại thay đổi khi dữ liệu rỗng nhưng không nằm trong bộ snapshot (billing bị flag tắt; payment_debug/audio so tay khi cần).
+
+### Verification
+- `npm test` (lint) sạch: 0 vi phạm, 0 cảnh báo.
+- Gieo vi phạm giả (`views/_lint_probe.html` với `{% if orders %}`) → script bắt đúng, exit 1 → gỡ → sạch lại.
+- Visual: 45/45 pass, chạy 2 lần liên tiếp không flaky (sau khi cập nhật 3 snapshot khai báo ở trên).
+
+---
+
 ### Điều chỉnh kế hoạch các phase sau (từ kết quả xác minh)
 - **Phase 1**: sửa thêm 6 gate còn sót (billing ×2, payment_debug ×2, admin dashboard ×1, admin audio ×1).
 - **Phase 3**: quiz.html là 602 dòng (to gần gấp đôi ước tính); base.html giữ nguyên (helper chung — ngoài phạm vi); settings/ai_logs có thể đề xuất riêng sau.

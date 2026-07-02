@@ -9,7 +9,9 @@
     "start": "node src/server.js",
     "check": "node --check src/server.js",
     "test:visual": "playwright test tests/visual.spec.ts",
-    "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots"
+    "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots",
+    "lint:templates": "node scripts/lint-templates.mjs",
+    "test": "npm run lint:templates"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
