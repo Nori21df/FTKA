@@ -24,3 +24,7 @@ data/
 public/audio/*.mp3
 .claude/
 .agents/
+# test artifacts (refactor safety net)
+test-results/
+playwright-report/
+tests/.auth/

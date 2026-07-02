@@ -1,0 +1,28 @@
+{
+  "vocab_items": [
+    {
+      "id": "seed-visual-0001",
+      "korean": "학교",
+      "meaning_vi": "trường học",
+      "explanation_vi": "Danh từ chỉ nơi học tập.",
+      "example_kr": "저는 학교에 갑니다.",
+      "example_vi": "Tôi đi đến trường.",
+      "tts_text": "학교",
+      "learned": false,
+      "created_at": "2026-01-01T00:00:00.000Z",
+      "source": "visual-test-seed"
+    },
+    {
+      "id": "seed-visual-0002",
+      "korean": "친구",
+      "meaning_vi": "bạn bè",
+      "explanation_vi": "Danh từ chỉ người bạn.",
+      "example_kr": "친구를 만나요.",
+      "example_vi": "Tôi gặp bạn.",
+      "tts_text": "친구",
+      "learned": true,
+      "created_at": "2026-01-02T00:00:00.000Z",
+      "source": "visual-test-seed"
+    }
+  ]
+}

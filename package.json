@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "node src/server.js",
     "start": "node src/server.js",
-    "check": "node --check src/server.js"
+    "check": "node --check src/server.js",
+    "test:visual": "playwright test tests/visual.spec.ts",
+    "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -28,5 +30,9 @@
     "sepay-pg-node": "^1.0.0",
     "socket.io": "^4.8.3",
     "uuid": "^11.0.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "vitest": "^4.1.9"
   }
 }
