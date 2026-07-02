@@ -15,6 +15,10 @@ import { AUTH_FILE, ADMIN_AUTH_FILE } from "./global-setup";
 const VIEWPORTS = [
   { name: "desktop-1440", width: 1440, height: 900 },
   { name: "tablet-899", width: 899, height: 900 },
+  // 2 viewport bổ sung trước Phase 4 (gộp CSS): phủ band 641–768 và 561–640 —
+  // vùng của khối @media 768px (49 rule) và 640px mà 3 viewport gốc không chạm tới.
+  { name: "mid-768", width: 768, height: 900 },
+  { name: "mid-640", width: 640, height: 900 },
   { name: "mobile-390", width: 390, height: 844 }
 ] as const;
 
