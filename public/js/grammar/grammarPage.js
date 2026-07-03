@@ -230,13 +230,26 @@ async function deleteGrammar(id) {
             body: JSON.stringify({ id: id })
         });
 
-        if (response.ok) {
-            window.location.reload();
-        } else {
+        if (!response.ok) {
             throw new Error('Xoá ngữ pháp thất bại.');
         }
+
+        // Cập nhật cục bộ: gỡ thẻ khỏi lưới, giữ nguyên bộ lọc + vị trí cuộn (thay cho reload).
+        const card = document.getElementById(`grammar-card-${id}`);
+        if (card) card.remove();
+
+        const grid = document.getElementById('grammarGrid');
+        if (grid && grid.querySelectorAll('.grammar-card').length === 0 && !grid.querySelector('.grammar-empty-state')) {
+            const empty = document.createElement('div');
+            empty.className = 'grammar-empty-state';
+            empty.textContent = 'Chưa có ngữ pháp nào được lưu. Khi bạn bắt đầu tạo các mẫu câu, chúng sẽ xuất hiện ở đây để bạn tìm kiếm và ôn tập.';
+            grid.appendChild(empty);
+        }
+        applyGrammarFilters();
+        if (window.showToast) window.showToast('Đã xoá mẫu ngữ pháp.', 'success');
     } catch (error) {
-        alert(error.message || 'Xoá ngữ pháp thất bại.');
+        if (window.showToast) window.showToast(error.message || 'Xoá ngữ pháp thất bại.', 'error');
+        else alert(error.message || 'Xoá ngữ pháp thất bại.');
     }
 }
 

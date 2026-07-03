@@ -98,6 +98,17 @@ function answerGrammarQuestion(optionIndex) {
     feedback.classList.add('is-visible');
 }
 
+function restartGrammarQuiz() {
+    // "Làm lại": deck đã có sẵn client-side, chỉ reset trạng thái — không cần reload trang.
+    grammarQuizIndex = 0;
+    grammarQuizScore = 0;
+    grammarQuizAnswered = false;
+    const nextBtn = document.getElementById('grammarQuizNext');
+    nextBtn.textContent = 'Câu tiếp theo';
+    nextBtn.onclick = nextGrammarQuestion;
+    renderGrammarQuestion();
+}
+
 function nextGrammarQuestion() {
     if (grammarQuizIndex >= grammarQuizDeck.length - 1) {
         document.getElementById('grammarQuizQuestion').textContent = 'Hoàn thành';
@@ -105,7 +116,7 @@ function nextGrammarQuestion() {
         document.getElementById('grammarQuizOptions').innerHTML = '';
         document.getElementById('grammarQuizFeedback').classList.remove('is-visible');
         document.getElementById('grammarQuizNext').textContent = 'Làm lại';
-        document.getElementById('grammarQuizNext').onclick = () => window.location.reload();
+        document.getElementById('grammarQuizNext').onclick = restartGrammarQuiz;
         return;
     }
     grammarQuizIndex += 1;

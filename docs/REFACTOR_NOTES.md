@@ -147,6 +147,31 @@ Công cụ: `scripts/css-inventory.mjs` (giữ lại để chạy kiểm tra tro
 
 ---
 
+## Phase 5 — Thay reload() bằng cập nhật cục bộ (HOÀN THÀNH)
+
+### 10 call site — quyết định từng cái
+| Call site | Loại | Xử lý |
+|---|---|---|
+| `grammarPage.js` xoá ngữ pháp | mutation, DỄ | **→ cục bộ**: gỡ `#grammar-card-{id}`, chèn grid empty-state nếu hết thẻ, chạy lại `applyGrammarFilters()` (giữ bộ lọc + cuộn), toast. |
+| `vocab.html` tạo thư mục | mutation, DỄ | **→ cục bộ**: `buildGroupRow`/`ensureGroupTableBody` (createElement, không XSS), thêm `<option>`, giữ `<details>` đang mở. |
+| `vocab.html` xoá thư mục | mutation, VỪA | **→ cục bộ**: gỡ hàng + option (thêm `data-group-id` vào `<tr>`), thay bảng bằng empty-state khi hết. |
+| `grammar_quiz.html` "Làm lại" | KHÔNG mutation | **→ reset state** `restartGrammarQuiz()` (deck đã ở client), không reload. |
+| `vocab.html` reset tiến độ (`resetLearned`) | mutation | **giữ reload** — reset toàn bộ tiến độ + phải dựng lại deck flashcard (nhúng server-side `#vocab-data`); reload là đúng & rẻ nhất. |
+| `vocab.html` thêm từ thủ công | mutation, KHÓ | **giữ reload** — thẻ + deck render server-side; dựng markup client dễ lệch template. |
+| `vocab.html` import JSON | mutation, KHÓ | **giữ reload** — nhập hàng loạt, nhiều vùng server-render. |
+| `grammarPage.js` thêm ngữ pháp (delay 700ms) | mutation, VỪA | **giữ reload** — card grammar render server-side (nhiều cấu trúc); giữ delay đọc thông báo. |
+| `quiz.html`/`quizPage.js` "Làm lượt khác" | KHÔNG mutation | **giữ reload** — "lượt khác" = deck trộn MỚI từ server (`ORDER BY RANDOM()`); reload chính là hành vi đúng. |
+| `admin/payment_debug.html` dừng/xoá đơn | mutation, DỄ | **giữ reload** — code thanh toán nhạy cảm, không tạo được đơn `pending` để verify local update; trang admin ít dùng. Ghi lại làm follow-up nếu cần. |
+
+### Verification (browser thật, tài khoản test + seed tạm)
+- **grammar xoá**: 2→1→0 thẻ, "N đang hiển thị" cập nhật, grid empty-state chèn khi hết, **không rời trang**; 0 lỗi console.
+- **vocab tạo thư mục**: tên chứa `<b>"& 학교` → render **text-safe** (không inject), hàng + option thêm, `<details>` **vẫn mở**, count=0.
+- **vocab xoá thư mục**: gỡ hàng + option, bảng → empty-state "Chưa có thư mục."
+- **grammar-quiz "Làm lại"**: reset về Câu 1/2, Điểm 0, options render lại, nhãn nút về "Câu tiếp theo", **không reload**.
+- Dọn sạch seed sau test. `npm test` pass (lint + 34 unit). Visual **75/75 ×2** — không đổi pixel (thêm `data-group-id` không ảnh hưởng render).
+
+---
+
 ### Điều chỉnh kế hoạch các phase sau (từ kết quả xác minh)
 - **Phase 1**: sửa thêm 6 gate còn sót (billing ×2, payment_debug ×2, admin dashboard ×1, admin audio ×1).
 - **Phase 3**: quiz.html là 602 dòng (to gần gấp đôi ước tính); base.html giữ nguyên (helper chung — ngoài phạm vi); settings/ai_logs có thể đề xuất riêng sau.

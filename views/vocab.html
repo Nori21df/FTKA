@@ -80,7 +80,7 @@
                         <thead><tr><th>Thư mục</th><th>Số từ</th><th>Thao tác</th></tr></thead>
                         <tbody>
                             {% for group in vocab_groups %}
-                            <tr>
+                            <tr data-group-id="{{ group.id }}">
                                 <td><span class="dictionary-group-name">{{ group.name }}</span></td>
                                 <td><span class="dictionary-group-count">{{ group.count }}</span></td>
                                 <td><button type="button" class="dictionary-group-delete-button" onclick='deleteGroup({{ group.id|tojson }}, {{ group.name|tojson }})' title="Xoá thư mục"><span class="material-icons-outlined">delete_outline</span></button></td>
@@ -111,6 +111,45 @@
             window.location.reload();
         } catch (error) { window.showToast(error.message || 'Đặt lại tiến độ thất bại.', 'error'); }
     }
+    // Bảng thư mục: dựng lại 1 hàng đúng markup template (dùng createElement để không dính XSS
+    // từ tên thư mục người dùng nhập). Trả về <tr>.
+    function buildGroupRow(group) {
+        const tr = document.createElement('tr');
+        tr.dataset.groupId = String(group.id);
+        const nameTd = document.createElement('td');
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'dictionary-group-name';
+        nameSpan.textContent = group.name;
+        nameTd.appendChild(nameSpan);
+        const countTd = document.createElement('td');
+        const countSpan = document.createElement('span');
+        countSpan.className = 'dictionary-group-count';
+        countSpan.textContent = String(group.count || 0);
+        countTd.appendChild(countSpan);
+        const actionTd = document.createElement('td');
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'dictionary-group-delete-button';
+        delBtn.title = 'Xoá thư mục';
+        delBtn.innerHTML = '<span class="material-icons-outlined">delete_outline</span>';
+        delBtn.addEventListener('click', () => deleteGroup(group.id, group.name));
+        actionTd.appendChild(delBtn);
+        tr.append(nameTd, countTd, actionTd);
+        return tr;
+    }
+    // Đảm bảo có bảng thư mục (khi trước đó đang là empty-state "Chưa có thư mục") và trả về tbody.
+    function ensureGroupTableBody() {
+        const panel = document.querySelector('.anki-folder-panel');
+        let tbody = panel.querySelector('.dictionary-group-table tbody');
+        if (tbody) return tbody;
+        const empty = panel.querySelector('.dictionary-empty-state');
+        const wrap = document.createElement('div');
+        wrap.className = 'dictionary-group-table-wrap';
+        wrap.style.marginTop = '14px';
+        wrap.innerHTML = '<table class="dictionary-group-table"><thead><tr><th>Thư mục</th><th>Số từ</th><th>Thao tác</th></tr></thead><tbody></tbody></table>';
+        if (empty) empty.replaceWith(wrap); else panel.appendChild(wrap);
+        return wrap.querySelector('tbody');
+    }
     async function createGroup() {
         const input = document.getElementById('groupNameInput'); const button = document.getElementById('createGroupBtn'); const name = input.value.trim();
         if (!name) return window.showToast('Vui lòng nhập tên thư mục trước.', 'error');
@@ -118,7 +157,18 @@
         try {
             const response = await fetch('/api/vocab_groups', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
             if (!response.ok) throw new Error(await readApiError(response, 'Tạo thư mục thất bại.'));
-            const data = await response.json(); if (!data.success) throw new Error(data.error || 'Tạo thư mục thất bại.'); window.location.reload();
+            const data = await response.json(); if (!data.success || !data.group) throw new Error(data.error || 'Tạo thư mục thất bại.');
+            // Cập nhật cục bộ: thêm hàng vào bảng + option vào select, giữ nguyên panel đang mở.
+            ensureGroupTableBody().appendChild(buildGroupRow(data.group));
+            const select = document.getElementById('manualGroup');
+            if (select) {
+                const opt = document.createElement('option');
+                opt.value = String(data.group.id);
+                opt.textContent = data.group.name;
+                select.appendChild(opt);
+            }
+            input.value = '';
+            window.showToast('Đã tạo thư mục.', 'success');
         } catch (error) { window.showToast(error.message || 'Tạo thư mục thất bại.', 'error'); }
         finally { button.disabled = false; button.innerHTML = '<span class="material-icons-outlined">create_new_folder</span>Tạo thư mục'; }
     }
@@ -128,7 +178,23 @@
         try {
             const response = await fetch('/api/vocab_groups/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ group_id: groupId }) });
             if (!response.ok) throw new Error(await readApiError(response, 'Xoá thư mục thất bại.'));
-            const data = await response.json(); if (!data.success) throw new Error(data.error || 'Xoá thư mục thất bại.'); window.location.reload();
+            const data = await response.json(); if (!data.success) throw new Error(data.error || 'Xoá thư mục thất bại.');
+            // Cập nhật cục bộ: gỡ hàng + option; nếu hết thư mục thì thay bảng bằng empty-state.
+            const idStr = window.CSS && CSS.escape ? CSS.escape(String(groupId)) : String(groupId);
+            const row = document.querySelector(`.dictionary-group-table tr[data-group-id="${idStr}"]`);
+            if (row) row.remove();
+            const opt = document.querySelector(`#manualGroup option[value="${idStr}"]`);
+            if (opt) opt.remove();
+            const panel = document.querySelector('.anki-folder-panel');
+            const wrap = panel.querySelector('.dictionary-group-table-wrap');
+            if (wrap && panel.querySelectorAll('.dictionary-group-table tbody tr').length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'dictionary-empty-state';
+                empty.style.marginTop = '18px';
+                empty.textContent = 'Chưa có thư mục.';
+                wrap.replaceWith(empty);
+            }
+            window.showToast('Đã xoá thư mục.', 'success');
         } catch (error) { window.showToast(error.message || 'Xoá thư mục thất bại.', 'error'); }
     }
     async function manualAdd() {
