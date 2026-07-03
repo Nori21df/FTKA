@@ -210,6 +210,45 @@ Xác minh Phase 0 đã chỉ ra: `ui_theme` DB **là dead code** (không nơi n�
 
 ---
 
+## Phase 8 — Chốt nền tảng test (HOÀN THÀNH)
+
+### Đã có (tích luỹ qua các phase)
+- **Unit (Vitest)** `tests/unit/` — 34 test: `labels` (10), `quizEngine` (16), `grammarFilters` (8).
+- **Lint template** `scripts/lint-templates.mjs` + registry — chặn array-truthiness.
+- **Visual (Playwright)** `tests/visual.spec.ts` — 15 trang × 5 viewport = 75 snapshot.
+
+### Thêm ở Phase 8
+- **Smoke hành vi** `tests/e2e.spec.ts` (4 test): trang chủ load không lỗi console; hoàn thành 1 lượt quiz (dùng "Xong hôm nay" = client-only, **không mutate DB** để giữ seed ổn định); đổi theme áp ngay + lưu cookie; sidebar mobile mở/đóng ở 390px. **4/4 pass.**
+- **Scripts** phân tầng: `npm test` = `lint:templates` + `test:unit` (nhanh, chạy thường xuyên); `test:e2e` và `test:visual` tách riêng (cần server + baseline).
+- **`CLAUDE.md`**: cách chạy dev/test + **4 quy ước bắt buộc** (a: `|length` gate mảng; b: không JS inline mới; c: hệ nút chuẩn `UI_GUIDE.md`; d: theme qua theme.js/viewContext).
+
+### Verification
+- `npm test` pass (lint + 34 unit); `npm run test:e2e` 4/4; `npm run test:visual` 75/75 ×2.
+
+---
+
+## Tổng kết 8 hạng mục (cuối)
+
+| # | Hạng mục | Trạng thái | File chính |
+|---|---|---|---|
+| 1 | Gộp `style.css` | ✅ Xong | style.css (21→8 khối @media), css-inventory/merge-media.mjs |
+| 2 | Array-truthiness | ✅ Xong | 6 gate sót + scripts/lint-templates.mjs |
+| 3 | Tách JS inline | ✅ Xong (quiz+grammar) | public/js/quiz, public/js/grammar (settings/ai_logs để lại) |
+| 4 | reload → cục bộ | ✅ Xong (4/10) | grammarPage, vocab.html, grammar_quiz.html (6 chỗ giữ reload có lý do) |
+| 5 | Filter nhãn | ✅ Xong | src/utils/labels.js + listening_practice.html |
+| 6 | Một hệ nút | 🟡 Một phần | xoá 15 class chết + UI_GUIDE; **migration diện rộng chờ duyệt (6b)** |
+| 7 | Hai trục theme | ✅ Xong (thu hẹp) | public/js/theme.js, viewContext.js; **dọn ui_theme DB chờ (7b)** |
+| 8 | Nền tảng test | ✅ Xong | tests/unit + e2e + visual, CLAUDE.md |
+
+**Số liệu:** `style.css` 5342 → ~5376 dòng (rule giảm nhưng thêm comment TOC/giải thích), khối @media **21 → 8**; JS inline: quiz.html 767→72, grammar.html 384→142 (còn settings/ai_logs/base ngoài phạm vi); test: **34 unit + 4 e2e + 75 visual + lint**.
+
+**Còn nợ cần chủ repo quyết (đều là thay đổi lớn/backend, cố ý không tự làm):**
+- **6b** — migrate ~75 usage button-base (admin/auth/settings/payment) sang `.dv-cta` (đổi diện mạo diện rộng).
+- **7b** — số phận `ui_theme` DB (dead): xoá endpoint+cột, hay nối lại làm dark/light độc lập skin.
+- Tách JS inline cho `settings.html` (222 dòng) / `admin/ai_logs.html` (161) nếu muốn triệt để hạng mục 3.
+
+---
+
 ### Điều chỉnh kế hoạch các phase sau (từ kết quả xác minh)
 - **Phase 1**: sửa thêm 6 gate còn sót (billing ×2, payment_debug ×2, admin dashboard ×1, admin audio ×1).
 - **Phase 3**: quiz.html là 602 dòng (to gần gấp đôi ước tính); base.html giữ nguyên (helper chung — ngoài phạm vi); settings/ai_logs có thể đề xuất riêng sau.
