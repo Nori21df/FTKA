@@ -191,6 +191,25 @@ Không phải 2 hệ CTA nhỏ song song, mà là **3 nhóm**:
 
 ---
 
+## Phase 7 — Làm rõ hai trục theme (HOÀN THÀNH — bản thu hẹp theo thực tế)
+
+Xác minh Phase 0 đã chỉ ra: `ui_theme` DB **là dead code** (không nơi nào đọc để render, endpoint không có caller), và **không FOUC** (server render sẵn). Nên Phase 7 làm bản "gom JS + tài liệu" như plan cho phép, **không** dựng theme.js chống-FOUC (thừa) và **không** đụng CSS token (đang chạy đúng) hay DB/endpoint (backend, ngoài phạm vi).
+
+### Đã đổi
+- **`public/js/theme.js`** (`window.ftkaTheme`): nơi DUY NHẤT phía client đọc/ghi cookie `ftka_style` + áp skin (`applyStyle` set `data-style` + toggle `ftka-dark-ui/light-ui`, logic `midnight→dark` nằm ở đây). `preferences.html` bỏ inline duplicate, gọi `ftkaTheme.applyStyle()`.
+- **`src/middleware/viewContext.js`**: gỡ 2 local chết `userTheme`/`theme` (đọc `ui_theme` DB nhưng không dùng — `effectiveTheme` suy thuần từ skin) + import `settingsService` thành thừa nên gỡ luôn; thêm comment nêu rõ 1 trục điều khiển + `ui_theme` DB đang inert (TODO dead-code cho Phase 7b).
+- **`docs/UI_GUIDE.md`** mục Theme: bảng 2 trục + trục `ui_theme` inert; 2 nơi xử lý (server viewContext / client theme.js) phải khớp; cách thêm skin mới; điều cấm (không đọc/ghi cookie theme ngoài theme.js).
+
+### Còn nợ (Phase 7b — cần chủ repo quyết, backend)
+- Số phận `ui_theme` DB: hiện dead. Nếu bỏ hẳn → xoá `POST /api/preferences` (api.js) + `authService.updateUserThemePreference` + cột `users.ui_theme`. Nếu giữ (làm dark/light độc lập skin) → phải nối lại vào `viewContext` + thêm UI. Chưa làm vì đụng backend/DB, ngoài phạm vi refactor frontend.
+
+### Verification (≥4 tổ hợp skin × sáng/tối, browser thật)
+- Bấm Midnight → `data-style=midnight` + `ftka-dark-ui` + cookie; Warm → light + cookie; Neo → cookie; `ftkaTheme.readStyle()` đọc lại đúng; aria-pressed cập nhật. Đổi skin không phá dark/light của skin khác.
+- SSR: đặt cookie `midnight` rồi fetch `/dashboard` → `<body class="ftka-dark-ui" data-style="midnight">` render sẵn (không FOUC), độc lập `ui_theme` DB đã gỡ.
+- 0 lỗi console; `npm test` + visual **75/75 ×2** — không đổi pixel.
+
+---
+
 ### Điều chỉnh kế hoạch các phase sau (từ kết quả xác minh)
 - **Phase 1**: sửa thêm 6 gate còn sót (billing ×2, payment_debug ×2, admin dashboard ×1, admin audio ×1).
 - **Phase 3**: quiz.html là 602 dòng (to gần gấp đôi ước tính); base.html giữ nguyên (helper chung — ngoài phạm vi); settings/ai_logs có thể đề xuất riêng sau.

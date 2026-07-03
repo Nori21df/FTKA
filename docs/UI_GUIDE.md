@@ -45,6 +45,21 @@ Không hợp nhất vào 2 nhóm trên vì khác chức năng/kích thước:
 > đòi restyle toàn bộ nút admin/auth/settings/payment → **thay đổi hình ảnh diện rộng**, phải review
 > per-trang. Hiện giữ button-base làm lớp legacy + `.dv-cta` cho nút mới; xoá dead class là bước an toàn đã làm.
 
-## 2. Theme — hai trục (xem thêm Phase 7 trong REFACTOR_NOTES)
-- `data-style` = **skin/palette** (6 bộ: studio/warm/midnight/glass/clay/neo; cookie `ftka_style`; mặc định `neo`).
-- Sáng/tối suy từ skin (`midnight` → dark). *(Chi tiết & việc dọn `ui_theme` DB: Phase 7.)*
+## 2. Theme — hai trục
+
+FTKA có 2 trục theme, nhưng **hiện chỉ 1 trục điều khiển giao diện**:
+
+| Trục | Là gì | Nguồn | Vai trò hiện tại |
+|---|---|---|---|
+| **skin** (`data-style`) | 6 palette: studio / warm / midnight / glass / clay / neo | cookie `ftka_style` (mặc định `neo`) | **NGUỒN SỰ THẬT** |
+| **sáng/tối** (`ftka-dark-ui`/`ftka-light-ui`) | nền sáng hay tối | **suy trực tiếp từ skin**: `midnight → dark`, còn lại `light` | phụ thuộc skin |
+| ~~`ui_theme` (DB)~~ | dark/light lưu theo user | cột `users.ui_theme` + `POST /api/preferences` | **INERT** — không được đọc để render, không có UI gọi (dead code, chờ Phase 7b quyết) |
+
+### Nơi xử lý theme (chỉ 2 chỗ, phải khớp nhau)
+- **Server** `src/middleware/viewContext.js`: đọc cookie → `res.locals.ui_style` + `ui_theme_class`, render sẵn lên `<body>` (nên **không FOUC**).
+- **Client** `public/js/theme.js` (`window.ftkaTheme`): **nơi DUY NHẤT** phía client đọc/ghi cookie + áp skin. Bộ chọn ở `auth/preferences.html` gọi `ftkaTheme.applyStyle(style)` (áp ngay, không reload).
+
+### Cấm & cách mở rộng
+- **Cấm** đọc/ghi cookie `ftka_style` hay set `data-style`/class dark-ui trực tiếp ở nơi khác — luôn qua `theme.js` (client) / `viewContext.js` (server).
+- **Thêm skin mới**: (1) thêm block token `body[data-style="X"]` trong `style.css` (đặt SAU `.ftka-dark-ui` để thắng cascade); (2) thêm tên vào `VALID_STYLES` ở **cả** `theme.js` và `viewContext.js`; (3) thêm card vào `preferences.html`; (4) nếu skin nền tối → thêm vào `DARK_STYLES` (theme.js) và điều kiện `midnight` (viewContext.js) — **giữ 2 nơi khớp nhau**.
+- **Logic sáng/tối** chỉ nằm ở 2 chỗ trên; đừng rải ra template/JS khác.

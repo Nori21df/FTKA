@@ -1,4 +1,3 @@
-const settingsService = require("../services/settingsService");
 const { urlFor } = require("../utils/urls");
 const energyService = require("../services/energyService");
 
@@ -73,12 +72,11 @@ function parseStyleCookie(req) {
 }
 
 async function viewContext(req, res, next) {
-  const config = settingsService.getConfig();
-  const userTheme = req.currentUser && ["dark", "light"].includes(String(req.currentUser.ui_theme || "").toLowerCase())
-    ? String(req.currentUser.ui_theme).toLowerCase()
-    : null;
-  const theme = userTheme || (config.dark_theme ? "dark" : "light");
-  // Style là "nguồn sự thật" cho giao diện. Mặc định cho user mới (chưa chọn): NEO.
+  // Theme có 2 trục nhưng hiện chỉ 1 trục điều khiển giao diện:
+  //   - data-style (skin, cookie ftka_style) = NGUỒN SỰ THẬT. Mặc định user mới: NEO.
+  //   - sáng/tối SUY TRỰC TIẾP từ skin (midnight → dark). Phải khớp public/js/theme.js (client).
+  // Cột ui_theme trong DB (+ POST /api/preferences) hiện KHÔNG được đọc để render —
+  // xem docs/UI_GUIDE.md mục Theme. TODO(dead-code?): dọn khi có quyết định ở Phase 7b.
   const style = parseStyleCookie(req) || "neo";
   const effectiveTheme = style === "midnight" ? "dark" : "light";
 

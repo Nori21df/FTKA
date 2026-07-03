@@ -41,6 +41,7 @@
 .style-card:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
 </style>
 
+<script src="/static/js/theme.js"></script>
 <script>
 (function(){
     const current = {{ ui_style|tojson }};
@@ -48,11 +49,9 @@
     const msg = document.getElementById('preferencesMessage');
     function mark(v){ grid.querySelectorAll('.style-card').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.style === v))); }
     function apply(v){
-        document.body.setAttribute('data-style', v);
-        document.body.classList.toggle('ftka-dark-ui', v === 'midnight');
-        document.body.classList.toggle('ftka-light-ui', v !== 'midnight');
-        document.cookie = 'ftka_style=' + v + ';path=/;max-age=31536000;samesite=lax';
-        mark(v);
+        // Áp + lưu skin qua nơi duy nhất (theme.js); logic sáng/tối nằm ở đó.
+        const style = window.ftkaTheme.applyStyle(v);
+        mark(style);
         msg.textContent = 'Đã áp dụng phong cách. Mọi trang sẽ dùng giao diện này.';
         msg.className = 'prefs-message visible';
     }
