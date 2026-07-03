@@ -6,12 +6,14 @@ const { ensureAuthSchema } = require("./services/authService");
 const authService = require("./services/authService");
 const { ensureBillingSchema } = require("./services/sepay.service");
 const { ensureEnergySchema } = require("./services/energyService");
+const { ensureDailySchema } = require("./services/dailyService");
 const { initEnergySocket } = require("./services/energySocket");
 
 async function start() {
   await ensureAuthSchema();
   await ensureBillingSchema();
   await ensureEnergySchema();
+  await ensureDailySchema();
   const server = http.createServer(app);
   const io = new Server(server);
   initEnergySocket(io, sessionMiddleware, authService);

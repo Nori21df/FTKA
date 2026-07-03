@@ -8,6 +8,7 @@ const { loginRequired, adminRequired } = require("../middleware/auth");
 const { aiLimiter } = require("../middleware/rateLimit");
 const auth = require("../services/authService");
 const ai = require("../services/aiService");
+const daily = require("../services/dailyService");
 const settings = require("../services/settingsService");
 const tts = require("../services/ttsService");
 const learning = require("../services/learningService");
@@ -363,6 +364,15 @@ router.post("/manual_add", aiLimiter, loginRequired, asyncHandler(async (req, re
     await groups.exportSnapshot(groupId);
   }
   res.json({ success: true, item: { ...item, id, korean } });
+}));
+
+// Tab "Học hôm nay": tạo (hoặc tạo lại) đoạn văn của ngày cho user rồi lưu cache.
+router.post("/daily/generate", aiLimiter, loginRequired, asyncHandler(async (req, res) => {
+  const ownerId = req.currentUser.id;
+  const date = daily.todayStr();
+  const passage = await ai.generateDailyPassage({ topic: daily.pickTopic() });
+  const saved = await daily.savePassage(ownerId, date, passage);
+  res.json({ success: true, passage: saved });
 }));
 
 router.get("/tts", aiLimiter, asyncHandler(async (req, res) => {

@@ -514,6 +514,30 @@ async function generateJsonObject(system, prompt, options = {}) {
   return result;
 }
 
+// Tab "Học hôm nay": một đoạn văn tiếng Hàn ngắn + bản dịch tiếng Việt để luyện đọc mỗi ngày.
+async function generateDailyPassage(options = {}) {
+  const topicHint = String(options.topic || "").trim();
+  const system =
+    "Bạn là giáo viên tiếng Hàn cho người Việt. Viết một đoạn văn tiếng Hàn ngắn, tự nhiên, " +
+    "phù hợp trình độ sơ–trung cấp để học mỗi ngày, kèm bản dịch tiếng Việt sát nghĩa. CHỈ trả về JSON.";
+  const prompt =
+    `Tạo một đoạn văn tiếng Hàn để học hôm nay${topicHint ? ` về chủ đề: ${topicHint}` : ""}.\n` +
+    `Yêu cầu:\n` +
+    `- "title": tiêu đề ngắn bằng tiếng Hàn (Hangul).\n` +
+    `- "korean": 4–6 câu tiếng Hàn tự nhiên, đời thường, viết HOÀN TOÀN bằng Hangul ` +
+    `(KHÔNG chèn tiếng Việt/tiếng Anh trong câu), độ dài vừa phải cho người mới học. Ngăn câu bằng dấu xuống dòng.\n` +
+    `- "vietnamese": bản dịch tiếng Việt trọn vẹn, sát nghĩa, tự nhiên; mỗi câu một dòng khớp với phần Hàn.\n` +
+    `Chỉ trả JSON đúng dạng: {"title":"...","korean":"...","vietnamese":"..."}`;
+  const result = await generateJsonObject(system, prompt, { type: "daily", temperature: 0.7, maxTokens: 2048 });
+  const title = String(result.title || "").trim();
+  const korean = String(result.korean || "").trim();
+  const vietnamese = String(result.vietnamese || "").trim();
+  if (!korean || !vietnamese) {
+    throw new Error("AI không tạo được đoạn văn hợp lệ, bạn thử lại nhé.");
+  }
+  return { title, korean, vietnamese };
+}
+
 /**
  * chatWithRouter - gọi multi-provider router với AI logging.
  *
@@ -585,6 +609,7 @@ module.exports = {
   generateGrammarData,
   generateGrammarQuizzesBatch,
   generateJsonObject,
+  generateDailyPassage,
   // Multi-provider router
   chatWithRouter,
   getRouterStatus,

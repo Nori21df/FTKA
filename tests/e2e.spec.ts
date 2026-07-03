@@ -47,6 +47,15 @@ test.describe("smoke @ authed", () => {
     expect(errors, `console errors: ${errors.join(" | ")}`).toEqual([]);
   });
 
+  test("tab Học hôm nay: trang + nav render (không phụ thuộc nội dung AI)", async ({ page }) => {
+    await page.goto("/daily");
+    await expect(page.locator(".daily-wrap .rv-head")).toBeVisible();
+    await expect(page.locator("#dailyRegenBtn")).toBeVisible();
+    await expect(page.locator("#dailyCard")).toBeVisible();
+    // nav item có mặt và đang active
+    await expect(page.locator('.nav-item[href="/daily"]')).toHaveClass(/active/);
+  });
+
   test("đổi theme (skin) áp ngay + lưu cookie", async ({ page }) => {
     await page.goto("/preferences");
     await page.locator('.style-card[data-style="midnight"]').click();

@@ -11,6 +11,7 @@ const learning = require("../services/learningService");
 const groups = require("../services/vocabGroupService");
 const listening = require("../services/listeningService");
 const energy = require("../services/energyService");
+const daily = require("../services/dailyService");
 const { emitEnergyUpdate } = require("../services/energySocket");
 
 const router = express.Router();
@@ -361,6 +362,12 @@ router.get("/grammar-quiz", ...named("grammar_quiz", loginRequired, asyncHandler
     total_grammar: Number(await db.scalar("SELECT COUNT(*) FROM grammar WHERE owner_user_id=?", [ownerId])),
     session_limit: learning.QUIZ_SESSION_LIMIT
   });
+})));
+
+router.get("/daily", ...named("daily", loginRequired, asyncHandler(async (req, res) => {
+  // Đoạn văn "hôm nay" của user; nếu chưa có, trang sẽ tự tạo bằng AI (client fetch).
+  const passage = await daily.getPassageForDate(req.currentUser.id, daily.todayStr());
+  res.render("daily.html", { daily_data: passage });
 })));
 
 router.get("/settings", ...named("settings", adminRequired, (req, res) => {

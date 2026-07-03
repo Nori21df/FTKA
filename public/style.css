@@ -658,6 +658,20 @@ body[data-style="neo"] .dv-cta:not(.ghost):not(.danger) { color: #111; }
 .rv-progress-top { display: flex; justify-content: space-between; align-items: center; gap: 12px;
     color: var(--muted); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
+/* ── Trang Học hôm nay (daily) ── */
+.daily-wrap { display: flex; flex-direction: column; gap: 16px; max-width: 760px; margin: 0 auto; width: 100%; }
+.daily-card { padding: 26px; }
+.daily-title { font-size: 20px; font-weight: 800; margin: 0 0 14px; letter-spacing: -.01em; }
+.daily-korean { font-size: 21px; line-height: 1.9; color: var(--text); word-break: keep-all; }
+.daily-vi { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px; }
+.daily-vi > summary { cursor: pointer; font-weight: 800; color: var(--primary); font-size: 14px; list-style: none; display: inline-flex; align-items: center; gap: 6px; }
+.daily-vi > summary::-webkit-details-marker { display: none; }
+.daily-vi > summary::before { content: "translate"; font-family: "Material Icons Outlined"; font-size: 18px; }
+.daily-vi-text { margin-top: 12px; color: var(--text-soft); font-size: 15.5px; line-height: 1.8; }
+.daily-loading { display: grid; gap: 12px; }
+.daily-loading .daily-wait { color: var(--muted); font-weight: 700; font-size: 13.5px; margin-top: 4px; }
+.daily-empty { text-align: center; color: var(--muted); display: grid; gap: 14px; place-items: center; padding: 20px 0; }
+
 /* ── Trang Luyện nghe (bố cục mới) ── */
 .ls-createbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, 1fr) auto;
     align-items: end; gap: 14px; padding: 18px; }

@@ -108,6 +108,10 @@
                     <span class="material-icons-outlined">menu_book</span>
                     <span class="nav-label">{{ t('nav.grammar') }}</span>
                 </a>
+                <a href="{{ url_for('daily') }}" class="nav-item {% if request.endpoint == 'daily' %}active{% endif %}">
+                    <span class="material-icons-outlined">today</span>
+                    <span class="nav-label">Học hôm nay</span>
+                </a>
 
                 <span class="nav-group">Ôn luyện</span>
                 <a href="{{ url_for('quiz') }}" class="nav-item {% if request.endpoint == 'quiz' %}active{% endif %}">

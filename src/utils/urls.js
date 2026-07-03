@@ -28,6 +28,8 @@ const routes = {
   delete_listening_practice_lesson: "/listening-practice/:lesson_id/delete",
   quiz: "/quiz",
   grammar_quiz: "/grammar-quiz",
+  daily: "/daily",
+  api_daily_generate: "/api/daily/generate",
   settings: "/settings",
   api_update_settings: "/api/settings",
   "admin.dashboard": "/admin",

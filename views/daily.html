@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="daily-wrap">
+    <header class="rv-head">
+        <div>
+            <span class="gen-kicker">Học hôm nay</span>
+            <h2>Đoạn văn tiếng Hàn hôm nay</h2>
+            <p>Mỗi ngày một đoạn ngắn kèm bản dịch để luyện đọc hiểu. Đọc phần tiếng Hàn trước, rồi mở bản dịch để đối chiếu.</p>
+        </div>
+        <button type="button" class="dv-cta ghost" id="dailyRegenBtn" title="Tạo một đoạn văn khác cho hôm nay">
+            <span class="material-icons-outlined" aria-hidden="true">autorenew</span> Tạo đoạn khác
+        </button>
+    </header>
+
+    <section class="dv-card daily-card" id="dailyCard" aria-live="polite"></section>
+</div>
+
+<script id="daily-data" type="application/json">{{ daily_data|tojson }}</script>
+<script type="module" src="/static/js/daily/dailyPage.js"></script>
+{% endblock %}
