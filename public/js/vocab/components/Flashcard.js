@@ -10,8 +10,8 @@ export function Flashcard({ card, flipped, learned, difficult, stats }) {
         <h3>Chúc mừng!</h3>
         <p>${escapeHtml(message)}</p>
         <div class="anki-session-complete-actions">
-          <button type="button" class="primary-cta" data-action="review-learned">Ôn lại từ đã học</button>
-          <button type="button" class="secondary-cta" data-action="reset-progress">Reset tiến độ</button>
+          <button type="button" class="dv-cta" data-action="review-learned">Ôn lại từ đã học</button>
+          <button type="button" class="dv-cta ghost" data-action="reset-progress">Reset tiến độ</button>
         </div>
       </div>`;
   }

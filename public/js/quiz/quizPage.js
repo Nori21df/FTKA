@@ -318,7 +318,7 @@ if (dataNode) {
 
                 <div class="completion-actions">
                     <button type="button" class="primary-button" onclick="window.location.reload()">Làm lượt khác</button>
-                    <a href="${escapeHtml(vocabUrl)}" class="secondary-cta">Mở từ vựng</a>
+                    <a href="${escapeHtml(vocabUrl)}" class="dv-cta ghost">Mở từ vựng</a>
                 </div>
             </section>
         `;

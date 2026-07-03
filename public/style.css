@@ -519,6 +519,9 @@ body.ftka-dark-ui .sidebar {
 .dv-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
 .dv-today { display: flex; gap: 20px; align-items: center; padding: 22px; flex-wrap: wrap; }
 .dv-today .lead { flex: 1; min-width: 240px; }
+/* 2 nút trong "việc hôm nay" nằm cạnh nhau trong .lead (không phải flex-gap) — giữ khoảng cách
+   sau khi bỏ margin-left mặc định của .dv-cta.ghost. */
+.dv-today .lead .dv-cta + .dv-cta { margin-left: 8px; }
 .dv-today h2 { font-size: 24px; font-weight: 800; letter-spacing: -.02em; margin: 0; }
 .dv-today p { color: var(--muted); margin: 6px 0 14px; }
 .dv-ring { width: 118px; height: 118px; border-radius: 50%; position: relative; display: grid; place-items: center; flex: none;
@@ -526,10 +529,20 @@ body.ftka-dark-ui .sidebar {
 .dv-ring::before { content: ""; position: absolute; width: 88px; height: 88px; border-radius: 50%; background: var(--surface); }
 .dv-ring b { position: relative; font-size: 21px; font-weight: 800; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
 .dv-ring span { position: relative; font-size: 11px; color: var(--muted); font-weight: 600; text-align: center; display: block; }
-.dv-cta { display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent; border-radius: var(--radius-sm);
-    padding: 11px 16px; font-weight: 800; font-size: 14px; background: var(--primary); color: #fff; box-shadow: var(--shadow-sm); min-height: 44px; }
-.dv-cta.ghost { background: var(--surface); color: var(--text); border-color: var(--line-strong); margin-left: 8px; }
-body[data-style="neo"] .dv-cta { color: #111; }
+/* Hệ nút CHUẨN duy nhất (xem docs/UI_GUIDE.md). Biến thể:
+   .dv-cta (primary) · .ghost (secondary) · .danger · .block (full-width). */
+.dv-cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-radius: var(--radius-sm);
+    padding: 11px 16px; font-weight: 800; font-size: 14px; background: var(--primary); color: #fff; box-shadow: var(--shadow-sm); min-height: 44px;
+    transition: transform .14s ease, box-shadow .14s ease, background .14s ease, border-color .14s ease, color .14s ease; }
+.dv-cta.ghost { background: var(--surface); color: var(--text); border-color: var(--line-strong); box-shadow: none; }
+.dv-cta.danger { background: var(--danger-soft); color: var(--danger); border-color: rgba(220, 38, 38, .24); box-shadow: none; }
+.dv-cta.block { width: 100%; }
+.dv-cta:hover { background: var(--primary-strong); transform: translateY(-1px); }
+.dv-cta.ghost:hover { background: var(--surface-blue); border-color: var(--primary-soft); color: var(--primary); transform: none; }
+.dv-cta.danger:hover { background: var(--danger); color: #fff; transform: translateY(-1px); }
+.dv-cta:disabled, .dv-cta[disabled] { opacity: .6; cursor: not-allowed; transform: none; }
+/* Neo: chỉ nút primary mới cần chữ tối trên nền cam (ghost/danger giữ màu riêng). */
+body[data-style="neo"] .dv-cta:not(.ghost):not(.danger) { color: #111; }
 .dv-stat { padding: 16px; }
 .dv-stat .ico { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 10px; }
 .dv-stat .num { font-size: 24px; font-weight: 800; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
@@ -649,7 +662,7 @@ body[data-style="neo"] .dv-cta { color: #111; }
 .ls-createbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, 1fr) auto;
     align-items: end; gap: 14px; padding: 18px; }
 .ls-createbar .listening-field { margin: 0; }
-.ls-createbar-submit .listening-generate-button { width: 100%; }
+.ls-createbar-submit .dv-cta { width: 100%; }
 .ls-createbar-msg { grid-column: 1 / -1; margin: 0; }
 .ls-body { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 18px; align-items: start; }
 .ls-saved { padding: 16px; align-self: start; }
@@ -852,14 +865,6 @@ body.ftka-dark-ui .energy-pill {
     border-color: transparent;
 }
 
-.topbar-auth-link {
-    padding: 9px 13px;
-    border-radius: var(--radius-sm);
-    color: var(--text-soft);
-    font-weight: 700;
-}
-
-.topbar-auth-primary,
 .public-nav-primary {
     color: #fff;
     background: var(--primary);
@@ -1043,27 +1048,10 @@ body.ftka-dark-ui .energy-pill {
     margin-top: 22px;
 }
 
-/* Hệ nút "button-base" dùng chung (legacy) — xem docs/UI_GUIDE.md.
-   Đã dọn 14 class 0-usage khi refactor Phase 6 (studio-*, dashboard-*-action,
-   dictionary-action/filter-button, settings-save/settings-button, ghost-link,
-   grammar-quiz-action, prefs-button). Nút MỚI dùng .dv-cta (xem UI_GUIDE). */
-.public-primary-button,
-.public-secondary-button,
-.dictionary-secondary-action,
-.dictionary-add-button,
-.grammar-action,
-.grammar-secondary-action,
+/* Nút thành phần chuyên biệt (KHÔNG phải CTA) — pill lọc + control trình phát.
+   Hệ CTA đã hợp nhất về .dv-cta (Phase 6b); toàn bộ button-base legacy đã xoá. */
 .grammar-filter-button,
-.listening-generate-button,
-.sentence-control-button,
-.settings-link,
-.settings-ghost-button,
-.primary-cta,
-.secondary-cta,
-.ghost-button,
-.admin-button,
-.auth-button,
-.topbar-auth-link {
+.sentence-control-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1078,78 +1066,11 @@ body.ftka-dark-ui .energy-pill {
     transition: transform .14s ease, box-shadow .14s ease, background .14s ease, border-color .14s ease, color .14s ease;
 }
 
-.auth-button {
-    width: 100%;
-}
-
-.public-primary-button,
-.dictionary-add-button,
-.grammar-action,
-.listening-generate-button,
-.primary-cta,
-.admin-button.primary,
-.auth-button {
-    color: #fff;
-    border-color: transparent;
-    background: var(--primary);
-    box-shadow: var(--shadow-sm);
-}
-
-.public-secondary-button,
-.dictionary-secondary-action,
-.grammar-secondary-action,
-.secondary-cta,
-.ghost-button,
-.admin-button,
-.auth-button.secondary {
-    background: var(--surface);
-}
-
-/* Neo (mặc định): nút primary + nav đang chọn dùng chữ tối trên nền cam cho dễ đọc (đủ tương phản) */
-body[data-style="neo"] .public-primary-button,
-body[data-style="neo"] .dictionary-add-button,
-body[data-style="neo"] .grammar-action,
-body[data-style="neo"] .listening-generate-button,
-body[data-style="neo"] .primary-cta,
-body[data-style="neo"] .admin-button.primary,
-body[data-style="neo"] .auth-button,
+/* Neo (mặc định): nav item đang chọn dùng chữ tối trên nền cam cho dễ đọc (đủ tương phản) */
 body[data-style="neo"] .nav-item.active {
     color: #111;
 }
 body[data-style="neo"] .nav-item.active .material-icons-outlined { color: #111; }
-
-.auth-button.secondary {
-    color: var(--text-soft);
-    border-color: var(--line);
-}
-
-.public-primary-button:hover,
-.dictionary-add-button:hover,
-.grammar-action:hover,
-.listening-generate-button:hover,
-.primary-cta:hover,
-.auth-button:hover {
-    background: var(--primary-strong);
-    transform: translateY(-1px);
-}
-
-.public-secondary-button:hover,
-.dictionary-secondary-action:hover,
-.grammar-secondary-action:hover,
-.secondary-cta:hover,
-.ghost-button:hover,
-.admin-button:hover,
-.auth-button.secondary:hover {
-    color: var(--primary);
-    border-color: var(--primary-soft);
-    background: var(--surface-blue);
-}
-
-.admin-button.danger {
-    color: var(--danger);
-    border-color: rgba(220, 38, 38, .24);
-    background: var(--danger-soft);
-}
 
 .public-study-preview,
 .public-feature-card,
@@ -3464,7 +3385,7 @@ body.ftka-dark-ui .grammar-quiz-actions {
 .admin-table .admin-actions {
     gap: 6px;
 }
-.admin-table .admin-actions .admin-button {
+.admin-table .admin-actions .dv-cta {
     min-height: 32px;
     padding: 5px 10px;
     font-size: 12px;
@@ -4397,8 +4318,7 @@ body.ftka-dark-ui .grammar-quiz-actions {
     margin-top: 12px;
 }
 
-.anki-session-complete-actions .primary-cta,
-.anki-session-complete-actions .secondary-cta {
+.anki-session-complete-actions .dv-cta {
     justify-content: center;
     min-height: 46px;
     border-radius: 14px;
@@ -4886,17 +4806,13 @@ body.ftka-dark-ui .anki-shortcuts kbd {
         margin-top: 14px;
     }
 
-    .dictionary-secondary-action,
-    .dictionary-add-button,
+    .anki-manage-grid .dv-cta,
     .dictionary-inline-button,
     .dictionary-input,
     .dictionary-search-input,
     .dictionary-select,
     .dictionary-practice-input,
-    #importFile,
-    #importBtn,
-    #manualAddBtn,
-    #createGroupBtn {
+    #importFile {
         width: 100%;
         max-width: 100%;
         min-height: 50px;
@@ -4905,8 +4821,7 @@ body.ftka-dark-ui .anki-shortcuts kbd {
         line-height: 1.2;
     }
 
-    .dictionary-secondary-action .material-icons-outlined,
-    .dictionary-add-button .material-icons-outlined,
+    .anki-manage-grid .dv-cta .material-icons-outlined,
     .dictionary-inline-button .material-icons-outlined,
     .dictionary-status-button .material-icons-outlined {
         font-size: 20px;
@@ -5147,7 +5062,7 @@ body.ftka-dark-ui .anki-shortcuts kbd {
     .auth-panel form,
     .auth-panel input,
     .auth-panel button,
-    .auth-panel a.auth-button {
+    .auth-panel a.dv-cta {
         width: 100%;
         max-width: 100%;
     }

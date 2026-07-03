@@ -186,8 +186,20 @@ Không phải 2 hệ CTA nhỏ song song, mà là **3 nhóm**:
 - Verification: visual **75/75 ×2 — 0 pixel đổi** (class chết → không render); lint + 34 unit pass.
 
 ### CHƯA làm — cần duyệt riêng (khác biệt lớn vs plan → dừng theo Nguyên tắc 1)
-- Plan yêu cầu "grep hệ cũ = 0" (migrate hết sang 1 hệ). Nhưng migrate ~75 usage button-base (đặc biệt **48 admin-button/18 file** + auth/settings/payment) sang `.dv-cta` = **đổi diện mạo toàn bộ nút admin/auth** (button-base secondary-first, xám, weight 750 ↔ dv-cta primary-first, cam, weight 800). Đây là thay đổi hình ảnh diện rộng, đúng loại "khác biệt lớn phải hỏi" — không tự làm.
-- **Lựa chọn cho chủ repo** (Phase 6b nếu muốn): (a) giữ nguyên như hiện tại (2 lớp: dv-cta cho mới, button-base legacy) + guide — *đề xuất, ít xâm lấn nhất*; (b) migrate admin/auth/settings/payment sang dv-cta — mình làm được nhưng sẽ có nhiều visual diff phải duyệt per-trang; (c) đổi ngược dv-cta 7 trang redesign về button-base — phá thẩm mỹ vừa làm, không nên.
+- Plan yêu cầu "grep hệ cũ = 0" (migrate hết sang 1 hệ). Migrate ~75 usage button-base sang `.dv-cta` = đổi diện mạo nút admin/auth/settings/payment. → Chủ repo đã DUYỆT → làm ở **Phase 6b** (dưới).
+
+## Phase 6b — Migrate toàn bộ button-base → .dv-cta (HOÀN THÀNH, đã duyệt)
+
+### Đã đổi
+- **CSS**: mở rộng hệ `.dv-cta` thành hệ CTA duy nhất — thêm biến thể `.danger`, `.block` (full-width), hover cho từng biến thể, `:disabled`; **bỏ `margin-left:8px`** khỏi `.dv-cta.ghost` (smell — thay bằng gap container; thêm rule scoped `.dv-cta + .dv-cta` cho 2 nút "việc hôm nay" ở dashboard); neo chỉ tô chữ tối cho primary (`:not(.ghost):not(.danger)`); rule nén trong bảng đổi sang `.admin-table .admin-actions .dv-cta`.
+- **Migrate ~82 usage template + 3 chuỗi JS-render** (quizPage.js, Flashcard.js) qua ánh xạ: primary→`dv-cta`, secondary/link/ghost→`dv-cta ghost`, danger→`dv-cta danger`, auth full-width→`+block`. Sửa link "Đăng ký" topbar về primary.
+- **Xoá hoàn toàn** khối CSS button-base (base + primary/secondary/neo/hover/danger + topbar-auth-link/primary), chỉ giữ 2 class thành phần `.grammar-filter-button`/`.sentence-control-button` (base rule riêng) + neo `.nav-item.active`. Retarget các rule layout còn trỏ class cũ (ls-createbar submit, anki-session-complete, auth-panel responsive, vocab-manage responsive) sang `.dv-cta`.
+- **`docs/UI_GUIDE.md`** cập nhật: giờ là 1 hệ CTA duy nhất (primary/ghost/danger/block) + nhóm thành phần; bỏ mục "button-base legacy".
+
+### Verification
+- `grep` mọi class button-base cũ trong views/ + public/js/ + style.css = **0** (chỉ còn grammar-filter/sentence-control có chủ đích).
+- Kiểm hình bằng ảnh Playwright thật (login, admin-users bảng nhiều nút, settings): nút đổi đúng kỳ vọng (primary cam / ghost viền / danger đỏ / auth full-width), **không vỡ layout**.
+- Behavior giữ nguyên: `npm test` (lint + 34 unit) + `test:e2e` (4) pass. Visual: thay đổi CHỈ ở các nút đã migrate → cập nhật baseline (`test:visual:update`), chạy lại **75/75 ×2** ổn định.
 
 ---
 

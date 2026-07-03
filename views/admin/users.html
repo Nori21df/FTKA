@@ -29,7 +29,7 @@
                 <option value="banned" {% if request.args['status'] == 'banned' %}selected{% endif %}>Bị khoá</option>
             </select>
         </label>
-        <button class="admin-button primary" type="submit">Lọc</button>
+        <button class="dv-cta" type="submit">Lọc</button>
     </form>
 </section>
 
@@ -47,7 +47,7 @@
                     <td><span class="admin-badge {% if user.status != 'active' %}danger{% endif %}">{{ user.status }}</span></td>
                     <td>{{ user.created_at }}</td>
                     <td>{{ user.last_login or 'Chưa có' }}</td>
-                    <td><div class="admin-actions"><a class="admin-button" href="{{ url_for('admin.user_detail', user_id=user.id) }}">View</a><a class="admin-button" href="{{ url_for('admin.user_vocab', user_id=user.id) }}">Vocab</a><a class="admin-button" href="{{ url_for('admin.user_grammar', user_id=user.id) }}">Grammar</a><a class="admin-button" href="{{ url_for('admin.user_listening', user_id=user.id) }}">Listening</a><a class="admin-button" href="{{ url_for('admin.user_audio', user_id=user.id) }}">Audio</a><a class="admin-button" href="{{ url_for('admin.edit_user', user_id=user.id) }}">Edit User</a><form method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" onsubmit="return confirm('Xoá người dùng này? Vocab, grammar, listening, audio liên quan có thể cũng bị xoá. Không thể hoàn tác.');"><input type="hidden" name="reason" value="Xoá từ danh sách người dùng"><button class="admin-button danger" type="submit">Delete User</button></form></div></td>
+                    <td><div class="admin-actions"><a class="dv-cta ghost" href="{{ url_for('admin.user_detail', user_id=user.id) }}">View</a><a class="dv-cta ghost" href="{{ url_for('admin.user_vocab', user_id=user.id) }}">Vocab</a><a class="dv-cta ghost" href="{{ url_for('admin.user_grammar', user_id=user.id) }}">Grammar</a><a class="dv-cta ghost" href="{{ url_for('admin.user_listening', user_id=user.id) }}">Listening</a><a class="dv-cta ghost" href="{{ url_for('admin.user_audio', user_id=user.id) }}">Audio</a><a class="dv-cta ghost" href="{{ url_for('admin.edit_user', user_id=user.id) }}">Edit User</a><form method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" onsubmit="return confirm('Xoá người dùng này? Vocab, grammar, listening, audio liên quan có thể cũng bị xoá. Không thể hoàn tác.');"><input type="hidden" name="reason" value="Xoá từ danh sách người dùng"><button class="dv-cta danger" type="submit">Delete User</button></form></div></td>
                 </tr>
                 {% else %}
                 <tr><td colspan="8">Không tìm thấy người dùng.</td></tr>

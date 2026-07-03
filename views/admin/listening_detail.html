@@ -9,11 +9,11 @@
     <div class="admin-actions">
         <form method="post" action="{{ url_for('admin.regenerate_listening_audio', lesson_id=lesson.id) }}" onsubmit="return confirm('Tạo lại âm thanh cho bài nghe này?');">
             <input type="hidden" name="reason" value="Tạo lại âm thanh từ trang quản trị">
-            <button class="admin-button primary" type="submit">Tạo lại âm thanh</button>
+            <button class="dv-cta" type="submit">Tạo lại âm thanh</button>
         </form>
         <form method="post" action="{{ url_for('admin.delete_listening', lesson_id=lesson.id) }}" onsubmit="return confirm('Xoá bài nghe này? Không thể hoàn tác.');">
             <input type="hidden" name="reason" value="Xoá từ trang quản trị">
-            <button class="admin-button danger" type="submit">Xoá</button>
+            <button class="dv-cta danger" type="submit">Xoá</button>
         </form>
     </div>
 </div>

@@ -45,11 +45,11 @@
                 <div class="dictionary-panel-head"><h3>Thêm từ vựng</h3></div>
                 <div class="dictionary-manual-row">
                     <input type="text" id="manualWord" class="dictionary-input" placeholder="Nhập một từ tiếng Hàn">
-                    <button id="manualAddBtn" type="button" class="dictionary-add-button" onclick="manualAdd()"><span class="material-icons-outlined">add_circle</span>Thêm</button>
+                    <button id="manualAddBtn" type="button" class="dv-cta" onclick="manualAdd()"><span class="material-icons-outlined">add_circle</span>Thêm</button>
                 </div>
                 <div class="dictionary-manual-row" style="margin-top: 12px;">
                     <input type="file" id="importFile" class="dictionary-input" accept=".json" style="padding-top: 10px;">
-                    <button id="importBtn" type="button" class="dictionary-secondary-action" onclick="importJson()" style="justify-content: center;"><span class="material-icons-outlined">upload_file</span>Nhập JSON</button>
+                    <button id="importBtn" type="button" class="dv-cta ghost" onclick="importJson()" style="justify-content: center;"><span class="material-icons-outlined">upload_file</span>Nhập JSON</button>
                 </div>
                 <div style="margin-top: 12px;">
                     <select id="manualGroup" class="dictionary-select">
@@ -63,7 +63,7 @@
                 <div class="dictionary-panel-head"><h3>Tìm kiếm phiên học</h3></div>
                 <form method="get" action="{{ url_for('vocab') }}" class="dictionary-filter-stack">
                     <input type="text" name="q" class="dictionary-search-input" value="{{ search_q }}" placeholder="Tìm tiếng Hàn, nghĩa, giải thích hoặc ví dụ">
-                    <button type="submit" class="dictionary-secondary-action" style="justify-content: center;">Tìm</button>
+                    <button type="submit" class="dv-cta ghost" style="justify-content: center;">Tìm</button>
                     {% if search_q %}<a href="{{ url_for('vocab') }}" class="dictionary-search-hint">Xoá tìm kiếm</a>{% endif %}
                 </form>
             </article>
@@ -72,7 +72,7 @@
                 <div class="dictionary-panel-head"><h3>Thư mục</h3></div>
                 <div class="dictionary-group-row">
                     <input type="text" id="groupNameInput" class="dictionary-input" placeholder="Tên thư mục">
-                    <button id="createGroupBtn" type="button" class="dictionary-add-button" onclick="createGroup()"><span class="material-icons-outlined">create_new_folder</span>Tạo thư mục</button>
+                    <button id="createGroupBtn" type="button" class="dv-cta" onclick="createGroup()"><span class="material-icons-outlined">create_new_folder</span>Tạo thư mục</button>
                 </div>
                 {% if vocab_groups|length %}
                 <div class="dictionary-group-table-wrap" style="margin-top: 14px;">

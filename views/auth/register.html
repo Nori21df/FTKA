@@ -19,11 +19,11 @@
         <label>Mật khẩu
             <input name="password" type="password" minlength="10" autocomplete="new-password" required>
         </label>
-        <button class="auth-button" type="submit">Tạo tài khoản</button>
+        <button class="dv-cta block" type="submit">Tạo tài khoản</button>
     </form>
 
     <div class="auth-divider">hoặc</div>
-    <a class="auth-button secondary" href="{{ url_for('google_login', next=next_url) }}">Tiếp tục với Google</a>
+    <a class="dv-cta ghost block" href="{{ url_for('google_login', next=next_url) }}">Tiếp tục với Google</a>
     {% if not google_configured %}
     <p class="auth-copy" style="margin-top: 10px;">Chưa cấu hình đăng nhập Google.</p>
     {% endif %}

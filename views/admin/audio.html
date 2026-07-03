@@ -26,7 +26,7 @@
                     <td>
                         <form method="post" action="{{ url_for('admin.delete_audio', audio_reference=record.reference) }}" onsubmit="return confirm('Xoá tệp hoặc tham chiếu âm thanh này?');">
                             <input type="hidden" name="reason" value="Xoá âm thanh từ trang quản trị">
-                            <button class="admin-button danger" type="submit">Xoá</button>
+                            <button class="dv-cta danger" type="submit">Xoá</button>
                         </form>
                     </td>
                 </tr>

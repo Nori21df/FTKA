@@ -9,11 +9,11 @@
         </div>
         <h2 class="settings-hero-title">System settings</h2>
         <div class="settings-hero-actions">
-            <a href="{{ url_for('generator') }}" class="settings-link">
+            <a href="{{ url_for('generator') }}" class="dv-cta ghost">
                 <span class="material-icons-outlined">auto_awesome</span>
                 Open generator
             </a>
-            <a href="{{ url_for('quiz') }}" class="settings-link">
+            <a href="{{ url_for('quiz') }}" class="dv-cta ghost">
                 <span class="material-icons-outlined">quiz</span>
                 Open quiz
             </a>
@@ -28,7 +28,7 @@
                     <div class="settings-input-row">
                         <input type="text" class="settings-input" value="{% if has_api_key %}Work{% else %}Not Work{% endif %}" disabled>
                     </div>
-                    <button type="button" class="settings-ghost-button settings-test-button" id="testApiBtn" onclick="testApiConnection()">
+                    <button type="button" class="dv-cta ghost settings-test-button" id="testApiBtn" onclick="testApiConnection()">
                         <span class="material-icons-outlined">network_check</span>
                         Test
                     </button>

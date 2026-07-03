@@ -10,11 +10,11 @@
     <div class="admin-actions">
         {% if user.status == 'active' %}
         <form method="post" action="{{ url_for('admin.ban_user', user_id=user.id) }}" onsubmit="return confirm('Khoá người dùng này? Dữ liệu sẽ không bị xoá.');">
-            <button class="admin-button danger" type="submit">Khoá</button>
+            <button class="dv-cta danger" type="submit">Khoá</button>
         </form>
         {% else %}
         <form method="post" action="{{ url_for('admin.unban_user', user_id=user.id) }}" onsubmit="return confirm('Mở khoá người dùng này?');">
-            <button class="admin-button primary" type="submit">Mở khoá</button>
+            <button class="dv-cta" type="submit">Mở khoá</button>
         </form>
         {% endif %}
     </div>
@@ -41,11 +41,11 @@
         <h3>Dữ liệu học</h3>
         <p class="admin-muted">Liên kết quản trị dữ liệu theo từng người dùng.</p>
         <div class="admin-actions" style="margin-top: 12px;">
-            <a class="admin-button" href="{{ url_for('admin.user_vocab', user_id=user.id) }}">Quản lý từ vựng</a>
-            <a class="admin-button" href="{{ url_for('admin.user_grammar', user_id=user.id) }}">Quản lý ngữ pháp</a>
-            <a class="admin-button" href="{{ url_for('admin.user_listening', user_id=user.id) }}">Quản lý nghe</a>
-            <a class="admin-button" href="{{ url_for('admin.user_audio', user_id=user.id) }}">Quản lý âm thanh</a>
-            <a class="admin-button" href="{{ url_for('admin.edit_user', user_id=user.id) }}">Edit User</a>
+            <a class="dv-cta ghost" href="{{ url_for('admin.user_vocab', user_id=user.id) }}">Quản lý từ vựng</a>
+            <a class="dv-cta ghost" href="{{ url_for('admin.user_grammar', user_id=user.id) }}">Quản lý ngữ pháp</a>
+            <a class="dv-cta ghost" href="{{ url_for('admin.user_listening', user_id=user.id) }}">Quản lý nghe</a>
+            <a class="dv-cta ghost" href="{{ url_for('admin.user_audio', user_id=user.id) }}">Quản lý âm thanh</a>
+            <a class="dv-cta ghost" href="{{ url_for('admin.edit_user', user_id=user.id) }}">Edit User</a>
         </div>
     </article>
 </section>
@@ -56,7 +56,7 @@
     <div class="admin-actions">
         <form method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" onsubmit="return confirm('Xoá người dùng này? Vocab, grammar, listening, audio liên quan có thể cũng bị xoá. Không thể hoàn tác.');">
             <input class="admin-input" name="reason" placeholder="Lý do">
-            <button class="admin-button danger" type="submit">Delete User</button>
+            <button class="dv-cta danger" type="submit">Delete User</button>
         </form>
     </div>
 </section>

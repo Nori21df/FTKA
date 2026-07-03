@@ -197,8 +197,8 @@
                 </div>
                 {% if not current_user %}
                 <div class="user-profile">
-                    <a class="topbar-auth-link" href="{{ url_for('login') }}">Đăng nhập</a>
-                    <a class="topbar-auth-link topbar-auth-primary" href="{{ url_for('register') }}">Đăng ký</a>
+                    <a class="dv-cta ghost" href="{{ url_for('login') }}">Đăng nhập</a>
+                    <a class="dv-cta" href="{{ url_for('register') }}">Đăng ký</a>
                 </div>
                 {% endif %}
             </header>

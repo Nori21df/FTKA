@@ -9,9 +9,9 @@
     </div>
     <div class="admin-actions">
         <span id="sseStatus" class="admin-badge">Connecting</span>
-        <button id="testAiLogButton" class="admin-button" type="button">Test realtime log</button>
+        <button id="testAiLogButton" class="dv-cta ghost" type="button">Test realtime log</button>
         <form id="clearAiLogsForm" method="post" action="{{ url_for('admin.ai_logs_clear') }}">
-            <button class="admin-button danger" type="submit">Clear logs</button>
+            <button class="dv-cta danger" type="submit">Clear logs</button>
         </form>
     </div>
 </div>
@@ -41,7 +41,7 @@
         <label>Type <input class="admin-input" name="type" value="{{ request.args['type'] or '' }}" placeholder="vocabulary, grammar, router…"></label>
         <label>Provider <input class="admin-input" name="provider" value="{{ request.args['provider'] or '' }}" placeholder="google, groq, nvidia…"></label>
         <label>Limit <input class="admin-input" name="limit" value="{{ request.args['limit'] or 100 }}" type="number" min="1" max="300"></label>
-        <button class="admin-button" type="submit">Filter</button>
+        <button class="dv-cta ghost" type="submit">Filter</button>
     </form>
 
     <div class="admin-table-wrap">

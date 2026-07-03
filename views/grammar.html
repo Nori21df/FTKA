@@ -104,7 +104,7 @@
             <ul style="display: inline-flex; gap: 8px; list-style: none; padding: 0; margin: 0;">
                 {% if page > 1 %}
                     <li>
-                        <a href="{{ url_for('grammar', page=page-1) }}" class="grammar-secondary-action" style="padding: 10px 16px;">
+                        <a href="{{ url_for('grammar', page=page-1) }}" class="dv-cta ghost" style="padding: 10px 16px;">
                             Quay lại
                         </a>
                     </li>
@@ -113,11 +113,11 @@
                 {% for i in range(max(1, page-2), min(total_pages+1, page+3)) %}
                     <li>
                         {% if i == page %}
-                            <span class="grammar-action" style="padding: 10px 16px; background: var(--primary);">
+                            <span class="dv-cta" style="padding: 10px 16px; background: var(--primary);">
                                 {{ i }}
                             </span>
                         {% else %}
-                            <a href="{{ url_for('grammar', page=i) }}" class="grammar-secondary-action" style="padding: 10px 16px;">
+                            <a href="{{ url_for('grammar', page=i) }}" class="dv-cta ghost" style="padding: 10px 16px;">
                                 {{ i }}
                             </a>
                         {% endif %}
@@ -126,7 +126,7 @@
 
                 {% if page < total_pages %}
                     <li>
-                        <a href="{{ url_for('grammar', page=page+1) }}" class="grammar-secondary-action" style="padding: 10px 16px;">
+                        <a href="{{ url_for('grammar', page=page+1) }}" class="dv-cta ghost" style="padding: 10px 16px;">
                             Tiếp theo
                         </a>
                     </li>

@@ -4,46 +4,38 @@ Tài liệu để KHÔNG phát sinh "hệ thứ ba". Đọc trước khi thêm n
 
 ## 1. Hệ nút
 
-FTKA có **3 nhóm nút**, mỗi nhóm một mục đích rõ ràng. Không tạo class nút mới ngoài các nhóm này.
+FTKA có **1 hệ CTA duy nhất** (`.dv-cta`) + một nhóm nút thành phần chuyên biệt (không phải CTA).
+Toàn bộ hệ "button-base" legacy đã được migrate & xoá (Phase 6b). **Không tạo class nút mới.**
 
-### 1.1. `.dv-cta` — CTA CHUẨN (dùng cho nút MỚI)
-Nút hành động chính/phụ trên các trang ứng dụng.
-- `.dv-cta` — **primary** (nền `--primary`, chữ trắng; Neo: chữ tối).
-- `.dv-cta.ghost` — **secondary** (nền `--surface`, viền `--line-strong`).
+### 1.1. `.dv-cta` — HỆ CTA DUY NHẤT
+| Biến thể | Class | Dùng cho |
+|---|---|---|
+| Primary | `dv-cta` | hành động chính (nền `--primary`, chữ trắng; Neo: chữ tối) |
+| Secondary | `dv-cta ghost` | hành động phụ (nền `--surface`, viền) |
+| Danger | `dv-cta danger` | xoá/nguy hiểm (nền `--danger-soft`, chữ đỏ) |
+| Full-width | `dv-cta block` | nút chiếm hết chiều ngang (form auth…) |
 
+Kết hợp được: `dv-cta ghost block`, `dv-cta danger` … Có sẵn hover + `:disabled`.
 ```html
 <a class="dv-cta" href="…"><span class="material-icons-outlined">bolt</span> Hành động chính</a>
-<button type="button" class="dv-cta ghost">Hành động phụ</button>
+<button class="dv-cta ghost">Phụ</button>
+<button class="dv-cta danger">Xoá</button>
+<button class="dv-cta block" type="submit">Gửi</button>
 ```
-Định nghĩa: `public/style.css` (tìm `.dv-cta {`). **Mọi nút mới nên dùng nhóm này.**
+Định nghĩa: `public/style.css` (tìm `.dv-cta {`). **Mọi nút phải dùng nhóm này.**
+- Trong ô bảng admin: `.admin-table .admin-actions .dv-cta` tự thu nhỏ (32px) — chỉ cần dùng `.dv-cta`.
 
-### 1.2. Hệ "button-base" — LEGACY dùng chung (đừng mở rộng)
-Một base rule chung + biến thể primary/secondary, gắn cho các alias theo trang cũ.
-Các class **còn sống**: `.admin-button` (+`.primary`/`.secondary`/`.danger`), `.auth-button` (+`.secondary`),
-`.primary-cta`, `.secondary-cta`, `.ghost-button`, `.public-primary-button`, `.public-secondary-button`,
-`.dictionary-add-button`, `.dictionary-secondary-action`, `.grammar-action`, `.grammar-secondary-action`,
-`.listening-generate-button`, `.settings-link`, `.settings-ghost-button`, `.topbar-auth-link`.
-- Bao phủ admin (nặng nhất — `admin-button` ~48 chỗ/18 file), auth, settings, payment, public.
-- **KHÔNG thêm alias mới** vào nhóm này. Trang mới → dùng `.dv-cta`.
-- Phase 6 đã xoá **15 class 0-usage** khỏi nhóm này (studio-*, dashboard-*-action, dictionary-action,
-  dictionary-filter-button, settings-save-button, settings-button, ghost-link, grammar-quiz-action,
-  prefs-button, studio-result-audio, self-check-button, result-action, completion-action).
-
-### 1.3. Nút thành phần chuyên biệt (KHÔNG phải CTA — giữ riêng)
-Không hợp nhất vào 2 nhóm trên vì khác chức năng/kích thước:
-- Quiz làm bài (render bằng JS trong `public/js/quiz/quizPage.js`): `.option-button`, `.primary-button`,
+### 1.2. Nút thành phần chuyên biệt (KHÔNG phải CTA — giữ riêng)
+Không thuộc hệ CTA vì khác chức năng/kích thước:
+- Quiz làm bài (render JS `public/js/quiz/quizPage.js`): `.option-button`, `.primary-button`,
   `.secondary-button`, `.neutral-button`, `.inline-audio-button`, `.hint-button` (min-height 52px, full-width, canh trái).
-- Pill lọc: `.grammar-filter-button` (+`.is-active`), `.grammar-filter-button` dùng ở /grammar.
+- Pill lọc: `.grammar-filter-button` (+`.is-active`).
 - Trình phát câu: `.sentence-control-button` (/listening-practice).
 
 ### Quy tắc
-1. Nút mới → **`.dv-cta` / `.dv-cta.ghost`**.
-2. Không tạo class nút mới ngoài 3 nhóm trên; không thêm alias vào button-base.
-3. Nút render bằng JS: chỉ dùng class đã có ở nhóm 1.3, đổi tên phải sửa cả chuỗi JS.
-
-> **Còn nợ (Phase 6 chưa làm — cần duyệt riêng)**: hợp nhất hẳn về MỘT hệ (grep button-base = 0)
-> đòi restyle toàn bộ nút admin/auth/settings/payment → **thay đổi hình ảnh diện rộng**, phải review
-> per-trang. Hiện giữ button-base làm lớp legacy + `.dv-cta` cho nút mới; xoá dead class là bước an toàn đã làm.
+1. Nút mới → **`.dv-cta`** (+ `ghost`/`danger`/`block`). KHÔNG tạo class nút CTA mới.
+2. Nút render bằng JS: chỉ dùng class đã có ở nhóm 1.2, đổi tên phải sửa cả chuỗi JS.
+3. Không hồi sinh hệ button-base cũ (đã xoá hoàn toàn).
 
 ## 2. Theme — hai trục
 

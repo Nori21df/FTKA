@@ -7,7 +7,7 @@
     {% if message %}<div class="auth-flash success">{{ message }}</div>{% endif %}
     {% if error %}<div class="auth-error">{{ error }}</div>{% endif %}
     <form class="auth-form" method="post" action="{{ url_for('resend_verification_email') }}">
-        <button class="auth-button" type="submit">Gửi lại email xác minh</button>
+        <button class="dv-cta block" type="submit">Gửi lại email xác minh</button>
     </form>
     <p class="auth-link-row"><a href="{{ url_for('logout') }}">Đăng xuất</a></p>
 </section>
