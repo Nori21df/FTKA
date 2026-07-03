@@ -1043,17 +1043,14 @@ body.ftka-dark-ui .energy-pill {
     margin-top: 22px;
 }
 
+/* Hệ nút "button-base" dùng chung (legacy) — xem docs/UI_GUIDE.md.
+   Đã dọn 14 class 0-usage khi refactor Phase 6 (studio-*, dashboard-*-action,
+   dictionary-action/filter-button, settings-save/settings-button, ghost-link,
+   grammar-quiz-action, prefs-button). Nút MỚI dùng .dv-cta (xem UI_GUIDE). */
 .public-primary-button,
 .public-secondary-button,
-.dashboard-primary-action,
-.dashboard-secondary-action,
-.studio-link-button,
-.studio-generate-button,
-.studio-result-audio,
-.dictionary-action,
 .dictionary-secondary-action,
 .dictionary-add-button,
-.dictionary-filter-button,
 .grammar-action,
 .grammar-secondary-action,
 .grammar-filter-button,
@@ -1061,16 +1058,11 @@ body.ftka-dark-ui .energy-pill {
 .sentence-control-button,
 .settings-link,
 .settings-ghost-button,
-.settings-save-button,
 .primary-cta,
 .secondary-cta,
 .ghost-button,
-.ghost-link,
-.grammar-quiz-action,
 .admin-button,
 .auth-button,
-.prefs-button,
-.settings-button,
 .topbar-auth-link {
     display: inline-flex;
     align-items: center;
@@ -1091,19 +1083,12 @@ body.ftka-dark-ui .energy-pill {
 }
 
 .public-primary-button,
-.dashboard-primary-action,
-.studio-generate-button,
-.dictionary-action,
 .dictionary-add-button,
 .grammar-action,
 .listening-generate-button,
-.settings-save-button,
 .primary-cta,
-.grammar-quiz-action,
 .admin-button.primary,
-.auth-button,
-.prefs-button,
-.settings-button.primary {
+.auth-button {
     color: #fff;
     border-color: transparent;
     background: var(--primary);
@@ -1111,35 +1096,23 @@ body.ftka-dark-ui .energy-pill {
 }
 
 .public-secondary-button,
-.dashboard-secondary-action,
-.studio-link-button,
 .dictionary-secondary-action,
 .grammar-secondary-action,
 .secondary-cta,
 .ghost-button,
-.ghost-link,
-.grammar-quiz-action.secondary,
 .admin-button,
-.auth-button.secondary,
-.settings-button {
+.auth-button.secondary {
     background: var(--surface);
 }
 
 /* Neo (mặc định): nút primary + nav đang chọn dùng chữ tối trên nền cam cho dễ đọc (đủ tương phản) */
 body[data-style="neo"] .public-primary-button,
-body[data-style="neo"] .dashboard-primary-action,
-body[data-style="neo"] .studio-generate-button,
-body[data-style="neo"] .dictionary-action,
 body[data-style="neo"] .dictionary-add-button,
 body[data-style="neo"] .grammar-action,
 body[data-style="neo"] .listening-generate-button,
-body[data-style="neo"] .settings-save-button,
 body[data-style="neo"] .primary-cta,
-body[data-style="neo"] .grammar-quiz-action,
 body[data-style="neo"] .admin-button.primary,
 body[data-style="neo"] .auth-button,
-body[data-style="neo"] .prefs-button,
-body[data-style="neo"] .settings-button.primary,
 body[data-style="neo"] .nav-item.active {
     color: #111;
 }
@@ -1151,33 +1124,22 @@ body[data-style="neo"] .nav-item.active .material-icons-outlined { color: #111; 
 }
 
 .public-primary-button:hover,
-.dashboard-primary-action:hover,
-.studio-generate-button:hover,
-.dictionary-action:hover,
 .dictionary-add-button:hover,
 .grammar-action:hover,
 .listening-generate-button:hover,
-.settings-save-button:hover,
 .primary-cta:hover,
-.grammar-quiz-action:hover,
-.auth-button:hover,
-.prefs-button:hover,
-.settings-button.primary:hover {
+.auth-button:hover {
     background: var(--primary-strong);
     transform: translateY(-1px);
 }
 
 .public-secondary-button:hover,
-.dashboard-secondary-action:hover,
-.studio-link-button:hover,
 .dictionary-secondary-action:hover,
 .grammar-secondary-action:hover,
 .secondary-cta:hover,
 .ghost-button:hover,
-.ghost-link:hover,
 .admin-button:hover,
-.auth-button.secondary:hover,
-.settings-button:hover {
+.auth-button.secondary:hover {
     color: var(--primary);
     border-color: var(--primary-soft);
     background: var(--surface-blue);
@@ -2676,7 +2638,6 @@ textarea {
     padding: 10px 16px;
 }
 
-.dictionary-filter-button.is-active,
 .grammar-filter-button.is-active {
     color: #fff;
     border-color: transparent;
@@ -2985,9 +2946,6 @@ textarea {
 }
 
 .option-button,
-.self-check-button,
-.result-action,
-.completion-action,
 .primary-button,
 .secondary-button,
 .neutral-button,
@@ -3005,9 +2963,6 @@ textarea {
 }
 
 .option-button:hover,
-.self-check-button:hover,
-.result-action:hover,
-.completion-action:hover,
 .primary-button:hover,
 .secondary-button:hover,
 .neutral-button:hover,
@@ -4931,10 +4886,8 @@ body.ftka-dark-ui .anki-shortcuts kbd {
         margin-top: 14px;
     }
 
-    .dictionary-action,
     .dictionary-secondary-action,
     .dictionary-add-button,
-    .dictionary-filter-button,
     .dictionary-inline-button,
     .dictionary-input,
     .dictionary-search-input,
@@ -4952,10 +4905,8 @@ body.ftka-dark-ui .anki-shortcuts kbd {
         line-height: 1.2;
     }
 
-    .dictionary-action .material-icons-outlined,
     .dictionary-secondary-action .material-icons-outlined,
     .dictionary-add-button .material-icons-outlined,
-    .dictionary-filter-button .material-icons-outlined,
     .dictionary-inline-button .material-icons-outlined,
     .dictionary-status-button .material-icons-outlined {
         font-size: 20px;

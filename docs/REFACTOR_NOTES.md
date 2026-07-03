@@ -172,6 +172,25 @@ Công cụ: `scripts/css-inventory.mjs` (giữ lại để chạy kiểm tra tro
 
 ---
 
+## Phase 6 — Một hệ nút (LÀM PHẦN AN TOÀN; migration diện rộng để lại — cần duyệt)
+
+### Thực tế (đếm usage chính xác) khác giả định plan → điều chỉnh
+Không phải 2 hệ CTA nhỏ song song, mà là **3 nhóm**:
+- `.dv-cta` (**19** usage) — CTA hệ mới, 7 trang redesign.
+- **button-base** (nhóm ~24 alias, 1 base rule) — usage nặng: `.admin-button` **48** (18 file admin), `.auth-button` 7, `.secondary-cta` 8, `.primary-cta` 5, còn lại lẻ tẻ.
+- Nút thành phần chuyên biệt (KHÔNG phải CTA): quiz JS-render (option/primary/secondary/neutral/inline-audio/hint), `.grammar-filter-button` (pill), `.sentence-control-button` (player).
+
+### Đã làm (0 rủi ro hình ảnh)
+- **Xoá 15 class nút 0-usage** khỏi CSS: studio-link-button, studio-generate-button, studio-result-audio, dashboard-primary-action, dashboard-secondary-action, dictionary-action, dictionary-filter-button (+`.is-active`, + responsive), settings-save-button, settings-button, ghost-link, grammar-quiz-action(+`.secondary`), prefs-button, self-check-button, result-action, completion-action. Gỡ khỏi mọi comma-group (base/primary/secondary/neo/hover + 768px media).
+- **`docs/UI_GUIDE.md`**: chốt canonical = `.dv-cta` cho nút MỚI; button-base là lớp legacy dùng chung (đừng mở rộng); liệt kê nhóm chuyên biệt giữ riêng; quy tắc chống "hệ thứ ba".
+- Verification: visual **75/75 ×2 — 0 pixel đổi** (class chết → không render); lint + 34 unit pass.
+
+### CHƯA làm — cần duyệt riêng (khác biệt lớn vs plan → dừng theo Nguyên tắc 1)
+- Plan yêu cầu "grep hệ cũ = 0" (migrate hết sang 1 hệ). Nhưng migrate ~75 usage button-base (đặc biệt **48 admin-button/18 file** + auth/settings/payment) sang `.dv-cta` = **đổi diện mạo toàn bộ nút admin/auth** (button-base secondary-first, xám, weight 750 ↔ dv-cta primary-first, cam, weight 800). Đây là thay đổi hình ảnh diện rộng, đúng loại "khác biệt lớn phải hỏi" — không tự làm.
+- **Lựa chọn cho chủ repo** (Phase 6b nếu muốn): (a) giữ nguyên như hiện tại (2 lớp: dv-cta cho mới, button-base legacy) + guide — *đề xuất, ít xâm lấn nhất*; (b) migrate admin/auth/settings/payment sang dv-cta — mình làm được nhưng sẽ có nhiều visual diff phải duyệt per-trang; (c) đổi ngược dv-cta 7 trang redesign về button-base — phá thẩm mỹ vừa làm, không nên.
+
+---
+
 ### Điều chỉnh kế hoạch các phase sau (từ kết quả xác minh)
 - **Phase 1**: sửa thêm 6 gate còn sót (billing ×2, payment_debug ×2, admin dashboard ×1, admin audio ×1).
 - **Phase 3**: quiz.html là 602 dòng (to gần gấp đôi ước tính); base.html giữ nguyên (helper chung — ngoài phạm vi); settings/ai_logs có thể đề xuất riêng sau.
