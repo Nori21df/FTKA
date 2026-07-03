@@ -94,16 +94,6 @@ router.post("/energy/claim-daily", loginRequired, asyncHandler(async (req, res) 
   res.status(result.ok ? 200 : 400).json({ success: result.ok, already_claimed: Boolean(result.already_claimed), energy: result.status, error: result.ok ? "" : "Bạn đã nhận thưởng năng lượng hôm nay." });
 }));
 
-router.post("/preferences", ...named("api_update_preferences", loginRequired, asyncHandler(async (req, res) => {
-  try {
-    const user = await auth.updateUserThemePreference(req.currentUser.id, req.body.theme);
-    req.currentUser = user;
-    res.json({ success: true, theme: req.body.theme });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-})));
-
 router.post("/vocab_groups", loginRequired, asyncHandler(async (req, res) => {
   try {
     const group = await groups.createGroup(req.body.name, req.currentUser.id);

@@ -72,11 +72,11 @@ function parseStyleCookie(req) {
 }
 
 async function viewContext(req, res, next) {
-  // Theme có 2 trục nhưng hiện chỉ 1 trục điều khiển giao diện:
+  // Theme = MỘT trục điều khiển giao diện (Phase 7b đã dọn dead-code trục kia):
   //   - data-style (skin, cookie ftka_style) = NGUỒN SỰ THẬT. Mặc định user mới: NEO.
   //   - sáng/tối SUY TRỰC TIẾP từ skin (midnight → dark). Phải khớp public/js/theme.js (client).
-  // Cột ui_theme trong DB (+ POST /api/preferences) hiện KHÔNG được đọc để render —
-  // xem docs/UI_GUIDE.md mục Theme. TODO(dead-code?): dọn khi có quyết định ở Phase 7b.
+  // Cột users.ui_theme (legacy) không còn code nào đọc/ghi — giữ trong DB cho an toàn dữ liệu,
+  // không drop (thao tác phá hủy). Xem docs/UI_GUIDE.md mục Theme.
   const style = parseStyleCookie(req) || "neo";
   const effectiveTheme = style === "midnight" ? "dark" : "light";
 

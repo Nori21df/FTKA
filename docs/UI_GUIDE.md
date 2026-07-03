@@ -45,7 +45,7 @@ FTKA có 2 trục theme, nhưng **hiện chỉ 1 trục điều khiển giao di�
 |---|---|---|---|
 | **skin** (`data-style`) | 6 palette: studio / warm / midnight / glass / clay / neo | cookie `ftka_style` (mặc định `neo`) | **NGUỒN SỰ THẬT** |
 | **sáng/tối** (`ftka-dark-ui`/`ftka-light-ui`) | nền sáng hay tối | **suy trực tiếp từ skin**: `midnight → dark`, còn lại `light` | phụ thuộc skin |
-| ~~`ui_theme` (DB)~~ | dark/light lưu theo user | cột `users.ui_theme` + `POST /api/preferences` | **INERT** — không được đọc để render, không có UI gọi (dead code, chờ Phase 7b quyết) |
+| ~~`ui_theme` (DB)~~ | (đã bỏ) dark/light theo user | cột `users.ui_theme` (legacy) | **ĐÃ DỌN (7b)** — xoá `POST /api/preferences` + `updateUserThemePreference`; không còn code đọc/ghi. Cột DB giữ nguyên (không drop — thao tác phá hủy), sẽ bị `SELECT *` bỏ qua. |
 
 ### Nơi xử lý theme (chỉ 2 chỗ, phải khớp nhau)
 - **Server** `src/middleware/viewContext.js`: đọc cookie → `res.locals.ui_style` + `ui_theme_class`, render sẵn lên `<body>` (nên **không FOUC**).

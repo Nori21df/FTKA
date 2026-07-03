@@ -374,15 +374,6 @@ async function resetPassword(rawToken, password, confirmPassword) {
   });
 }
 
-async function updateUserThemePreference(userId, theme) {
-  const cleanTheme = String(theme || "").trim().toLowerCase();
-  if (!["dark", "light"].includes(cleanTheme)) {
-    throw new Error("Vui lòng chọn chế độ sáng hoặc tối.");
-  }
-  await db.run("UPDATE users SET ui_theme=?, updated_at=? WHERE id=?", [cleanTheme, currentTimestamp(), userId]);
-  return getUserById(userId);
-}
-
 function setSessionUser(req, user, reason = "login") {
   req.session.user_id = user.id;
   req.session.username = user.username;
@@ -439,7 +430,6 @@ module.exports = {
   getValidPasswordResetToken,
   resetPassword,
   getOrCreateGoogleUser,
-  updateUserThemePreference,
   setSessionUser,
   loginSession,
   logoutSession

@@ -18,7 +18,6 @@ const routes = {
   payment_cancel: "/payment/cancel",
   profile: "/profile",
   preferences: "/preferences",
-  api_update_preferences: "/api/preferences",
   api_create_sepay_order: "/api/payments/sepay/create-order",
   dashboard: "/dashboard",
   vocab: "/vocab",

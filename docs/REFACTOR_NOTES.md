@@ -212,8 +212,11 @@ Xác minh Phase 0 đã chỉ ra: `ui_theme` DB **là dead code** (không nơi n�
 - **`src/middleware/viewContext.js`**: gỡ 2 local chết `userTheme`/`theme` (đọc `ui_theme` DB nhưng không dùng — `effectiveTheme` suy thuần từ skin) + import `settingsService` thành thừa nên gỡ luôn; thêm comment nêu rõ 1 trục điều khiển + `ui_theme` DB đang inert (TODO dead-code cho Phase 7b).
 - **`docs/UI_GUIDE.md`** mục Theme: bảng 2 trục + trục `ui_theme` inert; 2 nơi xử lý (server viewContext / client theme.js) phải khớp; cách thêm skin mới; điều cấm (không đọc/ghi cookie theme ngoài theme.js).
 
-### Còn nợ (Phase 7b — cần chủ repo quyết, backend)
-- Số phận `ui_theme` DB: hiện dead. Nếu bỏ hẳn → xoá `POST /api/preferences` (api.js) + `authService.updateUserThemePreference` + cột `users.ui_theme`. Nếu giữ (làm dark/light độc lập skin) → phải nối lại vào `viewContext` + thêm UI. Chưa làm vì đụng backend/DB, ngoài phạm vi refactor frontend.
+### Phase 7b — Dọn dead-code ui_theme (HOÀN THÀNH, đã duyệt)
+- Xoá **orphan endpoint** `POST /api/preferences` (api.js) + `authService.updateUserThemePreference` (+ export) + url `api_update_preferences` (urls.js). Cả ba là dead: không template/JS nào fetch, chỉ gọi lẫn nhau.
+- **KHÔNG drop cột `users.ui_theme`**: thao tác phá hủy trên DB production, cột giờ inert (không code nào đọc/ghi, `SELECT *` bỏ qua vô hại). Ghi rõ trong comment `viewContext.js` + UI_GUIDE. Nếu sau này muốn dọn cột: migration riêng, có backup.
+- Giữ nguyên `GET /preferences` (trang chọn skin — vẫn dùng) và `res.locals.ui_theme` (giá trị light/dark suy ra, trùng tên nhưng khác nghĩa cột DB).
+- Verification: `node --check` sạch; server khởi động OK; trang `/preferences` đổi skin vẫn chạy; `npm test` + `test:e2e` pass; visual 75/75.
 
 ### Verification (≥4 tổ hợp skin × sáng/tối, browser thật)
 - Bấm Midnight → `data-style=midnight` + `ftka-dark-ui` + cookie; Warm → light + cookie; Neo → cookie; `ftkaTheme.readStyle()` đọc lại đúng; aria-pressed cập nhật. Đổi skin không phá dark/light của skin khác.
