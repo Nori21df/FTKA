@@ -30,9 +30,10 @@ const PROVIDERS_CONFIG = {
     taskPriority: [TASK_TYPES.TRANSLATE, TASK_TYPES.GRAMMAR],
     tier: MODEL_TIER.HEAVY,
     avgLatencyMs: 1200,
-    // light = Gemma 4 31B (open model, gọi qua cùng endpoint generateContent)
-    // heavy = Gemini 3.5 Flash (model chủ lực hiện tại của Google, GA)
-    models: { light: "gemini-3.5-flash", heavy: "gemma-4-31b-it" },
+    // heavy = Gemini 3.5 Flash (model chủ lực, có responseSchema, đo ~1.7s) — bước 1 của chain.
+    // light = Gemma 4 31B (open model, cùng endpoint, đo ~4.6s — CHẬM hơn, chỉ làm dự phòng).
+    // Lưu ý: mapping từng bị đảo (heavy=gemma) khiến mọi request mở màn bằng model chậm nhất.
+    models: { light: "gemma-4-31b-it", heavy: "gemini-3.5-flash" },
   },
   groq: {
     name: "groq",
@@ -43,9 +44,9 @@ const PROVIDERS_CONFIG = {
     // heavy = Llama 3.3 70B (nhanh ~1s, JSON sạch, KHÔNG có reasoning token → không đốt token/phút của Groq).
     // Lưu ý: KHÔNG dùng model reasoning cho tác vụ hàng loạt:
     //   - gpt-oss-120b: chạy được nhưng đốt nhiều reasoning token → dễ dính 429 (TPM) khi tạo lại hàng loạt,
-    //     rồi rớt xuống NVIDIA nemotron rất chậm (~20s).
+    //     rồi rớt xuống provider chậm hơn.
     //   - qwen3.6-27b: rò rỉ token <think> làm hỏng JSON.
-    models: { light: "meta-llama/llama-4-scout-17b-16e-instruct", heavy: "openai/gpt-oss-120b" },
+    models: { light: "meta-llama/llama-4-scout-17b-16e-instruct", heavy: "llama-3.3-70b-versatile" },
   },
   nvidia: {
     name: "nvidia",
@@ -59,8 +60,10 @@ const PROVIDERS_CONFIG = {
     name: "cloudflare",
     taskPriority: [TASK_TYPES.SIMPLE],
     tier: MODEL_TIER.LIGHT,
-    avgLatencyMs: 600,
-    models: { light: "@cf/google/gemma-4-26b-a4b-it", heavy: "@cf/openai/gpt-oss-120b" },
+    avgLatencyMs: 400,
+    // llama-3.3-70b-fp8-fast: đo ~350ms, trả result.response chuẩn.
+    // gemma-4-26b trên CF trả shape OpenAI choices (không có result.response) → từng làm bước này chết.
+    models: { light: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", heavy: "@cf/openai/gpt-oss-120b" },
   },
   openrouter: {
     name: "openrouter",
@@ -90,4 +93,14 @@ const FALLBACK_CHAIN = [
   { provider: "openrouter", tier: "light" },
 ];
 
-module.exports = { TASK_TYPES, MODEL_TIER, PROVIDERS_CONFIG, DEFAULT_FALLBACK_ORDER, FALLBACK_CHAIN };
+// Chain NGẮN cho tác vụ nhẹ / nhạy độ trễ (taskType SIMPLE: tra từ, dict, JSON nhỏ):
+// chỉ các bước nhanh, bỏ gemma (4.6s) + groq heavy — mục tiêu p50 ~1-1.7s.
+const FALLBACK_CHAIN_LIGHT = [
+  { provider: "google", tier: "heavy" },      // gemini-3.5-flash ~1.7s (có responseSchema)
+  { provider: "groq", tier: "light" },        // llama-4-scout ~0.9s
+  { provider: "cloudflare", tier: "light" },  // llama-3.3-70b-fp8-fast ~0.4s
+  { provider: "nvidia", tier: "heavy" },      // gpt-oss-120b ~0.8s
+  { provider: "openrouter", tier: "light" },  // phương án cuối
+];
+
+module.exports = { TASK_TYPES, MODEL_TIER, PROVIDERS_CONFIG, DEFAULT_FALLBACK_ORDER, FALLBACK_CHAIN, FALLBACK_CHAIN_LIGHT };

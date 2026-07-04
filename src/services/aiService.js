@@ -1,7 +1,8 @@
 const env = require("../config/env");
 const aiLogService = require("./aiLogService");
 const { FTKARouter, TASK_TYPES, MODEL_TIER } = require("../ai/core/router");
-const { PROVIDERS_CONFIG, FALLBACK_CHAIN } = require("../ai/core/providerConfig");
+const { PROVIDERS_CONFIG, FALLBACK_CHAIN, FALLBACK_CHAIN_LIGHT } = require("../ai/core/providerConfig");
+const { fetchWithTimeout } = require("../ai/providers/httpUtil");
 
 /** Singleton router — lazily created on first use. */
 let _router = null;
@@ -154,7 +155,11 @@ async function chatJsonWithFallback(type, system, prompt, options = {}) {
   const routerMessages = [{ role: "user", content: buildRouterPrompt(system, prompt) }];
   const errors = [];
 
-  for (const step of FALLBACK_CHAIN) {
+  // Tác vụ nhẹ / nhạy độ trễ (SIMPLE: tra từ, dict) dùng chain NGẮN — bỏ các bước chậm
+  // (gemma light 4.6s, groq heavy) để p50 ~1-1.7s thay vì xếp hàng qua chain nặng.
+  const chain = options.taskType === TASK_TYPES.SIMPLE ? FALLBACK_CHAIN_LIGHT : FALLBACK_CHAIN;
+
+  for (const step of chain) {
     const { provider, tier } = step;
     const startedAt = Date.now();
 
@@ -277,15 +282,17 @@ function shouldRetry(status) {
   return status === 429 || status >= 500;
 }
 
-async function fetchGoogleWithRetry(body, attempts = 3, model) {
+async function fetchGoogleWithRetry(body, attempts = 3, model, timeoutMs = 20000) {
   let lastText = "";
   let lastStatus = 0;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    const response = await fetch(googleGenerateUrl(model), {
+    // A2: trần thời gian/lần gọi — trước đây không có timeout, Google treo là request user treo vô hạn.
+    // Tác vụ nhẹ (SIMPLE) dùng trần ngắn hơn để gemini treo/503 thì rớt sang Groq (~0.6s) nhanh.
+    const response = await fetchWithTimeout(googleGenerateUrl(model), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
-    });
+    }, timeoutMs);
     const bodyText = await response.text();
     if (response.ok) return { bodyText, attempt };
     lastText = bodyText;
@@ -342,12 +349,15 @@ async function chatJson(system, prompt, options = {}) {
   const model = options.model || env.googleAiStudioModel;
   const useSchema = supportsSchema(model);
   const schema = useSchema ? (options.schema || JSON_SCHEMAS[options.type]) : null;
+  // Trần Google: tác vụ nhẹ (tra từ/dict) chỉ chờ 8s rồi rớt sang Groq; tác vụ nặng chờ 20s.
+  const googleTimeoutMs = options.taskType === TASK_TYPES.SIMPLE ? 8000 : 20000;
   return withAiLogging(system, prompt, { ...options, model }, async () => {
     requireApiKey();
     let originalError;
     for (let attempt = 1; attempt <= 2; attempt += 1) {
       const retryPrompt = attempt === 1 ? prompt : `${prompt}\n\nReturn ONLY valid JSON. No markdown. No explanation. Complete all brackets.`;
-      const { bodyText } = await fetchGoogleWithRetry(googleBody(system, retryPrompt, { temperature, maxTokens, schema, jsonMode: useSchema }), 3, model);
+      // A5: HTTP retry 3→2 — khi Google trục trặc 5xx, thoát sang bước kế (Groq) nhanh hơn ~1 lần gọi + 1.6s ngủ.
+      const { bodyText } = await fetchGoogleWithRetry(googleBody(system, retryPrompt, { temperature, maxTokens, schema, jsonMode: useSchema }), 2, model, googleTimeoutMs);
       const payload = JSON.parse(bodyText);
       const finishReason = googleFinishReason(payload);
       aiLogService.addAiLog({ type: options.type || "ai", status: "progress", message: "AI finishReason", model, user_id: options.user_id || options.userId || null, meta: { ...promptMeta(prompt), finishReason, json_attempt: attempt } });
@@ -530,7 +540,9 @@ async function generateDailyPassage(options = {}) {
     `- "quiz_items": đúng 3 câu hỏi đọc hiểu VỀ NỘI DUNG đoạn văn, hỏi bằng TIẾNG VIỆT: ` +
     `{"question_vi":"...","options":["...","...","...","..."],"correct_index":0} — 4 lựa chọn tiếng Việt, đúng 1 đáp án.\n` +
     `Chỉ trả JSON đúng dạng: {"title":"...","korean":"...","vietnamese":"...","quiz_items":[...]}`;
-  const result = await generateJsonObject(system, prompt, { type: "daily", temperature: 0.7, maxTokens: 4096 });
+  // taskType KHÔNG phải SIMPLE → dùng chain nặng + trần Google 20s (đoạn văn dài, chờ được model tốt;
+  // vả lại đã prewarm lúc login nên không nhạy độ trễ như tra từ).
+  const result = await generateJsonObject(system, prompt, { type: "daily", temperature: 0.7, maxTokens: 4096, taskType: TASK_TYPES.GRAMMAR });
   const title = String(result.title || "").trim();
   const korean = String(result.korean || "").trim();
   const vietnamese = String(result.vietnamese || "").trim();
@@ -566,7 +578,8 @@ async function gradeWriting(topic, text) {
     `"corrected": "toàn bộ bài đã sửa hoàn chỉnh (tiếng Hàn tự nhiên)",` +
     `"feedback_vi": "2-3 câu nhận xét tiếng Việt thân thiện, nêu điểm tốt + cần cải thiện",` +
     `"corrections": [{"wrong":"cụm sai","right":"cụm đúng","note":"giải thích ngắn tiếng Việt"}] (tối đa 8 lỗi chính)}`;
-  const result = await generateJsonObject(system, prompt, { type: "writing", temperature: 0.3, maxTokens: 4096 });
+  // Chấm bài = output dài (bài sửa + nhận xét) → chain nặng + trần Google 20s, không tag SIMPLE.
+  const result = await generateJsonObject(system, prompt, { type: "writing", temperature: 0.3, maxTokens: 4096, taskType: TASK_TYPES.GRAMMAR });
   const score = Math.max(0, Math.min(100, Math.round(Number(result.score) || 0)));
   const corrected = String(result.corrected || "").trim();
   const feedbackVi = String(result.feedback_vi || "").trim();

@@ -3,19 +3,19 @@
  * Adapter cho Cloudflare Workers AI.
  */
 
-const fetch = global.fetch || require("node-fetch");
+const { fetchWithTimeout } = require("./httpUtil");
 
-async function chat(messages, { model = "@cf/google/gemma-4-26b-a4b-it", apiKey, accountId } = {}) {
+async function chat(messages, { model = "@cf/meta/llama-3.3-70b-instruct-fp8-fast", apiKey, accountId } = {}) {
   const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`;
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({ messages }),
-  });
+  }, 15000);
 
   if (!res.ok) {
     const err = new Error(`Cloudflare Workers AI error: ${res.status}`);
@@ -24,7 +24,8 @@ async function chat(messages, { model = "@cf/google/gemma-4-26b-a4b-it", apiKey,
   }
 
   const data = await res.json();
-  const text = data?.result?.response;
+  // CF trả 2 shape tùy model: {result:{response}} (kiểu cũ) HOẶC {result:{choices:[{message}]}} (kiểu OpenAI).
+  const text = data?.result?.response || data?.result?.choices?.[0]?.message?.content;
   if (!text) {
     const err = new Error("Cloudflare Workers AI: empty response");
     err.status = 500;

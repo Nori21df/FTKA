@@ -2,6 +2,28 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const env = require("../config/env");
+const { fetchWithTimeout } = require("../ai/providers/httpUtil");
+
+// B3: cache mp3 theo text (LRU ~200 buffer, dùng chung mọi user). Cùng một câu/jamo
+// từng phát → trả buffer ngay, KHÔNG gọi lại Google Translate. 40 jamo + câu daily lặp
+// lại nhiều → hit rate cao. ~vài MB RAM (mp3 tiếng Hàn ngắn ~5-30KB).
+const TTS_CACHE = new Map();
+const TTS_CACHE_MAX = 200;
+
+function cacheGet(key) {
+  if (!TTS_CACHE.has(key)) return null;
+  const buf = TTS_CACHE.get(key);
+  TTS_CACHE.delete(key); // đưa lên "mới dùng nhất"
+  TTS_CACHE.set(key, buf);
+  return buf;
+}
+
+function cacheSet(key, buf) {
+  TTS_CACHE.set(key, buf);
+  if (TTS_CACHE.size > TTS_CACHE_MAX) {
+    TTS_CACHE.delete(TTS_CACHE.keys().next().value); // bỏ cái cũ nhất
+  }
+}
 
 function audioDir() {
   const configured = env.listeningAudioDir;
@@ -16,11 +38,15 @@ function uniqueAudioPath() {
 }
 
 async function synthesizeBuffer(text) {
-  const query = encodeURIComponent(String(text || "").trim().slice(0, 200));
-  const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${query}`;
-  const response = await fetch(url);
+  const clean = String(text || "").trim().slice(0, 200);
+  const cached = cacheGet(clean);
+  if (cached) return cached;
+  const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(clean)}`;
+  const response = await fetchWithTimeout(url, {}, 12000);
   if (!response.ok) throw new Error(`TTS failed with status ${response.status}`);
-  return Buffer.from(await response.arrayBuffer());
+  const buffer = Buffer.from(await response.arrayBuffer());
+  cacheSet(clean, buffer);
+  return buffer;
 }
 
 async function generateAudio(text) {

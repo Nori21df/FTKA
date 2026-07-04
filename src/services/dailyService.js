@@ -104,6 +104,33 @@ async function savePassage(userId, date, passage) {
   return getPassageForDate(userId, date);
 }
 
+// B2: hâm nóng đoạn văn HÔM NAY ngay khi login (fire-and-forget) → mở tab "Học hôm nay"
+// là có ngay thay vì chờ AI 5-15s. Đã có đoạn hôm nay thì bỏ qua; nuốt mọi lỗi (không
+// được để hỏng luồng login). Dùng khoá in-flight tránh 2 request cùng tạo trùng.
+const _prewarming = new Set();
+
+async function prewarmToday(userId) {
+  if (!userId) return;
+  const date = todayStr();
+  const key = `${userId}:${date}`;
+  if (_prewarming.has(key)) return;
+  _prewarming.add(key);
+  try {
+    const existing = await getPassageForDate(userId, date);
+    if (existing) return;
+    const ai = require("./aiService"); // lazy-require: tránh vòng phụ thuộc
+    const passage = await ai.generateDailyPassage({ topic: pickTopic() });
+    // Kiểm tra lại phòng khi user đã tự bấm tạo trong lúc AI chạy → không ghi đè.
+    if (!(await getPassageForDate(userId, date))) {
+      await savePassage(userId, date, passage);
+    }
+  } catch (_e) {
+    // im lặng: prewarm là tuỳ chọn, trang /daily vẫn tự tạo khi mở nếu thiếu.
+  } finally {
+    _prewarming.delete(key);
+  }
+}
+
 module.exports = {
   DAILY_TOPICS,
   todayStr,
@@ -112,5 +139,6 @@ module.exports = {
   ensureDailySchema,
   getPassageForDate,
   listRecentDates,
-  savePassage
+  savePassage,
+  prewarmToday
 };

@@ -82,6 +82,8 @@ router.route("/login")
     if (user) {
       await auth.loginSession(req, user, "password");
       if (!auth.isEmailVerified(user)) return res.redirect("/verify-email-required");
+      // B2: hâm nóng đoạn "Học hôm nay" ở nền — KHÔNG await (đừng làm chậm login).
+      daily.prewarmToday(user.id).catch(() => {});
       return res.redirect(safeNextUrl(req.body.next));
     }
     return res.render("auth/login.html", {
@@ -179,7 +181,10 @@ router.get("/auth/google/callback", ...named("google_callback", (req, res, next)
 }, (req, res) => {
   const nextUrl = req.session.oauth_next || "/dashboard";
   return auth.loginSession(req, req.user, "google")
-    .then(() => res.redirect(safeNextUrl(nextUrl)))
+    .then(() => {
+      daily.prewarmToday(req.user.id).catch(() => {}); // B2: prewarm nền, không chặn
+      res.redirect(safeNextUrl(nextUrl));
+    })
     .catch((error) => {
       console.error("[auth] Google session creation failed:", error);
       res.redirect("/login");
