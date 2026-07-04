@@ -7,6 +7,8 @@ const authService = require("./services/authService");
 const { ensureBillingSchema } = require("./services/sepay.service");
 const { ensureEnergySchema } = require("./services/energyService");
 const { ensureDailySchema } = require("./services/dailyService");
+const { ensureStreakRewardSchema } = require("./services/streakRewardService");
+const { ensureReminderSchema, startReminderScheduler } = require("./services/reminderService");
 const { initEnergySocket } = require("./services/energySocket");
 
 async function start() {
@@ -14,9 +16,12 @@ async function start() {
   await ensureBillingSchema();
   await ensureEnergySchema();
   await ensureDailySchema();
+  await ensureStreakRewardSchema();
+  await ensureReminderSchema();
   const server = http.createServer(app);
   const io = new Server(server);
   initEnergySocket(io, sessionMiddleware, authService);
+  startReminderScheduler();
   server.listen(env.port, () => {
     console.log(`FTKA Express app listening at http://localhost:${env.port}`);
   });

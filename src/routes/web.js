@@ -12,6 +12,7 @@ const groups = require("../services/vocabGroupService");
 const listening = require("../services/listeningService");
 const energy = require("../services/energyService");
 const daily = require("../services/dailyService");
+const streakRewards = require("../services/streakRewardService");
 const { emitEnergyUpdate } = require("../services/energySocket");
 
 const router = express.Router();
@@ -200,6 +201,12 @@ router.get("/dashboard", ...named("dashboard", loginRequired, asyncHandler(async
   const learnedCount = vocabCount - unlearned;
   const timeline = await learning.getLearningActivityTimeline(ownerId);
   const streak = await learning.getLearningStreakStats(ownerId);
+  // Heatmap 15 tuần (105 ngày) gom theo tuần, mỗi tuần 7 ô — render tĩnh trong template.
+  const heatDays = await learning.getLearningActivityTimeline(ownerId, 105);
+  const heatWeeks = [];
+  for (let i = 0; i < heatDays.length; i += 7) heatWeeks.push(heatDays.slice(i, i + 7));
+  // Mốc thưởng chuỗi (7/30/100 ngày) — phát 1 lần mỗi mốc, hiện banner khi vừa nhận.
+  const rewardsGranted = await streakRewards.claimDueRewards(ownerId, streak.days || 0);
   const recentLearning = await learning.getRecentLearningActivity(ownerId);
   const sourceBreakdown = await learning.getSourceBreakdown(ownerId, vocabCount);
   const newWordsThisWeek = await learning.countRecentVocabEntries(ownerId);
@@ -221,6 +228,8 @@ router.get("/dashboard", ...named("dashboard", loginRequired, asyncHandler(async
       none: "Chưa học"
     },
     learning_timeline: timeline,
+    heatmap_weeks: heatWeeks,
+    streak_rewards_granted: rewardsGranted,
     recent_learning: recentLearning,
     source_breakdown: sourceBreakdown,
     energy_status: energyStatus,

@@ -113,9 +113,37 @@ async function sendPasswordResetEmail(user, resetUrl) {
   }
 }
 
+// Nhắc học hằng ngày (giữ chuỗi). Dev luôn log; chỉ gửi thật khi SMTP đã cấu hình.
+async function sendStudyReminderEmail(user, streakDays) {
+  if (env.nodeEnv !== "production") {
+    console.log(`[DEV STUDY REMINDER] to=${user.email} streak=${streakDays}`);
+  }
+  const status = getSmtpConfigStatus();
+  if (!status.configured) return { sent: false, reason: "smtp_not_configured" };
+  const transport = createTransport();
+  if (!transport) return { sent: false, reason: "transport_not_installed" };
+  const appLink = String(env.appUrl || env.baseUrl || "").replace(/\/+$/, "");
+  try {
+    const info = await transport.sendMail({
+      from: env.mailFrom,
+      to: user.email,
+      subject: `FTKA — Giữ chuỗi ${streakDays} ngày học của bạn`,
+      text:
+        `Chào ${user.username},\n\n` +
+        `Hôm nay bạn chưa học từ nào. Chuỗi ${streakDays} ngày học liên tiếp sẽ mất nếu hôm nay bỏ trống.\n` +
+        `Chỉ cần vài phút với đoạn văn hôm nay: ${appLink}/daily\n\n— FTKA`
+    });
+    return { sent: true, messageId: info.messageId || "" };
+  } catch (error) {
+    console.error(`[email] Study reminder failed for user ${user.id}: ${error.message}`);
+    return { sent: false, reason: "send_failed", error: error.message };
+  }
+}
+
 module.exports = {
   sendVerificationEmail,
   sendPasswordResetEmail,
+  sendStudyReminderEmail,
   getSmtpConfigStatus,
   createTransport
 };

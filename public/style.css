@@ -560,6 +560,20 @@ body[data-style="neo"] .dv-cta:not(.ghost):not(.danger) { color: #111; }
 .dv-col.is-today .bar { outline: 2px solid var(--primary-soft); outline-offset: 1px; }
 .dv-col small { font-size: 11px; color: var(--muted); font-weight: 600; }
 .dv-col .v { font-size: 11px; color: var(--text-soft); font-weight: 700; font-variant-numeric: tabular-nums; }
+/* Banner thưởng mốc chuỗi ngày học */
+.dv-reward { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border: 1px solid var(--success);
+    border-radius: var(--radius); background: var(--success-soft); color: var(--success); }
+.dv-reward .material-icons-outlined { font-size: 28px; }
+.dv-reward p { margin: 0; color: var(--text); font-size: 14px; }
+.dv-reward p + p { margin-top: 4px; }
+/* Heatmap 15 tuần (mỗi cột 1 tuần, 7 ô/ngày) */
+.dv-heatmap { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+.dv-heat-col { display: grid; gap: 4px; flex: none; }
+.dv-heat-cell { width: 14px; height: 14px; border-radius: 4px; background: var(--surface-soft); border: 1px solid var(--line); }
+.dv-heat-cell.lv1 { background: var(--primary-soft); border-color: transparent; }
+.dv-heat-cell.lv2 { background: var(--primary); opacity: .55; border-color: transparent; }
+.dv-heat-cell.lv3 { background: var(--primary); border-color: transparent; }
+.dv-heat-cell.is-today { outline: 2px solid var(--primary-strong); outline-offset: 1px; }
 .dv-rev { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
 .dv-rev:last-child { border-bottom: 0; }
 .dv-rev .kr { font-size: 17px; font-weight: 700; }

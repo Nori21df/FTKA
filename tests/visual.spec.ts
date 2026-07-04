@@ -30,7 +30,7 @@ const PUBLIC_PAGES = [
 ] as const;
 
 const AUTHED_PAGES = [
-  { name: "dashboard", path: "/dashboard", mask: [".dv-chart"] }, // nhãn thứ/ngày đổi theo ngày chạy
+  { name: "dashboard", path: "/dashboard", mask: [".dv-chart", ".dv-heatmap"] }, // nhãn thứ/ngày + ô heatmap đổi theo ngày chạy
   { name: "vocab", path: "/vocab" },
   { name: "generator", path: "/generator" },
   { name: "grammar", path: "/grammar" },

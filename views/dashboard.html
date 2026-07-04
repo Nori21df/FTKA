@@ -2,6 +2,17 @@
 
 {% block content %}
 <div class="dv-wrap">
+    {% if streak_rewards_granted|length %}
+    <section class="dv-reward" role="status">
+        <span class="material-icons-outlined" aria-hidden="true">emoji_events</span>
+        <div>
+            {% for reward in streak_rewards_granted %}
+            <p><strong>Chuỗi {{ reward.milestone }} ngày!</strong> Bạn được tặng {{ reward.amount }} năng lượng. Tiếp tục phát huy nhé.</p>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     <!-- 1) Việc hôm nay -->
     <section class="dv-card dv-today">
         <div class="lead">
@@ -84,6 +95,24 @@
             {% endif %}
         </section>
     </div>
+
+    <!-- 3b) Heatmap 15 tuần -->
+    <section class="dv-card" style="padding:18px">
+        <div class="dv-phead">
+            <h3>Lịch học 15 tuần</h3>
+            <span style="color:var(--muted);font-size:12.5px">Ô đậm hơn = học nhiều hơn trong ngày</span>
+        </div>
+        <div class="dv-heatmap" role="img" aria-label="Lịch hoạt động học 15 tuần gần nhất">
+            {% for week in heatmap_weeks %}
+            <div class="dv-heat-col">
+                {% for day in week %}
+                <div class="dv-heat-cell {% if day.count == 0 %}lv0{% elif day.count <= 2 %}lv1{% elif day.count <= 5 %}lv2{% else %}lv3{% endif %} {% if day.is_today %}is-today{% endif %}"
+                     title="{{ day.short_date }}: {{ day.count }} từ"></div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
 
     <!-- 4) Mới thêm gần đây -->
     <div class="dv-grid dv-c2">
