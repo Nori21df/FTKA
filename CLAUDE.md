@@ -4,6 +4,13 @@ FTKA = web app học tiếng Hàn cho người Việt. **Server-rendered** (Node
 **vanilla JS** (ES module tĩnh trong `public/js/`), **CSS thuần** một file `public/style.css`.
 KHÔNG có React/Vue/Vite/Tailwind — đừng thêm framework/bundler.
 
+**Tính năng chính:** dashboard (heatmap 15 tuần, thưởng mốc chuỗi), tạo/thêm từ vựng AI, flashcard
+(+SRS ngắt quãng SM-2 lite: `src/utils/srs.js`), ngữ pháp + quiz, **Học hôm nay** (đoạn văn AI/ngày:
+bấm-từ-tra-nghĩa, nghe từng câu, quiz đọc hiểu, lịch sử), **Bảng chữ cái Hangul** (+quiz ghép âm),
+ôn tập/kiểm tra, **Luyện viết** (AI chấm), **Luyện phát âm** (Web Speech, client-only), **TOPIK**
+theo cấp, luyện nghe AI, tra từ nhanh topbar (`/api/dict`, LRU cache), xuất Anki TSV, PWA
+(manifest + `/sw.js` cache-first chỉ `/static/*`), email nhắc học (scheduler, 19–22h VN).
+
 ## Chạy dev
 ```bash
 npm run dev            # node src/server.js — mặc định PORT 3000 (lưu ý .env local có thể đặt PORT khác)

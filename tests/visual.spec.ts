@@ -37,7 +37,13 @@ const AUTHED_PAGES = [
   { name: "grammar-quiz", path: "/grammar-quiz" },
   { name: "quiz", path: "/quiz" },
   { name: "listening", path: "/listening-practice" },
-  { name: "preferences", path: "/preferences" }
+  { name: "preferences", path: "/preferences" },
+  // Trang mới (nội dung ổn định với user test): hangul tĩnh; writing/topik empty-state;
+  // speak = 2 câu ví dụ seed + câu mặc định. /daily KHÔNG đưa vào (nội dung AI theo ngày).
+  { name: "hangul", path: "/hangul" },
+  { name: "writing", path: "/writing" },
+  { name: "speak", path: "/speak" },
+  { name: "topik", path: "/topik" }
 ] as const;
 
 // Trang admin: mask vùng động — console realtime (SSE, log đổi liên tục), badge trạng thái

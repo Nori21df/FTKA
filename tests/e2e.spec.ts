@@ -56,6 +56,34 @@ test.describe("smoke @ authed", () => {
     await expect(page.locator('.nav-item[href="/daily"]')).toHaveClass(/active/);
   });
 
+  test("các trang mới render: hangul (40 jamo + quiz), writing, speak, topik, dictbar", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+
+    await page.goto("/hangul");
+    await expect(page.locator(".hg-cell")).toHaveCount(40);
+    await page.locator("#hangulQuizStart").click();
+    await expect(page.locator(".hg-quiz-jamo")).toBeVisible();
+    await expect(page.locator(".hg-quiz .daily-quiz-opt")).toHaveCount(4);
+
+    await page.goto("/writing");
+    await expect(page.locator("#wrText")).toBeVisible();
+    await expect(page.locator("#wrSubmitBtn")).toBeVisible();
+
+    await page.goto("/speak");
+    // headless có thể không hỗ trợ SpeechRecognition → chấp nhận 1 trong 2 trạng thái
+    const stageVisible = await page.locator("#spStage:visible").count();
+    const unsupportedVisible = await page.locator("#spUnsupported:visible").count();
+    expect(stageVisible + unsupportedVisible).toBeGreaterThan(0);
+
+    await page.goto("/topik");
+    await expect(page.locator(".tk-wrap .rv-head")).toBeVisible();
+
+    // dictbar hiện diện trên topbar mọi trang app
+    await expect(page.locator("#dictbarInput")).toBeVisible();
+    expect(errors, `page errors: ${errors.join(" | ")}`).toEqual([]);
+  });
+
   test("đổi theme (skin) áp ngay + lưu cookie", async ({ page }) => {
     await page.goto("/preferences");
     await page.locator('.style-card[data-style="midnight"]').click();
