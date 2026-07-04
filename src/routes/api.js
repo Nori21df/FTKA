@@ -375,6 +375,25 @@ router.post("/daily/generate", aiLimiter, loginRequired, asyncHandler(async (req
   res.json({ success: true, passage: saved });
 }));
 
+// Tra từ nhanh (không lưu). Cache trong bộ nhớ để từ phổ biến không tốn quota AI.
+const DICT_CACHE = new Map();
+const DICT_CACHE_MAX = 500;
+router.post("/dict", aiLimiter, loginRequired, asyncHandler(async (req, res) => {
+  const word = String(req.body.word || "").trim().slice(0, 60);
+  if (!word) return res.status(400).json({ error: "Vui lòng nhập từ cần tra." });
+  const key = word.toLowerCase();
+  if (DICT_CACHE.has(key)) {
+    const cached = DICT_CACHE.get(key);
+    DICT_CACHE.delete(key);
+    DICT_CACHE.set(key, cached); // refresh vị trí LRU
+    return res.json({ success: true, entry: cached, cached: true });
+  }
+  const entry = await ai.lookupWord(word);
+  DICT_CACHE.set(key, entry);
+  while (DICT_CACHE.size > DICT_CACHE_MAX) DICT_CACHE.delete(DICT_CACHE.keys().next().value);
+  res.json({ success: true, entry });
+}));
+
 router.get("/tts", aiLimiter, asyncHandler(async (req, res) => {
   const text = String(req.query.text || "").trim().slice(0, 200);
   if (!text) return res.status(400).send("");

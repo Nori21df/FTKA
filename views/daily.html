@@ -6,16 +6,28 @@
         <div>
             <span class="gen-kicker">Học hôm nay</span>
             <h2>Đoạn văn tiếng Hàn hôm nay</h2>
-            <p>Mỗi ngày một đoạn ngắn kèm bản dịch để luyện đọc hiểu. Đọc phần tiếng Hàn trước, rồi mở bản dịch để đối chiếu.</p>
+            <p>Đọc phần tiếng Hàn trước — bấm vào từ để tra nghĩa và lưu, bấm loa để nghe từng câu, rồi làm 3 câu đọc hiểu bên dưới.</p>
         </div>
+        {% if daily_view.is_today %}
         <button type="button" class="dv-cta ghost" id="dailyRegenBtn" title="Tạo một đoạn văn khác cho hôm nay">
             <span class="material-icons-outlined" aria-hidden="true">autorenew</span> Tạo đoạn khác
         </button>
+        {% endif %}
     </header>
+
+    {% if daily_view.recent_dates|length %}
+    <nav class="daily-history" aria-label="Các ngày đã học">
+        {% for item in daily_view.recent_dates %}
+        <a class="daily-chip {% if item.date == daily_view.date %}is-active{% endif %}"
+           href="{{ url_for('daily') }}{% if item.date != daily_view.today %}?date={{ item.date }}{% endif %}">{{ item.label }}</a>
+        {% endfor %}
+    </nav>
+    {% endif %}
 
     <section class="dv-card daily-card" id="dailyCard" aria-live="polite"></section>
 </div>
 
 <script id="daily-data" type="application/json">{{ daily_data|tojson }}</script>
+<script id="daily-view" type="application/json">{{ daily_view|tojson }}</script>
 <script type="module" src="/static/js/daily/dailyPage.js"></script>
 {% endblock %}

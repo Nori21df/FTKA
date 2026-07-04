@@ -514,12 +514,12 @@ async function generateJsonObject(system, prompt, options = {}) {
   return result;
 }
 
-// Tab "Học hôm nay": một đoạn văn tiếng Hàn ngắn + bản dịch tiếng Việt để luyện đọc mỗi ngày.
+// Tab "Học hôm nay": một đoạn văn tiếng Hàn ngắn + bản dịch tiếng Việt + 3 câu đọc hiểu.
 async function generateDailyPassage(options = {}) {
   const topicHint = String(options.topic || "").trim();
   const system =
     "Bạn là giáo viên tiếng Hàn cho người Việt. Viết một đoạn văn tiếng Hàn ngắn, tự nhiên, " +
-    "phù hợp trình độ sơ–trung cấp để học mỗi ngày, kèm bản dịch tiếng Việt sát nghĩa. CHỈ trả về JSON.";
+    "phù hợp trình độ sơ–trung cấp để học mỗi ngày, kèm bản dịch tiếng Việt sát nghĩa và câu hỏi đọc hiểu. CHỈ trả về JSON.";
   const prompt =
     `Tạo một đoạn văn tiếng Hàn để học hôm nay${topicHint ? ` về chủ đề: ${topicHint}` : ""}.\n` +
     `Yêu cầu:\n` +
@@ -527,15 +527,52 @@ async function generateDailyPassage(options = {}) {
     `- "korean": 4–6 câu tiếng Hàn tự nhiên, đời thường, viết HOÀN TOÀN bằng Hangul ` +
     `(KHÔNG chèn tiếng Việt/tiếng Anh trong câu), độ dài vừa phải cho người mới học. Ngăn câu bằng dấu xuống dòng.\n` +
     `- "vietnamese": bản dịch tiếng Việt trọn vẹn, sát nghĩa, tự nhiên; mỗi câu một dòng khớp với phần Hàn.\n` +
-    `Chỉ trả JSON đúng dạng: {"title":"...","korean":"...","vietnamese":"..."}`;
-  const result = await generateJsonObject(system, prompt, { type: "daily", temperature: 0.7, maxTokens: 2048 });
+    `- "quiz_items": đúng 3 câu hỏi đọc hiểu VỀ NỘI DUNG đoạn văn, hỏi bằng TIẾNG VIỆT: ` +
+    `{"question_vi":"...","options":["...","...","...","..."],"correct_index":0} — 4 lựa chọn tiếng Việt, đúng 1 đáp án.\n` +
+    `Chỉ trả JSON đúng dạng: {"title":"...","korean":"...","vietnamese":"...","quiz_items":[...]}`;
+  const result = await generateJsonObject(system, prompt, { type: "daily", temperature: 0.7, maxTokens: 4096 });
   const title = String(result.title || "").trim();
   const korean = String(result.korean || "").trim();
   const vietnamese = String(result.vietnamese || "").trim();
   if (!korean || !vietnamese) {
     throw new Error("AI không tạo được đoạn văn hợp lệ, bạn thử lại nhé.");
   }
-  return { title, korean, vietnamese };
+  // Quiz là phần phụ — lọc nhẹ, hỏng thì bỏ (đoạn văn vẫn dùng được).
+  const quizItems = (Array.isArray(result.quiz_items) ? result.quiz_items : [])
+    .filter((q) => q && typeof q.question_vi === "string" && Array.isArray(q.options) && q.options.length >= 2)
+    .map((q) => ({
+      question_vi: String(q.question_vi).trim(),
+      options: q.options.map((o) => String(o).trim()).filter(Boolean).slice(0, 4),
+      correct_index: Number.isInteger(q.correct_index) && q.correct_index >= 0 && q.correct_index < q.options.length
+        ? q.correct_index : 0
+    }))
+    .filter((q) => q.options.length >= 2)
+    .slice(0, 3);
+  return { title, korean, vietnamese, quiz_items: quizItems };
+}
+
+// Tra từ nhanh (KHÔNG lưu vào từ điển): nghĩa + phiên âm + ví dụ ngắn.
+async function lookupWord(word) {
+  const clean = String(word || "").trim().slice(0, 60);
+  if (!clean) throw new Error("Vui lòng nhập từ cần tra.");
+  const system =
+    "Bạn là từ điển Hàn-Việt. Nhận một từ/cụm tiếng Hàn (hoặc tiếng Việt cần dịch sang Hàn), " +
+    "trả về nghĩa ngắn gọn chính xác. CHỈ trả JSON.";
+  const prompt =
+    `Tra từ: "${clean}".\n` +
+    `Trả JSON: {"korean":"dạng chuẩn tiếng Hàn (Hangul)","meaning_vi":"nghĩa tiếng Việt ngắn gọn",` +
+    `"reading":"phiên âm romaja","example_kr":"1 câu ví dụ tiếng Hàn ngắn","example_vi":"dịch câu ví dụ"}`;
+  const result = await generateJsonObject(system, prompt, { type: "dict", temperature: 0.2, maxTokens: 1024 });
+  const korean = String(result.korean || clean).trim();
+  const meaning = String(result.meaning_vi || "").trim();
+  if (!meaning) throw new Error("Chưa tra được từ này, bạn thử lại nhé.");
+  return {
+    korean,
+    meaning_vi: meaning,
+    reading: String(result.reading || "").trim(),
+    example_kr: String(result.example_kr || "").trim(),
+    example_vi: String(result.example_vi || "").trim()
+  };
 }
 
 /**
@@ -610,6 +647,7 @@ module.exports = {
   generateGrammarQuizzesBatch,
   generateJsonObject,
   generateDailyPassage,
+  lookupWord,
   // Multi-provider router
   chatWithRouter,
   getRouterStatus,

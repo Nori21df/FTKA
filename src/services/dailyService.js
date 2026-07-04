@@ -40,18 +40,40 @@ async function ensureDailySchema(clientDb = db) {
       UNIQUE (user_id, passage_date)
     )
   `);
+  // Câu hỏi đọc hiểu đi kèm đoạn văn (thêm sau nên dùng ALTER cho bảng đã tồn tại).
+  await clientDb.run("ALTER TABLE daily_passages ADD COLUMN IF NOT EXISTS quiz_items JSONB NOT NULL DEFAULT '[]'");
   await clientDb.run("CREATE INDEX IF NOT EXISTS idx_daily_passages_user_date ON daily_passages(user_id, passage_date DESC)");
+}
+
+function normalizeDateValue(value) {
+  if (typeof value === "string") return value.slice(0, 10);
+  // pg trả cột DATE thành JS Date ở nửa đêm GIỜ ĐỊA PHƯƠNG → toISOString() có thể lùi 1 ngày.
+  // Dùng date parts địa phương để giữ đúng ngày lịch đã lưu.
+  const d = new Date(value);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function parseQuizItems(raw) {
+  const items = typeof raw === "string" ? (() => { try { return JSON.parse(raw); } catch { return []; } })() : raw;
+  return Array.isArray(items) ? items : [];
 }
 
 function serialize(row) {
   if (!row) return null;
   return {
-    date: typeof row.passage_date === "string" ? row.passage_date : new Date(row.passage_date).toISOString().slice(0, 10),
+    date: normalizeDateValue(row.passage_date),
     title: row.title || "",
     korean: row.korean_text || "",
     vietnamese: row.vietnamese_text || "",
+    quiz_items: parseQuizItems(row.quiz_items),
     created_at: row.created_at
   };
+}
+
+// Chỉ chấp nhận ngày dạng YYYY-MM-DD (chống input lạ từ query param).
+function isValidDateStr(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
 }
 
 async function getPassageForDate(userId, date) {
@@ -59,15 +81,25 @@ async function getPassageForDate(userId, date) {
   return serialize(row);
 }
 
+// Danh sách ngày đã có đoạn văn (mới nhất trước) cho dải chip lịch sử.
+async function listRecentDates(userId, limit = 14) {
+  const rows = await db.query(
+    "SELECT passage_date FROM daily_passages WHERE user_id=? ORDER BY passage_date DESC LIMIT ?",
+    [userId, limit]
+  );
+  return rows.map((r) => normalizeDateValue(r.passage_date));
+}
+
 // Upsert đoạn văn của ngày (tạo mới hoặc thay khi bấm "tạo đoạn khác").
 async function savePassage(userId, date, passage) {
   await db.run(
-    `INSERT INTO daily_passages (user_id, passage_date, title, korean_text, vietnamese_text)
-     VALUES (?, ?, ?, ?, ?)
+    `INSERT INTO daily_passages (user_id, passage_date, title, korean_text, vietnamese_text, quiz_items)
+     VALUES (?, ?, ?, ?, ?, ?)
      ON CONFLICT (user_id, passage_date)
      DO UPDATE SET title = EXCLUDED.title, korean_text = EXCLUDED.korean_text,
-                   vietnamese_text = EXCLUDED.vietnamese_text, created_at = NOW()`,
-    [userId, date, passage.title || "", passage.korean, passage.vietnamese]
+                   vietnamese_text = EXCLUDED.vietnamese_text, quiz_items = EXCLUDED.quiz_items,
+                   created_at = NOW()`,
+    [userId, date, passage.title || "", passage.korean, passage.vietnamese, JSON.stringify(passage.quiz_items || [])]
   );
   return getPassageForDate(userId, date);
 }
@@ -76,7 +108,9 @@ module.exports = {
   DAILY_TOPICS,
   todayStr,
   pickTopic,
+  isValidDateStr,
   ensureDailySchema,
   getPassageForDate,
+  listRecentDates,
   savePassage
 };

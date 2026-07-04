@@ -365,9 +365,25 @@ router.get("/grammar-quiz", ...named("grammar_quiz", loginRequired, asyncHandler
 })));
 
 router.get("/daily", ...named("daily", loginRequired, asyncHandler(async (req, res) => {
-  // Đoạn văn "hôm nay" của user; nếu chưa có, trang sẽ tự tạo bằng AI (client fetch).
-  const passage = await daily.getPassageForDate(req.currentUser.id, daily.todayStr());
-  res.render("daily.html", { daily_data: passage });
+  // Đoạn văn của ngày (mặc định hôm nay; ?date=YYYY-MM-DD để xem lại ngày cũ).
+  // Chưa có đoạn của HÔM NAY → trang tự tạo bằng AI (client fetch); ngày cũ chỉ xem.
+  const today = daily.todayStr();
+  const requested = daily.isValidDateStr(req.query.date) ? String(req.query.date) : today;
+  const viewDate = requested > today ? today : requested;
+  const [passage, recentDates] = await Promise.all([
+    daily.getPassageForDate(req.currentUser.id, viewDate),
+    daily.listRecentDates(req.currentUser.id, 14)
+  ]);
+  res.render("daily.html", {
+    daily_data: passage,
+    daily_view: {
+      date: viewDate,
+      is_today: viewDate === today,
+      today,
+      // label dd/mm dựng sẵn ở đây vì Nunjucks không slice chuỗi được
+      recent_dates: recentDates.map((d) => ({ date: d, label: d === today ? "Hôm nay" : `${d.slice(8, 10)}/${d.slice(5, 7)}` }))
+    }
+  });
 })));
 
 router.get("/settings", ...named("settings", adminRequired, (req, res) => {
