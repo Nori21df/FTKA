@@ -8,6 +8,8 @@ const { ensureBillingSchema } = require("./services/sepay.service");
 const { ensureEnergySchema } = require("./services/energyService");
 const { ensureDailySchema } = require("./services/dailyService");
 const { ensureStreakRewardSchema } = require("./services/streakRewardService");
+const { ensureSrsSchema } = require("./services/srsService");
+const { ensureWritingSchema } = require("./services/writingService");
 const { ensureReminderSchema, startReminderScheduler } = require("./services/reminderService");
 const { initEnergySocket } = require("./services/energySocket");
 
@@ -17,6 +19,8 @@ async function start() {
   await ensureEnergySchema();
   await ensureDailySchema();
   await ensureStreakRewardSchema();
+  await ensureSrsSchema();
+  await ensureWritingSchema();
   await ensureReminderSchema();
   const server = http.createServer(app);
   const io = new Server(server);

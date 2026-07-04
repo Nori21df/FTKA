@@ -210,6 +210,21 @@ async function listUserEnergy(filters, db = dbGlobal) {
   );
 }
 
+async function listWritingSubmissions(filters, db = dbGlobal) {
+  return paginate(
+    db,
+    `SELECT writing_submissions.id, writing_submissions.user_id, writing_submissions.topic,
+            writing_submissions.original_text, writing_submissions.score, writing_submissions.created_at,
+            users.username AS owner_username, users.email AS owner_email
+     FROM writing_submissions LEFT JOIN users ON users.id = writing_submissions.user_id
+     ORDER BY writing_submissions.created_at DESC, writing_submissions.id DESC`,
+    "SELECT COUNT(*) FROM writing_submissions",
+    [],
+    page(filters.page),
+    perPage(filters.per_page)
+  );
+}
+
 async function listEnergyTransactions(filters, db = dbGlobal) {
   return paginate(
     db,
@@ -359,7 +374,7 @@ async function getDashboardStats(db = dbGlobal) {
     new_users_today: await count("users", "created_at >= ?", [new Date(Date.now() - 86400000).toISOString()]),
     new_users_this_week: await count("users", "created_at >= ?", [new Date(Date.now() - 7 * 86400000).toISOString()]),
     total_vocabulary: await count("vocab"),
-    total_writing_submissions: 0,
+    total_writing_submissions: await count("writing_submissions"),
     total_listening_lessons: await count("listening_practice"),
     total_audio_files: await count("listening_practice", "audio_path IS NOT NULL AND TRIM(audio_path) != ''"),
     total_ai_generations: (await count("vocab", "source = ?", ["ai_generated"])) + (await count("grammar", "source = ?", ["ai_generated"])) + (await count("listening_practice", "source = ?", ["ai"])),
@@ -421,6 +436,7 @@ module.exports = {
   deleteUserGrammar,
   listLearningActivity,
   listUserEnergy,
+  listWritingSubmissions,
   listEnergyTransactions,
   listListening,
   getListeningLesson,

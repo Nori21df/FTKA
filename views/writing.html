@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="wr-wrap">
+    <header class="rv-head">
+        <div>
+            <span class="gen-kicker">Luyện viết</span>
+            <h2>Viết đoạn văn tiếng Hàn</h2>
+            <p>Chọn đề (hoặc tự nghĩ), viết vài câu tiếng Hàn rồi nộp — bài sẽ được chấm điểm, sửa lỗi và nhận xét. Mỗi lần chấm tốn 2 năng lượng.</p>
+        </div>
+    </header>
+
+    <section class="dv-card" style="padding:22px">
+        <div class="wr-topics" id="wrTopics">
+            {% for topic in writing_topics %}
+            <button type="button" class="daily-chip wr-topic" data-topic="{{ topic }}">{{ topic }}</button>
+            {% endfor %}
+        </div>
+        <input type="text" id="wrTopicInput" class="listening-select" placeholder="Đề bài (chọn ở trên hoặc tự nhập)" style="margin-top:12px">
+        <textarea id="wrText" rows="6" placeholder="여기에 한국어로 써 보세요… (viết tiếng Hàn ở đây, ít nhất một câu)" style="margin-top:12px"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px">
+            <button type="button" class="dv-cta" id="wrSubmitBtn">
+                <span class="material-icons-outlined" aria-hidden="true">rate_review</span> Chấm bài
+            </button>
+        </div>
+        <div id="wrStatus" class="grammar-add-status" aria-live="polite"></div>
+    </section>
+
+    <section class="dv-card wr-result" id="wrResult" hidden></section>
+
+    {% if submissions|length %}
+    <section class="dv-card" style="padding:22px">
+        <div class="dv-phead"><h3>Bài đã nộp gần đây</h3></div>
+        {% for sub in submissions %}
+        <details class="wr-history-item">
+            <summary>
+                <span class="wr-history-topic">{{ sub.topic }}</span>
+                {% if sub.score is not none %}<span class="wr-score-pill">{{ sub.score }}/100</span>{% endif %}
+            </summary>
+            <div class="wr-history-body">
+                <p class="wr-label">Bài viết</p>
+                <p lang="ko">{{ sub.original }}</p>
+                {% if sub.corrected %}<p class="wr-label">Bản sửa</p><p lang="ko">{{ sub.corrected }}</p>{% endif %}
+                {% if sub.feedback.feedback_vi %}<p class="wr-label">Nhận xét</p><p>{{ sub.feedback.feedback_vi }}</p>{% endif %}
+            </div>
+        </details>
+        {% endfor %}
+    </section>
+    {% endif %}
+</div>
+
+<script type="module" src="/static/js/writing/writingPage.js"></script>
+{% endblock %}

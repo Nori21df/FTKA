@@ -9,6 +9,8 @@ const { aiLimiter } = require("../middleware/rateLimit");
 const auth = require("../services/authService");
 const ai = require("../services/aiService");
 const daily = require("../services/dailyService");
+const srsService = require("../services/srsService");
+const writingService = require("../services/writingService");
 const settings = require("../services/settingsService");
 const tts = require("../services/ttsService");
 const learning = require("../services/learningService");
@@ -213,8 +215,18 @@ router.post("/mark_learned", loginRequired, asyncHandler(async (req, res) => {
   const should = parseBooleanInput(req.body.learned);
   await db.run("UPDATE vocab SET learned=? WHERE id=? AND owner_user_id=?", [should, itemId, req.currentUser.id]);
   if (should && !row.learned) await learning.recordLearningActivity(itemId, req.currentUser.id);
+  // Đánh dấu "đã học" cũng là một lượt ôn nhớ-được → cho SRS tiến lịch.
+  if (should) await srsService.reviewWord(req.currentUser.id, itemId, "good");
   await groups.exportGroupsForVocab(itemId);
   res.json({ success: true });
+}));
+
+// SRS: chấm 1 lượt ôn ("good" = nhớ được, "again" = ôn lại sớm) — quiz gọi fire-and-forget.
+router.post("/srs_review", loginRequired, asyncHandler(async (req, res) => {
+  const grade = req.body.grade === "again" ? "again" : "good";
+  const result = await srsService.reviewWord(req.currentUser.id, req.body.id, grade);
+  if (!result) return res.status(404).json({ error: "Word not found" });
+  res.json({ success: true, due: result.due, interval_days: result.interval_days, reps: result.reps });
 }));
 
 router.post("/reset_learned", loginRequired, asyncHandler(async (req, res) => {
@@ -373,6 +385,23 @@ router.post("/daily/generate", aiLimiter, loginRequired, asyncHandler(async (req
   const passage = await ai.generateDailyPassage({ topic: daily.pickTopic() });
   const saved = await daily.savePassage(ownerId, date, passage);
   res.json({ success: true, passage: saved });
+}));
+
+// Luyện viết: AI chấm điểm + sửa lỗi rồi lưu vào lịch sử bài nộp (tốn 2 năng lượng).
+router.post("/writing/grade", aiLimiter, loginRequired, asyncHandler(async (req, res) => {
+  const topic = String(req.body.topic || "").trim().slice(0, 120);
+  const text = String(req.body.text || "").trim();
+  if (text.length < 10) return res.status(400).json({ error: "Bài viết quá ngắn — hãy viết ít nhất một câu hoàn chỉnh." });
+  if (!(await spendOr402(res, req.currentUser.id, 2, "writing", "grade"))) return;
+  const graded = await ai.gradeWriting(topic, text);
+  const saved = await writingService.saveSubmission(req.currentUser.id, {
+    topic: topic || "tự do",
+    original: text.slice(0, 2000),
+    corrected: graded.corrected,
+    score: graded.score,
+    feedback: { feedback_vi: graded.feedback_vi, corrections: graded.corrections }
+  });
+  res.json({ success: true, result: saved });
 }));
 
 // Tra từ nhanh (không lưu). Cache trong bộ nhớ để từ phổ biến không tốn quota AI.

@@ -293,7 +293,10 @@ router.get("/activity", ...named("admin.activity", asyncHandler(async (req, res)
   res.render("admin/activity.html", { activities: rows, page_info: pageInfo });
 })));
 
-router.get("/writing", ...named("admin.writing", (req, res) => renderUnavailable(res, "writing")));
+router.get("/writing", ...named("admin.writing", asyncHandler(async (req, res) => {
+  const [rows, pageInfo] = await admin.listWritingSubmissions(req.query);
+  res.render("admin/writing.html", { submissions: rows, page_info: pageInfo });
+})));
 router.get("/writing/:submission_id", ...named("admin.writing_detail", (req, res) => renderUnavailable(res, "writing")));
 router.post("/writing/:submission_id/delete", ...named("admin.writing_delete", (req, res) => {
   req.flash("error", "Tính năng chưa khả dụng: chưa có bảng bài viết.");

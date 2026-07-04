@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tk-wrap">
+    <header class="rv-head">
+        <div>
+            <span class="gen-kicker">Luyện thi TOPIK</span>
+            <h2>Đề luyện theo cấp độ</h2>
+            <p>Chọn cấp độ để làm bộ 10 câu từ kho ngữ pháp của bạn. Đạt từ 60% trở lên là qua. Câu hỏi lấy từ các mẫu ngữ pháp bạn đã tạo.</p>
+        </div>
+    </header>
+
+    {% if topik_levels|length %}
+    <nav class="daily-history" aria-label="Chọn cấp độ">
+        {% for item in topik_levels %}
+        <a class="daily-chip {% if item.level == topik_selected %}is-active{% endif %}"
+           href="{{ url_for('topik', level=item.level) }}">{{ item.level|upper }} · {{ item.count }} câu</a>
+        {% endfor %}
+    </nav>
+    {% else %}
+    <section class="dv-card" style="padding:32px;text-align:center;color:var(--muted)">
+        Chưa có mẫu ngữ pháp nào. Hãy tạo ngữ pháp trước, quiz TOPIK sẽ lấy câu hỏi từ đó.
+    </section>
+    {% endif %}
+
+    {% if topik_selected %}
+    {% if topik_deck|length %}
+    <section class="qz-card dv-card" id="tkCard">
+        <div class="qz-top">
+            <span id="tkProgress">Câu 1 / {{ topik_deck|length }}</span>
+            <span class="qz-score" id="tkScore">Đúng 0</span>
+        </div>
+        <h3 id="tkQuestion" class="qz-question kr" lang="ko"></h3>
+        <p id="tkTranslation" class="qz-translation"></p>
+        <div id="tkOptions" class="qz-options"></div>
+        <div id="tkFeedback" class="grammar-quiz-feedback"></div>
+        <div class="qz-actions">
+            <span></span>
+            <button type="button" id="tkNext" class="dv-cta">Câu tiếp theo <span class="material-icons-outlined" aria-hidden="true">arrow_forward</span></button>
+        </div>
+    </section>
+    {% else %}
+    <section class="dv-card" style="padding:32px;text-align:center;color:var(--muted)">
+        Cấp độ này chưa có câu hỏi. Hãy tạo thêm ngữ pháp cấp {{ topik_selected|upper }}.
+    </section>
+    {% endif %}
+    {% endif %}
+</div>
+
+{% if topik_deck|length %}
+<script id="topik-data" type="application/json">{{ topik_deck|tojson }}</script>
+<script type="module" src="/static/js/topik/topikPage.js"></script>
+{% endif %}
+{% endblock %}

@@ -551,6 +551,37 @@ async function generateDailyPassage(options = {}) {
   return { title, korean, vietnamese, quiz_items: quizItems };
 }
 
+// Luyện viết: chấm đoạn văn tiếng Hàn của người học — điểm, bản sửa, danh sách lỗi.
+async function gradeWriting(topic, text) {
+  const cleanTopic = String(topic || "").trim().slice(0, 120);
+  const cleanText = String(text || "").trim().slice(0, 2000);
+  if (!cleanText) throw new Error("Vui lòng viết đoạn văn trước khi nộp.");
+  const system =
+    "Bạn là giáo viên tiếng Hàn chấm bài viết cho người Việt học sơ–trung cấp. " +
+    "Chấm nhẹ nhàng, khích lệ, sửa lỗi rõ ràng. CHỈ trả về JSON.";
+  const prompt =
+    `Đề bài: "${cleanTopic || "tự do"}". Bài viết của học viên (tiếng Hàn):\n"""${cleanText}"""\n` +
+    `Chấm bài và trả JSON:\n` +
+    `{"score": 0-100 (điểm tổng),` +
+    `"corrected": "toàn bộ bài đã sửa hoàn chỉnh (tiếng Hàn tự nhiên)",` +
+    `"feedback_vi": "2-3 câu nhận xét tiếng Việt thân thiện, nêu điểm tốt + cần cải thiện",` +
+    `"corrections": [{"wrong":"cụm sai","right":"cụm đúng","note":"giải thích ngắn tiếng Việt"}] (tối đa 8 lỗi chính)}`;
+  const result = await generateJsonObject(system, prompt, { type: "writing", temperature: 0.3, maxTokens: 4096 });
+  const score = Math.max(0, Math.min(100, Math.round(Number(result.score) || 0)));
+  const corrected = String(result.corrected || "").trim();
+  const feedbackVi = String(result.feedback_vi || "").trim();
+  const corrections = (Array.isArray(result.corrections) ? result.corrections : [])
+    .filter((c) => c && (c.wrong || c.right))
+    .map((c) => ({
+      wrong: String(c.wrong || "").trim(),
+      right: String(c.right || "").trim(),
+      note: String(c.note || "").trim()
+    }))
+    .slice(0, 8);
+  if (!corrected && !feedbackVi) throw new Error("AI chưa chấm được bài này, bạn thử lại nhé.");
+  return { score, corrected, feedback_vi: feedbackVi, corrections };
+}
+
 // Tra từ nhanh (KHÔNG lưu vào từ điển): nghĩa + phiên âm + ví dụ ngắn.
 async function lookupWord(word) {
   const clean = String(word || "").trim().slice(0, 60);
@@ -648,6 +679,7 @@ module.exports = {
   generateJsonObject,
   generateDailyPassage,
   lookupWord,
+  gradeWriting,
   // Multi-provider router
   chatWithRouter,
   getRouterStatus,

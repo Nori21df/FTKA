@@ -13,6 +13,7 @@ const listening = require("../services/listeningService");
 const energy = require("../services/energyService");
 const daily = require("../services/dailyService");
 const streakRewards = require("../services/streakRewardService");
+const writing = require("../services/writingService");
 const { emitEnergyUpdate } = require("../services/energySocket");
 
 const router = express.Router();
@@ -192,7 +193,12 @@ router.get("/dashboard", ...named("dashboard", loginRequired, asyncHandler(async
   const ownerId = req.currentUser.id;
   const [vocabRows, focusRows, grammarRows] = await Promise.all([
     db.query("SELECT * FROM vocab WHERE owner_user_id=? ORDER BY created_at DESC, id DESC LIMIT 6", [ownerId]),
-    db.query("SELECT * FROM vocab WHERE owner_user_id=? AND learned=FALSE ORDER BY created_at DESC, id DESC LIMIT 5", [ownerId]),
+    // "Cần ôn hôm nay" = từ đến hạn SRS trước (chưa ôn bao giờ hoặc quá hạn), rồi tới từ mới nhất.
+    db.query(
+      `SELECT * FROM vocab WHERE owner_user_id=? AND learned=FALSE
+       ORDER BY CASE WHEN srs_due IS NULL THEN 0 WHEN srs_due <= NOW() THEN 1 ELSE 2 END, created_at DESC, id DESC LIMIT 5`,
+      [ownerId]
+    ),
     db.query("SELECT * FROM grammar WHERE owner_user_id=? ORDER BY created_at DESC, id DESC LIMIT 4", [ownerId])
   ]);
   const vocabCount = Number(await db.scalar("SELECT COUNT(*) FROM vocab WHERE owner_user_id=?", [ownerId]));
@@ -350,7 +356,13 @@ router.post("/listening-practice/:lesson_id/delete", ...named("delete_listening_
 
 router.get("/quiz", ...named("quiz", loginRequired, asyncHandler(async (req, res) => {
   const ownerId = req.currentUser.id;
-  const quizWords = await db.query("SELECT * FROM vocab WHERE owner_user_id=? AND learned=FALSE ORDER BY RANDOM() LIMIT ?", [ownerId, learning.QUIZ_SESSION_LIMIT]);
+  // SRS due-first: từ chưa từng ôn (srs_due NULL) và từ quá hạn lên trước, trong nhóm trộn ngẫu nhiên.
+  const quizWords = await db.query(
+    `SELECT * FROM vocab WHERE owner_user_id=? AND learned=FALSE
+     ORDER BY CASE WHEN srs_due IS NULL THEN 0 WHEN srs_due <= NOW() THEN 1 ELSE 2 END, RANDOM()
+     LIMIT ?`,
+    [ownerId, learning.QUIZ_SESSION_LIMIT]
+  );
   const pool = await db.query("SELECT example_vi FROM vocab WHERE owner_user_id=? AND example_vi IS NOT NULL AND TRIM(example_vi) != '' ORDER BY RANDOM() LIMIT 80", [ownerId]);
   res.render("quiz.html", {
     quiz_words: quizWords,
@@ -392,6 +404,55 @@ router.get("/daily", ...named("daily", loginRequired, asyncHandler(async (req, r
       // label dd/mm dựng sẵn ở đây vì Nunjucks không slice chuỗi được
       recent_dates: recentDates.map((d) => ({ date: d, label: d === today ? "Hôm nay" : `${d.slice(8, 10)}/${d.slice(5, 7)}` }))
     }
+  });
+})));
+
+router.get("/writing", ...named("writing", loginRequired, asyncHandler(async (req, res) => {
+  const submissions = await writing.listSubmissions(req.currentUser.id, 5);
+  res.render("writing.html", { writing_topics: writing.WRITING_TOPICS, submissions });
+})));
+
+router.get("/speak", ...named("speak", loginRequired, asyncHandler(async (req, res) => {
+  // Câu luyện nói: câu ví dụ trong từ vựng của user; thiếu thì bù câu mặc định.
+  const rows = await db.query(
+    `SELECT example_kr, example_vi FROM vocab
+     WHERE owner_user_id=? AND example_kr IS NOT NULL AND TRIM(example_kr) != ''
+     ORDER BY created_at DESC, id DESC LIMIT 10`,
+    [req.currentUser.id]
+  );
+  const defaults = [
+    { kr: "안녕하세요. 만나서 반갑습니다.", vi: "Xin chào. Rất vui được gặp bạn." },
+    { kr: "저는 한국어를 공부하고 있어요.", vi: "Tôi đang học tiếng Hàn." },
+    { kr: "오늘 날씨가 정말 좋네요.", vi: "Hôm nay thời tiết đẹp thật." },
+    { kr: "이거 얼마예요?", vi: "Cái này bao nhiêu tiền?" },
+    { kr: "천천히 말씀해 주세요.", vi: "Xin hãy nói chậm thôi ạ." }
+  ];
+  const sentences = rows.map((r) => ({ kr: r.example_kr, vi: r.example_vi || "" })).concat(defaults).slice(0, 12);
+  res.render("speak.html", { speak_sentences: sentences });
+})));
+
+router.get("/topik", ...named("topik", loginRequired, asyncHandler(async (req, res) => {
+  const ownerId = req.currentUser.id;
+  const rows = await db.query("SELECT * FROM grammar WHERE owner_user_id=? ORDER BY created_at DESC, id DESC", [ownerId]);
+  // Đếm số câu hỏi khả dụng theo cấp độ để hiện chip chọn cấp.
+  const deckAll = learning.buildGrammarQuizDeck(rows);
+  const byLevel = {};
+  for (const row of rows) {
+    const level = String(row.level || "general").toLowerCase();
+    byLevel[level] = byLevel[level] || 0;
+  }
+  for (const item of deckAll) {
+    const level = String(item.level || "general").toLowerCase();
+    byLevel[level] = (byLevel[level] || 0) + 1;
+  }
+  const requested = String(req.query.level || "").toLowerCase();
+  const valid = /^topik[1-6]$|^general$/.test(requested) ? requested : "";
+  const deck = valid ? deckAll.filter((q) => String(q.level || "general").toLowerCase() === valid) : [];
+  res.render("topik.html", {
+    topik_levels: Object.entries(byLevel).map(([level, count]) => ({ level, count })).sort((a, b) => a.level.localeCompare(b.level)),
+    topik_selected: valid,
+    topik_deck: deck.slice(0, 10),
+    topik_total_available: deck.length
   });
 })));
 

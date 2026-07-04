@@ -114,6 +114,18 @@
                 </a>
 
                 <span class="nav-group">Ôn luyện</span>
+                <a href="{{ url_for('writing') }}" class="nav-item {% if request.endpoint == 'writing' %}active{% endif %}">
+                    <span class="material-icons-outlined">edit_note</span>
+                    <span class="nav-label">Luyện viết</span>
+                </a>
+                <a href="{{ url_for('speak') }}" class="nav-item {% if request.endpoint == 'speak' %}active{% endif %}">
+                    <span class="material-icons-outlined">mic</span>
+                    <span class="nav-label">Luyện phát âm</span>
+                </a>
+                <a href="{{ url_for('topik') }}" class="nav-item {% if request.endpoint == 'topik' %}active{% endif %}">
+                    <span class="material-icons-outlined">workspace_premium</span>
+                    <span class="nav-label">Luyện thi TOPIK</span>
+                </a>
                 <a href="{{ url_for('quiz') }}" class="nav-item {% if request.endpoint == 'quiz' %}active{% endif %}">
                     <span class="material-icons-outlined">quiz</span>
                     <span class="nav-label">{{ t('nav.quiz') }}</span>

@@ -1,0 +1,36 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <span class="gen-kicker">Quản trị · Nội dung</span>
+        <h2>Bài viết</h2>
+        <p class="admin-muted">Bài luyện viết người dùng đã nộp (AI chấm điểm + sửa lỗi).</p>
+    </div>
+    {% if page_info %}<span class="admin-count">{{ page_info.total }} bài</span>{% endif %}
+</div>
+
+<section class="admin-panel">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>ID</th><th>Người dùng</th><th>Đề bài</th><th>Bài viết</th><th>Điểm</th><th>Ngày nộp</th></tr></thead>
+            <tbody>
+                {% for sub in submissions %}
+                <tr>
+                    <td>{{ sub.id }}</td>
+                    <td>{% if sub.user_id %}<a href="{{ url_for('admin.user_detail', user_id=sub.user_id) }}">{{ sub.owner_username or sub.owner_email or sub.user_id }}</a>{% else %}Chưa có{% endif %}</td>
+                    <td>{{ sub.topic }}</td>
+                    <td lang="ko">{{ sub.original_text|truncate(80) }}</td>
+                    <td>{% if sub.score is not none %}<span class="admin-badge">{{ sub.score }}/100</span>{% else %}—{% endif %}</td>
+                    <td>{{ sub.created_at }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6">Chưa có bài viết nào được nộp.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% set admin_pagination_base = '/admin/writing' %}
+    {% include "admin/_pagination.html" %}
+</section>
+{% endblock %}

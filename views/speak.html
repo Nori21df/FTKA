@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="sp-wrap">
+    <header class="rv-head">
+        <div>
+            <span class="gen-kicker">Luyện phát âm</span>
+            <h2>Đọc to câu tiếng Hàn</h2>
+            <p>Bấm "Nghe" để nghe mẫu, bấm "Nói" rồi đọc to — trình duyệt sẽ nhận dạng giọng của bạn và chấm mức giống với câu gốc. Chạy tốt nhất trên Chrome.</p>
+        </div>
+    </header>
+
+    <section class="dv-card" style="padding:22px">
+        <div id="spUnsupported" class="daily-empty" hidden>
+            <p>Trình duyệt này chưa hỗ trợ nhận dạng giọng nói. Hãy dùng Google Chrome trên máy tính hoặc Android.</p>
+        </div>
+        <div id="spStage" class="sp-stage">
+            <p class="sp-progress" id="spProgress"></p>
+            <p class="sp-sentence" lang="ko" id="spSentence"></p>
+            <p class="sp-vi" id="spVi"></p>
+            <div class="sp-actions">
+                <button type="button" class="dv-cta ghost" id="spListenBtn"><span class="material-icons-outlined" aria-hidden="true">volume_up</span> Nghe</button>
+                <button type="button" class="dv-cta" id="spSpeakBtn"><span class="material-icons-outlined" aria-hidden="true">mic</span> Nói</button>
+                <button type="button" class="dv-cta ghost" id="spNextBtn"><span class="material-icons-outlined" aria-hidden="true">skip_next</span> Câu khác</button>
+            </div>
+            <div class="sp-result" id="spResult" hidden></div>
+        </div>
+    </section>
+</div>
+
+<script id="speak-data" type="application/json">{{ speak_sentences|tojson }}</script>
+<script type="module" src="/static/js/speak/speakPage.js"></script>
+{% endblock %}

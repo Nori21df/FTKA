@@ -423,11 +423,23 @@ if (dataNode) {
         renderStudyBody();
     }
 
+    // Báo SRS không chặn UI (fire-and-forget) — lịch ôn ngắt quãng tiến/lùi theo kết quả.
+    function reportSrs(cardId, grade) {
+        if (!cardId) return;
+        fetch('/api/srs_review', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: cardId, grade })
+        }).catch(() => {});
+    }
+
     function studyAgain() {
         if (!state.currentCardKey || state.busyAction) {
             return;
         }
 
+        const card = getCurrentCard();
+        if (card) reportSrs(card.id, 'again');
         queueCurrentCard(requeueSpacing(state.lastAnswerCorrect, state.queue.length));
         nextTurn();
     }
@@ -438,6 +450,7 @@ if (dataNode) {
             return;
         }
 
+        reportSrs(card.id, 'good'); // đã ôn xong hôm nay → giãn lịch
         card.status = 'done';
         state.stats.done += 1;
         nextTurn();

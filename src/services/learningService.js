@@ -179,6 +179,7 @@ function buildGrammarQuizDeck(rows) {
         grammar_id: row.id,
         grammar: row.grammar,
         meaning_vi: row.meaning_vi,
+        level: row.level || "general",
         ...item
       });
     }

@@ -723,6 +723,46 @@ body[data-style="neo"] .daily-chip.is-active { color: #111; }
 .daily-loading .daily-wait { color: var(--muted); font-weight: 700; font-size: 13.5px; margin-top: 4px; }
 .daily-empty { text-align: center; color: var(--muted); display: grid; gap: 14px; place-items: center; padding: 20px 0; }
 
+/* ── Trang Luyện viết (writing) ── */
+.wr-wrap, .sp-wrap, .tk-wrap { display: flex; flex-direction: column; gap: 16px; max-width: 760px; margin: 0 auto; width: 100%; }
+.wr-topics { display: flex; gap: 8px; flex-wrap: wrap; }
+.wr-topic.is-active { background: var(--primary); border-color: transparent; color: #fff; }
+body[data-style="neo"] .wr-topic.is-active { color: #111; }
+#wrText { font-size: 17px; line-height: 1.7; }
+.wr-result { padding: 22px; }
+.wr-result-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.wr-result-head h3 { margin: 0; font-size: 16px; font-weight: 800; }
+.wr-score { font-size: 24px; font-weight: 900; color: var(--primary); font-variant-numeric: tabular-nums; }
+.wr-score-pill { display: inline-flex; padding: 2px 10px; border-radius: var(--pill); background: var(--primary-soft); color: var(--primary); font-size: 12px; font-weight: 800; }
+.wr-feedback { color: var(--text); background: var(--surface-soft); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px 14px; }
+.wr-label { margin: 14px 0 4px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.wr-corrected { font-size: 17px; line-height: 1.8; }
+.wr-corrections { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.wr-corrections li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); }
+.wr-corrections .material-icons-outlined { font-size: 16px; color: var(--muted); }
+.wr-wrong { color: var(--danger); text-decoration: line-through; }
+.wr-right { color: var(--success); font-weight: 700; }
+.wr-corrections small { flex-basis: 100%; color: var(--muted); }
+.wr-history-item { border-top: 1px solid var(--line); padding: 10px 0; }
+.wr-history-item summary { cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 700; list-style: none; }
+.wr-history-item summary::-webkit-details-marker { display: none; }
+.wr-history-topic { flex: 1; }
+.wr-history-body p { margin: 6px 0; }
+
+/* ── Trang Luyện phát âm (speak) ── */
+.sp-stage { display: grid; gap: 12px; text-align: center; }
+.sp-progress { margin: 0; color: var(--muted); font-size: 13px; font-weight: 700; }
+.sp-sentence { margin: 8px 0 0; font-size: clamp(22px, 4vw, 32px); font-weight: 700; line-height: 1.6; word-break: keep-all; }
+.sp-vi { margin: 0; color: var(--muted); }
+.sp-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.sp-result { margin-top: 10px; display: grid; gap: 6px; justify-items: center; }
+.sp-score { font-size: 34px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.sp-score.sp-good { color: var(--success); }
+.sp-score.sp-mid { color: var(--warning, #b45309); }
+.sp-score.sp-low { color: var(--danger); }
+.sp-heard { margin: 0; color: var(--text-soft); }
+.sp-note { margin: 0; color: var(--muted); font-weight: 600; }
+
 /* ── Trang Luyện nghe (bố cục mới) ── */
 .ls-createbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, 1fr) auto;
     align-items: end; gap: 14px; padding: 18px; }
