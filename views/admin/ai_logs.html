@@ -28,6 +28,44 @@
     <div class="ai-log-provider-chips" id="aiLogProviderChips"></div>
 </div>
 
+<!-- Provider latency (gói C2): trung bình trên cửa sổ ~300 log trong bộ nhớ -->
+<section class="admin-panel ai-lat-panel">
+    <div class="admin-header" style="margin-bottom:10px">
+        <div>
+            <h3>Độ trễ theo provider</h3>
+            <p class="admin-muted">Trung bình lời gọi thành công trên ~300 log gần nhất (trong bộ nhớ). Tải lại trang để cập nhật.</p>
+        </div>
+    </div>
+    {% if provider_stats|length %}
+    <div class="admin-table-wrap">
+        <table class="admin-table ai-lat-table">
+            <thead>
+                <tr>
+                    <th>Provider</th>
+                    <th class="ai-lat-num">Độ trễ TB</th>
+                    <th class="ai-lat-num">Gần nhất</th>
+                    <th class="ai-lat-num">Thành công</th>
+                    <th class="ai-lat-num">Lượt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in provider_stats %}
+                <tr>
+                    <td><span class="ai-log-provider-badge pvdr-{{ p.provider }}">{{ p.provider }}</span></td>
+                    <td class="ai-lat-num ai-lat-strong">{% if p.avg_ms != null %}{{ p.avg_ms }}ms{% else %}—{% endif %}</td>
+                    <td class="ai-lat-num ai-lat-soft">{% if p.last_ms != null %}{{ p.last_ms }}ms{% else %}—{% endif %}</td>
+                    <td class="ai-lat-num"><span class="ai-lat-rate {% if p.success_rate >= 90 %}ok{% elif p.success_rate >= 50 %}warn{% else %}bad{% endif %}">{{ p.success_rate }}%</span></td>
+                    <td class="ai-lat-num ai-lat-soft">{{ p.attempts }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="admin-muted">Chưa có lời gọi AI nào trong bộ nhớ. Thực hiện vài thao tác AI rồi tải lại.</p>
+    {% endif %}
+</section>
+
 <section class="admin-panel">
     <form class="admin-filters" method="get" action="{{ url_for('admin.ai_logs') }}">
         <label>Status
@@ -124,6 +162,15 @@
     background: currentColor;
     opacity: .7;
 }
+
+/* ── Provider latency table (gói C2) ────────────── */
+.ai-lat-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ai-lat-strong { font-weight: 700; color: var(--text); }
+.ai-lat-soft { color: var(--text-soft); }
+.ai-lat-rate { font-weight: 700; font-size: 12px; padding: 1px 7px; border-radius: 4px; }
+.ai-lat-rate.ok   { background: #dcfce7; color: #15803d; }
+.ai-lat-rate.warn { background: #fef9c3; color: #854d0e; }
+.ai-lat-rate.bad  { background: #fee2e2; color: #b91c1c; }
 
 /* ── Table enhancements ─────────────────────────── */
 .ai-log-table td { vertical-align: top; padding-top: 9px; padding-bottom: 9px; }

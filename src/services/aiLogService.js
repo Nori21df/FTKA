@@ -60,6 +60,35 @@ function listAiLogs({ limit = 100, status = "", type = "", provider = "" } = {})
     .slice(0, max);
 }
 
+// Tổng hợp độ trễ theo provider từ ring buffer (cửa sổ ~300 log gần nhất). Chỉ tính các
+// log có provider + duration_ms (mỗi lần gọi provider thực sự hoàn tất): success = thành công,
+// còn lại (error / "Bỏ qua") = hỏng. Dùng cho bảng quan sát ở trang AI logs.
+function providerStats() {
+  const map = new Map();
+  for (const log of logs) {
+    const p = log.provider;
+    if (!p || log.duration_ms == null) continue;
+    if (!map.has(p)) map.set(p, { provider: p, attempts: 0, ok: 0, sumOkMs: 0, lastMs: null });
+    const s = map.get(p);
+    s.attempts += 1;
+    if (log.status === "success") {
+      s.ok += 1;
+      s.sumOkMs += log.duration_ms;
+      if (s.lastMs == null) s.lastMs = log.duration_ms; // logs mới nhất trước → lần thành công gần nhất
+    }
+  }
+  return [...map.values()]
+    .map((s) => ({
+      provider: s.provider,
+      attempts: s.attempts,
+      ok: s.ok,
+      avg_ms: s.ok ? Math.round(s.sumOkMs / s.ok) : null,
+      success_rate: s.attempts ? Math.round((s.ok / s.attempts) * 100) : 0,
+      last_ms: s.lastMs
+    }))
+    .sort((a, b) => (a.avg_ms == null ? Infinity : a.avg_ms) - (b.avg_ms == null ? Infinity : b.avg_ms));
+}
+
 function clearAiLogs() {
   logs = [];
   events.emit("clear");
@@ -79,6 +108,7 @@ function subscribeAiLogs(listener) {
 module.exports = {
   addAiLog,
   listAiLogs,
+  providerStats,
   clearAiLogs,
   subscribeAiLogs
 };

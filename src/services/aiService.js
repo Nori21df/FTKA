@@ -155,11 +155,8 @@ async function chatJsonWithFallback(type, system, prompt, options = {}) {
   const routerMessages = [{ role: "user", content: buildRouterPrompt(system, prompt) }];
   const errors = [];
 
-  // Tác vụ nhẹ / nhạy độ trễ (SIMPLE: tra từ, dict) dùng chain NGẮN — bỏ các bước chậm
-  // (gemma light 4.6s, groq heavy) để p50 ~1-1.7s thay vì xếp hàng qua chain nặng.
-  const chain = options.taskType === TASK_TYPES.SIMPLE ? FALLBACK_CHAIN_LIGHT : FALLBACK_CHAIN;
-
-  for (const step of chain) {
+  // Thử MỘT bước provider: trả JSON đã parse hoặc NÉM lỗi. Tự log kết quả từng bước.
+  async function tryStep(step) {
     const { provider, tier } = step;
     const startedAt = Date.now();
 
@@ -172,14 +169,14 @@ async function chatJsonWithFallback(type, system, prompt, options = {}) {
           message: `Bỏ qua Google (${tier}) — đang tạm nghỉ do rate-limit (còn ${Math.ceil(cd / 1000)}s)`,
           user_id: userId, meta: { ...promptMeta(prompt), google_cooldown_ms: cd },
         });
-        continue;
+        throw new Error(`google/${tier}: cooldown ${Math.ceil(cd / 1000)}s`);
       }
       try {
         // chatJson tự log (withAiLogging) + tự bật cooldown khi gặp 429 (fetchGoogleWithRetry).
         return await chatJson(system, prompt, { ...options, type, model: resolveModelName("google", tier) });
       } catch (googleError) {
         errors.push(`google/${tier}: ${safeError(googleError)}`);
-        continue;
+        throw googleError; // chatJson đã tự log lỗi (withAiLogging) — không log lại
       }
     }
 
@@ -203,15 +200,41 @@ async function chatJsonWithFallback(type, system, prompt, options = {}) {
         duration_ms: Date.now() - startedAt, user_id: userId,
         meta: { ...promptMeta(prompt), provider, tier },
       });
-      continue;
+      throw err;
     }
   }
 
-  aiLogService.addAiLog({
-    type, status: "error", message: "Tất cả provider trong chuỗi fallback đều thất bại",
-    user_id: userId, error: errors.join(" | ").slice(0, 500), meta: { ...promptMeta(prompt) },
-  });
-  throw new Error("Tất cả provider đều thất bại: " + errors.join(" | "));
+  function allFailed() {
+    aiLogService.addAiLog({
+      type, status: "error", message: "Tất cả provider trong chuỗi fallback đều thất bại",
+      user_id: userId, error: errors.join(" | ").slice(0, 500), meta: { ...promptMeta(prompt) },
+    });
+    return new Error("Tất cả provider đều thất bại: " + errors.join(" | "));
+  }
+
+  // ── SIMPLE (tra từ/dict): ĐUA 2 provider nhanh nhất SONG SONG, lấy câu hợp lệ ĐẦU TIÊN ──
+  // Groq (~0.6s) thường thắng cả khi Google khoẻ; Google 503/treo cũng không kéo dài vì đã có
+  // câu của Groq. Cả 2 hỏng → chạy tuần tự các bước còn lại của chain nhẹ. Đánh đổi: mỗi lượt
+  // tra từ tốn 2 lời gọi song song (chấp nhận được vì tra từ là thao tác thủ công, tần suất thấp).
+  if (options.taskType === TASK_TYPES.SIMPLE) {
+    const racers = FALLBACK_CHAIN_LIGHT.slice(0, 2);
+    const rest = FALLBACK_CHAIN_LIGHT.slice(2);
+    try {
+      return await Promise.any(racers.map((s) => tryStep(s)));
+    } catch (_raceErr) {
+      // AggregateError: cả 2 racer đều hỏng — lỗi đã ghi vào `errors`; rơi xuống phần còn lại
+    }
+    for (const step of rest) {
+      try { return await tryStep(step); } catch (_e) { /* thử bước kế */ }
+    }
+    throw allFailed();
+  }
+
+  // ── Tác vụ khác: tuần tự theo chain nặng ──
+  for (const step of FALLBACK_CHAIN) {
+    try { return await tryStep(step); } catch (_e) { /* thử bước kế */ }
+  }
+  throw allFailed();
 }
 
 async function withAiLogging(system, prompt, options, fn) {

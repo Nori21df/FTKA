@@ -410,7 +410,7 @@ router.get("/streaks", ...named("admin.streaks", (req, res) => renderUnavailable
 router.get("/ai-usage", ...named("admin.ai_usage", (req, res) => renderUnavailable(res, "ai_usage")));
 
 router.get("/ai-logs", ...named("admin.ai_logs", (req, res) => {
-  res.render("admin/ai_logs.html", { logs: aiLogService.listAiLogs(req.query), query: req.query });
+  res.render("admin/ai_logs.html", { logs: aiLogService.listAiLogs(req.query), query: req.query, provider_stats: aiLogService.providerStats() });
 }));
 
 router.get("/ai-logs.json", ...named("admin.ai_logs_json", (req, res) => {

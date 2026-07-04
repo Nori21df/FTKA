@@ -31,7 +31,8 @@
     "options",
     "quiz_example_vi_pool",
     "failed_items",
-    "updated_ids"
+    "updated_ids",
+    "provider_stats"
   ],
   "allow": [
     "exists",
