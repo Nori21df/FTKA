@@ -7,6 +7,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    <link rel="icon" type="image/png" href="/static/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    <meta name="theme-color" content="#ff5c00">
+    <script src="/static/js/shared/pwa.js" defer></script>
     {% block head %}{% endblock %}
 </head>
 <body class="{{ ui_theme_class or 'ftka-light-ui' }} public-page {% block body_class %}{% endblock %}" data-style="{{ ui_style or 'neo' }}">

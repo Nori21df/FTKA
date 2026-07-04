@@ -114,6 +114,11 @@ app.get("/healthz", (req, res) => {
   res.json({ ok: true, uptime: Math.round(process.uptime()) });
 });
 
+// Service worker PHẢI serve từ gốc để scope phủ toàn origin (file nằm ở public/sw.js).
+app.get("/sw.js", (req, res) => {
+  res.sendFile(path.join(publicDir, "sw.js"));
+});
+
 // Không dùng chuỗi bí mật cố định công khai làm fallback: nếu thiếu SESSION_SECRET thì sinh
 // ngẫu nhiên lúc khởi động (session sẽ mất khi restart, nhưng không thể bị giả mạo chữ ký cookie).
 const sessionSecret = env.sessionSecret || crypto.randomBytes(32).toString("hex");

@@ -723,6 +723,38 @@ body[data-style="neo"] .daily-chip.is-active { color: #111; }
 .daily-loading .daily-wait { color: var(--muted); font-weight: 700; font-size: 13.5px; margin-top: 4px; }
 .daily-empty { text-align: center; color: var(--muted); display: grid; gap: 14px; place-items: center; padding: 20px 0; }
 
+/* ── Ô tra từ nhanh trên topbar (dictbar) ── */
+.dictbar { position: relative; display: flex; align-items: center; gap: 8px; flex: 1; max-width: 340px;
+    min-width: 160px; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); }
+.dictbar .material-icons-outlined { font-size: 18px; color: var(--muted); }
+.dictbar input { border: 0; outline: 0; background: none; width: 100%; min-height: 0; padding: 0; font-size: 13.5px; color: var(--text); }
+.dictbar input:focus-visible { box-shadow: none; }
+.dictbar-panel { position: absolute; top: calc(100% + 8px); left: 0; z-index: 60; width: min(320px, 80vw);
+    padding: 14px 16px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-lg); }
+.dictbar-word { margin: 0 0 4px; font-size: 17px; font-weight: 800; }
+.dictbar-word small { color: var(--muted); font-weight: 600; }
+.dictbar-meaning { margin: 0; font-size: 14px; color: var(--text); }
+.dictbar-loading { margin: 0; color: var(--muted); font-size: 13px; }
+.dictbar-example { margin: 8px 0 0; padding-top: 8px; border-top: 1px dashed var(--line); color: var(--text-soft); font-size: 12.5px; line-height: 1.6; }
+.dictbar-actions { display: flex; gap: 8px; margin-top: 12px; }
+.dictbar-actions .dv-cta { min-height: 34px; padding: 5px 12px; font-size: 12.5px; }
+
+/* ── Trang Bảng chữ cái (hangul) ── */
+.hg-wrap { display: flex; flex-direction: column; gap: 16px; max-width: 860px; margin: 0 auto; width: 100%; }
+.hg-section { margin: 18px 0 10px; font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.hg-section:first-child { margin-top: 0; }
+.hg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.hg-cell { display: grid; gap: 2px; place-items: center; padding: 10px 6px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+    background: var(--surface); cursor: pointer; transition: border-color .12s ease, background .12s ease, transform .12s ease; }
+.hg-cell:hover { border-color: var(--primary); background: var(--primary-soft); transform: translateY(-1px); }
+.hg-jamo { font-size: 26px; font-weight: 800; line-height: 1.2; }
+.hg-roman { font-size: 12.5px; font-weight: 700; color: var(--primary); }
+.hg-name { font-size: 11px; color: var(--muted); }
+.hg-quiz { display: grid; gap: 10px; justify-items: center; text-align: center; }
+.hg-quiz:empty::before { content: "Bấm \"Làm quiz ghép âm\" để bắt đầu — 10 câu chọn cách đọc đúng."; color: var(--muted); font-weight: 600; }
+.hg-quiz-jamo { margin: 0; font-size: 56px; font-weight: 900; line-height: 1.1; }
+.hg-quiz-options { width: min(420px, 100%); }
+
 /* ── Trang Luyện viết (writing) ── */
 .wr-wrap, .sp-wrap, .tk-wrap { display: flex; flex-direction: column; gap: 16px; max-width: 760px; margin: 0 auto; width: 100%; }
 .wr-topics { display: flex; gap: 8px; flex-wrap: wrap; }

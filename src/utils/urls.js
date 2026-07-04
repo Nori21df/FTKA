@@ -29,6 +29,8 @@ const routes = {
   quiz: "/quiz",
   grammar_quiz: "/grammar-quiz",
   daily: "/daily",
+  hangul: "/hangul",
+  api_export_anki: "/api/export_anki",
   writing: "/writing",
   speak: "/speak",
   topik: "/topik",

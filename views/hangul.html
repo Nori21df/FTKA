@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hg-wrap">
+    <header class="rv-head">
+        <div>
+            <span class="gen-kicker">Bảng chữ cái</span>
+            <h2>Hangul cho người mới bắt đầu</h2>
+            <p>Bấm vào từng chữ để nghe cách đọc (qua âm tiết mẫu). Học xong hãy thử quiz ghép âm bên dưới.</p>
+        </div>
+        <button type="button" class="dv-cta" id="hangulQuizStart">
+            <span class="material-icons-outlined" aria-hidden="true">quiz</span> Làm quiz ghép âm
+        </button>
+    </header>
+
+    <section class="dv-card" style="padding:22px" id="hangulQuizCard">
+        <div id="hangulQuiz" class="hg-quiz"></div>
+    </section>
+
+    <section class="dv-card" style="padding:22px">
+        <div id="hangulBoard"></div>
+    </section>
+</div>
+
+<script type="module" src="/static/js/hangul/hangulPage.js"></script>
+{% endblock %}

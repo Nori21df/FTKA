@@ -52,6 +52,11 @@
                     <button id="importBtn" type="button" class="dv-cta ghost" onclick="importJson()" style="justify-content: center;"><span class="material-icons-outlined">upload_file</span>Nhập JSON</button>
                 </div>
                 <div style="margin-top: 12px;">
+                    <a class="dv-cta ghost" href="/api/export_anki" style="width:100%;justify-content:center" title="Tải file TSV để nhập vào Anki">
+                        <span class="material-icons-outlined" aria-hidden="true">download</span> Xuất Anki (toàn bộ từ)
+                    </a>
+                </div>
+                <div style="margin-top: 12px;">
                     <select id="manualGroup" class="dictionary-select">
                         <option value="">Lưu vào thư viện chính</option>
                         {% for group in vocab_groups %}<option value="{{ group.id }}">{{ group.name }}</option>{% endfor %}

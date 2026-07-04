@@ -387,6 +387,37 @@ router.post("/daily/generate", aiLimiter, loginRequired, asyncHandler(async (req
   res.json({ success: true, passage: saved });
 }));
 
+// Xuất từ vựng sang Anki (TSV: mặt trước = tiếng Hàn, mặt sau = nghĩa + ví dụ).
+// Anki nhập trực tiếp file .txt tab-separated. ?group_id= để xuất theo thư mục.
+router.get("/export_anki", loginRequired, asyncHandler(async (req, res) => {
+  const ownerId = req.currentUser.id;
+  const parsedGroup = parseOptionalGroupId(req.query.group_id);
+  if (!parsedGroup.ok) return res.status(400).json({ error: "Vui lòng chọn thư mục hợp lệ." });
+  let rows;
+  if (parsedGroup.groupId) {
+    const group = await getOwnedGroupOrRespond(res, parsedGroup.groupId, ownerId);
+    if (group === false) return;
+    rows = await db.query(
+      `SELECT vocab.* FROM vocab
+       JOIN vocab_group_items ON vocab_group_items.vocab_id = vocab.id
+       WHERE vocab_group_items.group_id=? AND vocab.owner_user_id=?
+       ORDER BY vocab.created_at ASC`,
+      [parsedGroup.groupId, ownerId]
+    );
+  } else {
+    rows = await db.query("SELECT * FROM vocab WHERE owner_user_id=? ORDER BY created_at ASC", [ownerId]);
+  }
+  const clean = (v) => String(v || "").replace(/\t/g, " ").replace(/\r?\n/g, "<br>");
+  const lines = rows.map((r) => {
+    const back = [clean(r.meaning_vi), clean(r.explanation_vi), r.example_kr ? `${clean(r.example_kr)}<br>${clean(r.example_vi)}` : ""]
+      .filter(Boolean).join("<br><br>");
+    return `${clean(r.korean)}\t${back}\tftka`;
+  });
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Content-Disposition", 'attachment; filename="ftka-anki.txt"');
+  res.send("#separator:tab\n#html:true\n#tags column:3\n" + lines.join("\n") + "\n");
+}));
+
 // Luyện viết: AI chấm điểm + sửa lỗi rồi lưu vào lịch sử bài nộp (tốn 2 năng lượng).
 router.post("/writing/grade", aiLimiter, loginRequired, asyncHandler(async (req, res) => {
   const topic = String(req.body.topic || "").trim().slice(0, 120);

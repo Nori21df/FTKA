@@ -407,6 +407,8 @@ router.get("/daily", ...named("daily", loginRequired, asyncHandler(async (req, r
   });
 })));
 
+router.get("/hangul", ...named("hangul", loginRequired, (req, res) => res.render("hangul.html")));
+
 router.get("/writing", ...named("writing", loginRequired, asyncHandler(async (req, res) => {
   const submissions = await writing.listSubmissions(req.currentUser.id, 5);
   res.render("writing.html", { writing_topics: writing.WRITING_TOPICS, submissions });
