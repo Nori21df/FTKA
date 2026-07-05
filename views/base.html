@@ -51,10 +51,8 @@
             };
         })();
 
-        function playTTS(text) {
-            const audio = new Audio(`/api/tts?text=${encodeURIComponent(text)}`);
-            audio.play().catch(e => console.error("TTS playback failed", e));
-        }
+        // playTTS: đã chuyển vào module shared/ttsPlayer.js (gắn window.playTTS, có fallback
+        // Web Speech khi Google TTS bị chặn) — nạp ở cuối body.
 
         // Hiển thị các lời nhắn chờ đổi dần theo thời gian để cảm giác đỡ "đứng hình".
         // Trả về hàm dừng. Dùng cho các thao tác cần chờ một lát.
@@ -246,6 +244,7 @@
     </div>
     {% if current_user %}<script src="/socket.io/socket.io.js"></script>
     <script type="module" src="/static/js/shared/dictBar.js"></script>{% endif %}
+    <script type="module" src="/static/js/shared/ttsPlayer.js?v={{ asset_v('js/shared/ttsPlayer.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('script[data-toast-message]').forEach((node) => {

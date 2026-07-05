@@ -1,6 +1,7 @@
 // Trang duyệt từ vựng chuyên ngành (tổng quát theo `domain`, đọc từ JSON island).
 // Duyệt/tìm/lọc catalog (infinite scroll) + yêu thích / đánh dấu đã học + học flashcard có SRS.
 // Thẻ thích nghi 2 dạng dữ liệu: có định nghĩa VN (CNTT) hoặc chỉ Hàn↔Anh (Y khoa).
+import { playKorean } from "../shared/ttsPlayer.js";
 
 const listEl = document.getElementById("itvList");
 const statusEl = document.getElementById("itvStatus");
@@ -14,16 +15,12 @@ const state = { q: meta.query || "", filter: meta.filter || "all", offset: 0, to
 
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-// ── TTS (cache server /api/tts) ──────────────────────────────────
-let audio = null;
+// ── TTS (server có cache; Google chặn thì tự fallback giọng trình duyệt) ──
 function playTts(text, btn) {
-  if (audio) { audio.pause(); audio = null; }
-  audio = new Audio("/api/tts?text=" + encodeURIComponent(text));
-  btn.classList.add("is-playing");
-  const stop = () => btn.classList.remove("is-playing");
-  audio.addEventListener("ended", stop);
-  audio.addEventListener("error", stop);
-  audio.play().catch(stop);
+  playKorean(text, {
+    onStart: () => btn.classList.add("is-playing"),
+    onEnd: () => btn.classList.remove("is-playing"),
+  });
 }
 
 // ── Danh sách ───────────────────────────────────────────────────

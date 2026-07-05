@@ -1,5 +1,6 @@
 // Trang Luyện phát âm (/speak): Web Speech API (ko-KR) — client-only, không tốn AI.
 import { similarityScore } from './similarity.js';
+import { playKorean } from '../shared/ttsPlayer.js';
 
 const dataNode = document.getElementById('speak-data');
 let sentences = [];
@@ -45,11 +46,8 @@ function next() {
     show();
 }
 
-let audio = null;
 function listen() {
-    if (audio) audio.pause();
-    audio = new Audio(`/api/tts?text=${encodeURIComponent(sentences[index].kr)}`);
-    audio.play().catch(() => {});
+    playKorean(sentences[index].kr); // Google TTS; bị chặn thì fallback giọng trình duyệt
 }
 
 function grade(spoken) {

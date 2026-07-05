@@ -509,7 +509,13 @@ router.get("/tts", ttsLimiter, asyncHandler(async (req, res) => {
   // Phát âm MIỄN PHÍ (không trừ energy): thao tác học cốt lõi, nhẹ, đã cache. ttsLimiter chống spam.
   const text = String(req.query.text || "").trim().slice(0, 200);
   if (!text) return res.status(400).send("");
-  const buffer = await tts.synthesizeBuffer(text);
+  let buffer;
+  try {
+    buffer = await tts.synthesizeBuffer(text);
+  } catch (err) {
+    // Google chặn/treo → 503 gọn để client fallback sang giọng trình duyệt ngay.
+    return res.status(err.status === 503 ? 503 : 502).send("");
+  }
   res.setHeader("Content-Type", "audio/mpeg");
   res.setHeader("Content-Disposition", "inline; filename=\"tts.mp3\"");
   res.send(buffer);

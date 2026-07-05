@@ -1,5 +1,6 @@
 // Trang Bảng chữ cái (/hangul): bảng jamo (bấm để nghe) + quiz ghép âm 10 câu.
 import { CONSONANTS, DOUBLE_CONSONANTS, VOWELS, COMPOUND_VOWELS, buildQuiz } from './hangulData.js';
+import { playKorean } from '../shared/ttsPlayer.js';
 
 const boardEl = document.getElementById('hangulBoard');
 const quizEl = document.getElementById('hangulQuiz');
@@ -11,11 +12,8 @@ function escapeHtml(v) {
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-let audio = null;
 function play(text) {
-    if (audio) audio.pause();
-    audio = new Audio(`/api/tts?text=${encodeURIComponent(text)}`);
-    audio.play().catch(() => {});
+    playKorean(text); // Google TTS (cache server); bị chặn thì fallback giọng trình duyệt
 }
 
 function sectionHtml(title, items) {

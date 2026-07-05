@@ -1,5 +1,7 @@
 // Tab "Học hôm nay" (/daily): đoạn văn tiếng Hàn + dịch + nghe từng câu + bấm-từ-để-tra
 // + 3 câu đọc hiểu. Chưa có đoạn của HÔM NAY → tự tạo bằng AI; ngày cũ chỉ xem lại.
+import { playKorean } from '../shared/ttsPlayer.js';
+
 const dataNode = document.getElementById('daily-data');
 const viewNode = document.getElementById('daily-view');
 const card = document.getElementById('dailyCard');
@@ -64,16 +66,13 @@ function renderPassage(p) {
     bindPassageEvents();
 }
 
-// ── Nghe từng câu (TTS sẵn có; giới hạn 200 ký tự phía server là đủ cho 1 câu) ──
-let audio = null;
+// ── Nghe từng câu (TTS server có cache; Google chặn thì fallback giọng trình duyệt) ──
 function playSentence(text, btn) {
-    if (audio) { audio.pause(); audio = null; }
     document.querySelectorAll('.daily-play.is-playing').forEach((b) => b.classList.remove('is-playing'));
-    btn.classList.add('is-playing');
-    audio = new Audio(`/api/tts?text=${encodeURIComponent(text)}`);
-    audio.addEventListener('ended', () => btn.classList.remove('is-playing'));
-    audio.addEventListener('error', () => btn.classList.remove('is-playing'));
-    audio.play().catch(() => btn.classList.remove('is-playing'));
+    playKorean(text, {
+        onStart: () => btn.classList.add('is-playing'),
+        onEnd: () => btn.classList.remove('is-playing')
+    });
 }
 
 // ── Popover tra từ + lưu vào từ vựng ──

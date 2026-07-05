@@ -37,13 +37,38 @@ function uniqueAudioPath() {
   return path.join(audioDir(), `listening_${timestamp}_${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}.mp3`);
 }
 
+// Google chặn tạm (429/403) hoặc treo → nghỉ một lát thay vì đập tiếp: cache hit vẫn phục vụ
+// bình thường, còn câu mới FAIL NHANH (503) để client fallback sang giọng trình duyệt ngay,
+// không bắt user chờ 12s timeout mỗi lần bấm.
+let upstreamCooldownUntil = 0;
+
+function ttsError(status, message) {
+  const err = new Error(message);
+  err.status = status;
+  return err;
+}
+
 async function synthesizeBuffer(text) {
   const clean = String(text || "").trim().slice(0, 200);
   const cached = cacheGet(clean);
   if (cached) return cached;
+  if (Date.now() < upstreamCooldownUntil) {
+    throw ttsError(503, "TTS upstream đang tạm nghỉ (Google chặn/treo gần đây)");
+  }
   const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(clean)}`;
-  const response = await fetchWithTimeout(url, {}, 12000);
-  if (!response.ok) throw new Error(`TTS failed with status ${response.status}`);
+  let response;
+  try {
+    response = await fetchWithTimeout(url, {}, 12000);
+  } catch (e) {
+    upstreamCooldownUntil = Date.now() + 30 * 1000; // treo/timeout → nghỉ ngắn
+    throw ttsError(503, `TTS upstream không phản hồi: ${e.message}`);
+  }
+  if (!response.ok) {
+    if (response.status === 429 || response.status === 403) {
+      upstreamCooldownUntil = Date.now() + 60 * 1000; // bị chặn rõ ràng → nghỉ 60s
+    }
+    throw ttsError(503, `TTS failed with status ${response.status}`);
+  }
   const buffer = Buffer.from(await response.arrayBuffer());
   cacheSet(clean, buffer);
   return buffer;
