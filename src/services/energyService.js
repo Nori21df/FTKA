@@ -1,7 +1,10 @@
 const db = require("../db");
 const { isPremiumUser } = require("../middleware/requirePremium");
 
-const FREE = { max: 50, refillMinutes: 30, dailyBonus: 10 };
+// Cân bằng "thoải mái nhưng vẫn thấy thiếu": free đủ cho ~1.5–2 phiên học/ngày (thoải mái),
+// nhưng dùng nhiều (nhiều bài nghe 10⚡ + tạo từ + TTS) vẫn chạm trần → tạo động lực lên Premium.
+// Premium rộng gấp ~6–7× (trần) / 2× (hồi, thưởng) để khoảng cách rõ ràng.
+const FREE = { max: 90, refillMinutes: 20, dailyBonus: 25 };
 const PREMIUM = { max: 600, refillMinutes: 10, dailyBonus: 50 };
 
 function now() { return new Date(); }
