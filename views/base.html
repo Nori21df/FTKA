@@ -121,7 +121,7 @@
                     <span class="material-icons-outlined">abc</span>
                     <span class="nav-label">Bảng chữ cái</span>
                 </a>
-                <a href="{{ url_for('specialties') }}" class="nav-item {% if request.endpoint in ['specialties', 'it_vocab'] %}active{% endif %}">
+                <a href="{{ url_for('specialties') }}" class="nav-item {% if request.endpoint in ['specialties', 'specialty_vocab', 'it_vocab'] %}active{% endif %}">
                     <span class="material-icons-outlined">category</span>
                     <span class="nav-label">Chuyên ngành</span>
                 </a>

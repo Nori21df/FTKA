@@ -5,8 +5,8 @@
     <header class="rv-head">
         <div>
             <a class="gen-kicker spec-back" href="{{ url_for('specialties') }}"><span class="material-icons-outlined" aria-hidden="true">chevron_left</span>Chuyên ngành</a>
-            <h2>Từ vựng CNTT (TTA)</h2>
-            <p>{{ it_total }} thuật ngữ công nghệ thông tin – viễn thông (Hàn–Việt) từ từ điển TTA. Tìm kiếm, đánh dấu yêu thích, và học bằng thẻ ghi nhớ có ôn ngắt quãng.</p>
+            <h2>{{ spec.name }}</h2>
+            <p>{{ spec.desc }} Tìm kiếm, đánh dấu yêu thích, và học bằng thẻ ghi nhớ có ôn ngắt quãng.</p>
         </div>
         <div class="itv-head-actions">
             <button type="button" id="itvStudyBtn" class="dv-cta">Học thẻ <span class="material-icons-outlined" aria-hidden="true">style</span></button>
@@ -59,6 +59,6 @@
 </div>
 
 <script id="itv-initial" type="application/json">{{ it_initial|tojson }}</script>
-<script id="itv-meta" type="application/json">{{ { "total": it_total, "query": it_query, "filter": it_filter }|tojson }}</script>
-<script type="module" src="/static/js/itVocab/itVocabPage.js?v={{ asset_v('js/itVocab/itVocabPage.js') }}"></script>
+<script id="itv-meta" type="application/json">{{ { "total": it_total, "query": it_query, "filter": it_filter, "domain": spec.domain }|tojson }}</script>
+<script type="module" src="/static/js/specialty/specialtyVocabPage.js?v={{ asset_v('js/specialty/specialtyVocabPage.js') }}"></script>
 {% endblock %}

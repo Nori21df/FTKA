@@ -13,14 +13,12 @@
     <div class="spec-grid">
         {% for s in specialties %}
         {% if s.available %}
-        <a class="spec-card" href="{{ s.href }}">
+        <a class="spec-card" href="{{ url_for('specialty_vocab', slug=s.slug) }}">
             <div class="spec-icon"><span class="material-icons-outlined">{{ s.icon }}</span></div>
             <div class="spec-body">
                 <div class="spec-top"><h3>{{ s.name }}</h3><span class="spec-tag">{{ s.tag }}</span></div>
                 <p>{{ s.desc }}</p>
-                {% if s.slug == 'cntt' %}
-                <div class="spec-progress"><strong>{{ cntt_stats.learned }}</strong> đã học · <strong>{{ cntt_stats.favorite }}</strong> yêu thích</div>
-                {% endif %}
+                <div class="spec-progress"><strong>{{ s.learned }}</strong> đã học · <strong>{{ s.favorite }}</strong> yêu thích</div>
             </div>
             <span class="material-icons-outlined spec-arrow" aria-hidden="true">arrow_forward</span>
         </a>

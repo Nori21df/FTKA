@@ -12,6 +12,13 @@ const daily = require("../services/dailyService");
 const srsService = require("../services/srsService");
 const writingService = require("../services/writingService");
 const itTerms = require("../services/itTermsService");
+const { getSpecialty } = require("../config/specialties");
+
+// Chuẩn hoá domain từ request về một ngành available đã biết (mặc định cntt).
+function resolveDomain(value) {
+  const spec = getSpecialty(String(value || "").trim());
+  return spec ? spec.domain : "cntt";
+}
 const settings = require("../services/settingsService");
 const tts = require("../services/ttsService");
 const learning = require("../services/learningService");
@@ -230,16 +237,17 @@ router.post("/srs_review", loginRequired, asyncHandler(async (req, res) => {
   res.json({ success: true, due: result.due, interval_days: result.interval_days, reps: result.reps });
 }));
 
-// ── Từ vựng chuyên ngành CNTT (bộ TTA) ─────────────────────────────────
-// Tìm/phân trang catalog dùng chung + tiến độ user. Không tốn energy (chỉ đọc catalog có sẵn).
+// ── Từ vựng chuyên ngành (catalog dùng chung theo domain) ──────────────
+// Tìm/phân trang + tiến độ user. Không tốn energy (chỉ đọc catalog có sẵn). ?domain= chọn ngành.
 router.get("/it-terms", loginRequired, asyncHandler(async (req, res) => {
+  const domain = resolveDomain(req.query.domain);
   const filter = ["all", "learned", "favorite", "untranslated"].includes(req.query.filter) ? req.query.filter : "all";
   const q = String(req.query.q || "").slice(0, 80);
   const offset = Math.max(Number(req.query.offset) || 0, 0);
   const limit = Math.min(Math.max(Number(req.query.limit) || 40, 1), 60);
   const [terms, total] = await Promise.all([
-    itTerms.searchTerms({ userId: req.currentUser.id, q, filter, offset, limit }),
-    itTerms.countTerms({ userId: req.currentUser.id, q, filter }),
+    itTerms.searchTerms({ userId: req.currentUser.id, domain, q, filter, offset, limit }),
+    itTerms.countTerms({ userId: req.currentUser.id, domain, q, filter }),
   ]);
   res.json({ success: true, terms, total, offset, limit, has_more: offset + terms.length < total });
 }));
@@ -247,28 +255,28 @@ router.get("/it-terms", loginRequired, asyncHandler(async (req, res) => {
 router.post("/it-terms/favorite", loginRequired, asyncHandler(async (req, res) => {
   const key = String(req.body.key || "").trim();
   if (!key) return res.status(400).json({ error: "key required" });
-  const favorite = await itTerms.toggleFavorite(req.currentUser.id, key);
+  const favorite = await itTerms.toggleFavorite(req.currentUser.id, resolveDomain(req.body.domain), key);
   res.json({ success: true, favorite });
 }));
 
 router.post("/it-terms/learned", loginRequired, asyncHandler(async (req, res) => {
   const key = String(req.body.key || "").trim();
   if (!key) return res.status(400).json({ error: "key required" });
-  await itTerms.setLearned(req.currentUser.id, key, parseBooleanInput(req.body.learned));
+  await itTerms.setLearned(req.currentUser.id, resolveDomain(req.body.domain), key, parseBooleanInput(req.body.learned));
   res.json({ success: true });
 }));
 
-// SRS cho thuật ngữ IT (good/again) — flashcard gọi fire-and-forget.
+// SRS (good/again) — flashcard gọi fire-and-forget.
 router.post("/it-terms/review", loginRequired, asyncHandler(async (req, res) => {
   const key = String(req.body.key || "").trim();
   if (!key) return res.status(400).json({ error: "key required" });
   const grade = req.body.grade === "again" ? "again" : "good";
-  const next = await itTerms.reviewTerm(req.currentUser.id, key, grade);
+  const next = await itTerms.reviewTerm(req.currentUser.id, resolveDomain(req.body.domain), key, grade);
   res.json({ success: true, due: next.due, interval_days: next.interval_days, reps: next.reps });
 }));
 
 router.get("/it-terms/deck", loginRequired, asyncHandler(async (req, res) => {
-  const deck = await itTerms.getStudyDeck(req.currentUser.id, 12);
+  const deck = await itTerms.getStudyDeck(req.currentUser.id, resolveDomain(req.query.domain), 12);
   res.json({ success: true, deck });
 }));
 

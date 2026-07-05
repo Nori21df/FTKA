@@ -1,5 +1,6 @@
-// Trang "Từ vựng CNTT" (bộ TTA): duyệt/tìm/lọc catalog dùng chung (infinite scroll) +
-// yêu thích / đánh dấu đã học + học bằng thẻ ghi nhớ có SRS. Data động qua JSON island.
+// Trang duyệt từ vựng chuyên ngành (tổng quát theo `domain`, đọc từ JSON island).
+// Duyệt/tìm/lọc catalog (infinite scroll) + yêu thích / đánh dấu đã học + học flashcard có SRS.
+// Thẻ thích nghi 2 dạng dữ liệu: có định nghĩa VN (CNTT) hoặc chỉ Hàn↔Anh (Y khoa).
 
 const listEl = document.getElementById("itvList");
 const statusEl = document.getElementById("itvStatus");
@@ -7,12 +8,13 @@ const searchEl = document.getElementById("itvSearch");
 
 const meta = JSON.parse(document.getElementById("itv-meta").textContent);
 const initial = JSON.parse(document.getElementById("itv-initial").textContent);
+const DOMAIN = meta.domain || "cntt";
 
 const state = { q: meta.query || "", filter: meta.filter || "all", offset: 0, total: meta.total || 0, loading: false, done: false };
 
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-// ── TTS (dùng cache server /api/tts) ─────────────────────────────
+// ── TTS (cache server /api/tts) ──────────────────────────────────
 let audio = null;
 function playTts(text, btn) {
   if (audio) { audio.pause(); audio = null; }
@@ -25,6 +27,12 @@ function playTts(text, btn) {
 }
 
 // ── Danh sách ───────────────────────────────────────────────────
+function meaningHtml(t) {
+  if (t.definition_vi) return `<p class="itv-vi">${esc(t.definition_vi)}</p>`;
+  if (t.gloss_en) return ""; // Hàn↔Anh: đã có tag tiếng Anh, không cần dòng nghĩa
+  return '<p class="itv-vi"><em>(chưa có nghĩa)</em></p>';
+}
+
 function cardHtml(t) {
   return `<article class="itv-card" data-key="${esc(t.key)}">
     <div class="itv-card-head">
@@ -38,7 +46,7 @@ function cardHtml(t) {
         <button type="button" class="itv-learned${t.learned ? " is-on" : ""}" data-learned>${t.learned ? "✓ Đã học" : "Đánh dấu học"}</button>
       </div>
     </div>
-    <p class="itv-vi">${t.definition_vi ? esc(t.definition_vi) : "<em>(chưa có bản dịch)</em>"}</p>
+    ${meaningHtml(t)}
   </article>`;
 }
 
@@ -55,9 +63,8 @@ async function load(reset) {
   state.loading = true;
   statusEl.textContent = "Đang tải…";
   try {
-    const url = `/api/it-terms?q=${encodeURIComponent(state.q)}&filter=${state.filter}&offset=${state.offset}&limit=40`;
-    const res = await fetch(url);
-    const d = await res.json();
+    const url = `/api/it-terms?domain=${encodeURIComponent(DOMAIN)}&q=${encodeURIComponent(state.q)}&filter=${state.filter}&offset=${state.offset}&limit=40`;
+    const d = await (await fetch(url)).json();
     state.total = d.total;
     render(d.terms, !reset);
     state.offset += d.terms.length;
@@ -69,18 +76,15 @@ async function load(reset) {
   state.loading = false;
 }
 
-// Sơn lần đầu từ dữ liệu nhúng (khỏi gọi API), rồi infinite scroll tải tiếp.
 render(initial, false);
 state.offset = initial.length;
 state.done = initial.length >= state.total;
 statusEl.textContent = state.done ? `${state.total} thuật ngữ` : "";
 
-const io = new IntersectionObserver((entries) => {
-  if (entries[0].isIntersecting) load(false);
-}, { rootMargin: "400px" });
+const io = new IntersectionObserver((entries) => { if (entries[0].isIntersecting) load(false); }, { rootMargin: "400px" });
 io.observe(statusEl);
 
-// ── Tìm kiếm (debounce) + lọc ───────────────────────────────────
+// ── Tìm kiếm + lọc ──────────────────────────────────────────────
 let searchTimer = null;
 searchEl.addEventListener("input", () => {
   clearTimeout(searchTimer);
@@ -94,7 +98,11 @@ document.querySelectorAll(".itv-filter").forEach((b) => b.addEventListener("clic
   load(true);
 }));
 
-// ── Tương tác trên thẻ (delegated) ──────────────────────────────
+// ── Tương tác thẻ (delegated) ───────────────────────────────────
+function post(path, body) {
+  return fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ domain: DOMAIN, ...body }) });
+}
+
 listEl.addEventListener("click", async (e) => {
   const ttsBtn = e.target.closest("[data-tts]");
   if (ttsBtn) { playTts(ttsBtn.dataset.tts, ttsBtn); return; }
@@ -105,8 +113,7 @@ listEl.addEventListener("click", async (e) => {
   const fav = e.target.closest("[data-fav]");
   if (fav) {
     try {
-      const r = await fetch("/api/it-terms/favorite", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key }) });
-      const d = await r.json();
+      const d = await (await post("/api/it-terms/favorite", { key })).json();
       fav.classList.toggle("is-on", d.favorite);
       fav.setAttribute("aria-pressed", d.favorite ? "true" : "false");
     } catch (_e) { /* im lặng */ }
@@ -116,14 +123,13 @@ listEl.addEventListener("click", async (e) => {
   const learned = e.target.closest("[data-learned]");
   if (learned) {
     const on = !learned.classList.contains("is-on");
-    fetch("/api/it-terms/learned", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, learned: on }) }).catch(() => {});
+    post("/api/it-terms/learned", { key, learned: on }).catch(() => {});
     learned.classList.toggle("is-on", on);
     learned.textContent = on ? "✓ Đã học" : "Đánh dấu học";
     return;
   }
 
-  // Bấm vào thân thẻ → mở/thu gọn định nghĩa dài (mặc định kẹp 3 dòng).
-  card.classList.toggle("is-open");
+  card.classList.toggle("is-open"); // bấm thân thẻ → mở/thu định nghĩa dài
 });
 
 // ── Học thẻ (flashcard + SRS) ───────────────────────────────────
@@ -140,10 +146,13 @@ let di = 0;
 
 function showCard() {
   const t = deck[di];
+  const answer = t.definition_vi || t.gloss_en || "(chưa có nghĩa)";
   progressEl.textContent = `Thẻ ${di + 1} / ${deck.length}`;
   koEl.textContent = t.korean;
-  glossEl.textContent = t.gloss_en || "";
-  viEl.textContent = t.definition_vi || "(chưa có bản dịch)";
+  // gloss tiếng Anh chỉ hiện ở MẶT TRƯỚC khi nó KHÔNG phải đáp án (tức có định nghĩa VN riêng),
+  // để không lộ đáp án với dữ liệu Hàn↔Anh.
+  glossEl.textContent = (t.definition_vi && t.gloss_en) ? t.gloss_en : "";
+  viEl.textContent = answer;
   revealWrap.hidden = true;
   revealBtn.hidden = false;
   gradeBtns.hidden = true;
@@ -151,8 +160,7 @@ function showCard() {
 
 document.getElementById("itvStudyBtn").addEventListener("click", async () => {
   try {
-    const r = await fetch("/api/it-terms/deck");
-    const d = await r.json();
+    const d = await (await fetch(`/api/it-terms/deck?domain=${encodeURIComponent(DOMAIN)}`)).json();
     deck = d.deck || [];
   } catch (_e) { deck = []; }
   if (!deck.length) { statusEl.textContent = "Chưa có thẻ để học — đánh dấu ♥ hoặc \"Đánh dấu học\" vài thuật ngữ trước."; return; }
@@ -172,9 +180,7 @@ revealBtn.addEventListener("click", () => {
 gradeBtns.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-grade]");
   if (!btn) return;
-  const t = deck[di];
-  // fire-and-forget: chấm SRS, không chặn chuyển thẻ
-  fetch("/api/it-terms/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: t.key, grade: btn.dataset.grade }) }).catch(() => {});
+  post("/api/it-terms/review", { key: deck[di].key, grade: btn.dataset.grade }).catch(() => {});
   di += 1;
   if (di >= deck.length) {
     studyEl.hidden = true;

@@ -31,6 +31,7 @@ const routes = {
   daily: "/daily",
   hangul: "/hangul",
   specialties: "/chuyen-nganh",
+  specialty_vocab: "/chuyen-nganh/:slug",
   it_vocab: "/it-vocab",
   api_export_anki: "/api/export_anki",
   writing: "/writing",
