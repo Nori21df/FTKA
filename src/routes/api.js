@@ -5,7 +5,7 @@ const db = require("../db");
 const asyncHandler = require("../utils/asyncHandler");
 const { named } = require("../middleware/viewContext");
 const { loginRequired, adminRequired } = require("../middleware/auth");
-const { aiLimiter } = require("../middleware/rateLimit");
+const { aiLimiter, ttsLimiter } = require("../middleware/rateLimit");
 const auth = require("../services/authService");
 const ai = require("../services/aiService");
 const daily = require("../services/dailyService");
@@ -505,14 +505,10 @@ router.post("/dict", aiLimiter, loginRequired, asyncHandler(async (req, res) => 
   res.json({ success: true, entry });
 }));
 
-router.get("/tts", aiLimiter, asyncHandler(async (req, res) => {
+router.get("/tts", ttsLimiter, asyncHandler(async (req, res) => {
+  // Phát âm MIỄN PHÍ (không trừ energy): thao tác học cốt lõi, nhẹ, đã cache. ttsLimiter chống spam.
   const text = String(req.query.text || "").trim().slice(0, 200);
   if (!text) return res.status(400).send("");
-  if (req.currentUser) {
-    const result = await energy.spendEnergy(req.currentUser.id, 1, "tts", "inline");
-    if (!result.ok) return res.status(402).send("");
-    await emitEnergyUpdate(req.currentUser.id);
-  }
   const buffer = await tts.synthesizeBuffer(text);
   res.setHeader("Content-Type", "audio/mpeg");
   res.setHeader("Content-Disposition", "inline; filename=\"tts.mp3\"");

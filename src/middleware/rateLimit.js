@@ -28,4 +28,15 @@ const aiLimiter = rateLimit({
   handler: limitHandler
 });
 
-module.exports = { authLimiter, aiLimiter };
+// TTS (phát âm) rộng rãi hơn NHIỀU so với aiLimiter: thao tác nhẹ, đã cache LRU, và user bấm 🔊
+// liên tục khi học (flashcard/chuyên ngành). Vẫn chặn spam script cực đoan.
+const ttsLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => (req.currentUser ? `user:${req.currentUser.id}` : ipKeyGenerator(req.ip)),
+  handler: limitHandler
+});
+
+module.exports = { authLimiter, aiLimiter, ttsLimiter };
