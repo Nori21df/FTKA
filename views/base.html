@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Sora:wght@600;700;800&family=Outfit:wght@500;600;700&family=Baloo+2:wght@500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ asset_v('style.css') }}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <link rel="manifest" href="/static/manifest.webmanifest">
     <link rel="icon" type="image/png" href="/static/icons/icon-192.png">
@@ -120,6 +120,10 @@
                 <a href="{{ url_for('hangul') }}" class="nav-item {% if request.endpoint == 'hangul' %}active{% endif %}">
                     <span class="material-icons-outlined">abc</span>
                     <span class="nav-label">Bảng chữ cái</span>
+                </a>
+                <a href="{{ url_for('specialties') }}" class="nav-item {% if request.endpoint in ['specialties', 'it_vocab'] %}active{% endif %}">
+                    <span class="material-icons-outlined">category</span>
+                    <span class="nav-label">Chuyên ngành</span>
                 </a>
 
                 <span class="nav-group">Ôn luyện</span>

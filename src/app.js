@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 const crypto = require("crypto");
 const express = require("express");
 const session = require("express-session");
@@ -41,6 +42,15 @@ const nunjucksEnv = nunjucks.configure(viewsDir, {
 });
 
 nunjucksEnv.addGlobal("url_for", urlFor);
+// Cache-bust asset theo mtime file → sửa CSS/JS là trình duyệt tự tải bản mới, khỏi hard-refresh.
+const _assetVerCache = new Map();
+nunjucksEnv.addGlobal("asset_v", (filename) => {
+  if (env.nodeEnv === "production" && _assetVerCache.has(filename)) return _assetVerCache.get(filename);
+  let v = "0";
+  try { v = String(Math.floor(fs.statSync(path.join(publicDir, filename)).mtimeMs)); } catch (e) { /* file thiếu → 0 */ }
+  _assetVerCache.set(filename, v);
+  return v;
+});
 nunjucksEnv.addFilter("tojson", (value, spaces) => {
   const json = JSON.stringify(value == null ? null : value, null, Number(spaces) || 0);
   return new nunjucks.runtime.SafeString(json.replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/&/g, "\\u0026"));

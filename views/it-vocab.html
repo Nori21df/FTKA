@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="itv-wrap">
+    <header class="rv-head">
+        <div>
+            <a class="gen-kicker spec-back" href="{{ url_for('specialties') }}"><span class="material-icons-outlined" aria-hidden="true">chevron_left</span>Chuyên ngành</a>
+            <h2>Từ vựng CNTT (TTA)</h2>
+            <p>{{ it_total }} thuật ngữ công nghệ thông tin – viễn thông (Hàn–Việt) từ từ điển TTA. Tìm kiếm, đánh dấu yêu thích, và học bằng thẻ ghi nhớ có ôn ngắt quãng.</p>
+        </div>
+        <div class="itv-head-actions">
+            <button type="button" id="itvStudyBtn" class="dv-cta">Học thẻ <span class="material-icons-outlined" aria-hidden="true">style</span></button>
+        </div>
+    </header>
+
+    <div class="itv-stats">
+        <div class="itv-stat"><strong id="itvStatLearned">{{ it_stats.learned }}</strong><span>đã học</span></div>
+        <div class="itv-stat"><strong id="itvStatFav">{{ it_stats.favorite }}</strong><span>yêu thích</span></div>
+        <div class="itv-stat"><strong>{{ it_stats.total }}</strong><span>tổng thuật ngữ</span></div>
+    </div>
+
+    <div class="itv-controls">
+        <div class="itv-search">
+            <span class="material-icons-outlined" aria-hidden="true">search</span>
+            <input type="search" id="itvSearch" placeholder="Tìm thuật ngữ (Hàn, tiếng Anh, tiếng Việt)…" value="{{ it_query }}" autocomplete="off">
+        </div>
+        <nav class="daily-history" aria-label="Lọc thuật ngữ">
+            <button class="daily-chip itv-filter {% if it_filter == 'all' %}is-active{% endif %}" data-filter="all" type="button">Tất cả</button>
+            <button class="daily-chip itv-filter {% if it_filter == 'learned' %}is-active{% endif %}" data-filter="learned" type="button">Đã học</button>
+            <button class="daily-chip itv-filter {% if it_filter == 'favorite' %}is-active{% endif %}" data-filter="favorite" type="button">Yêu thích</button>
+        </nav>
+    </div>
+
+    <div id="itvList" class="itv-list" aria-live="polite"></div>
+    <div id="itvStatus" class="itv-status"></div>
+</div>
+
+<div id="itvStudy" class="itv-study" hidden>
+    <div class="itv-study-card dv-card">
+        <div class="itv-study-top">
+            <span id="itvStudyProgress"></span>
+            <button type="button" id="itvStudyClose" class="dv-cta ghost">Đóng</button>
+        </div>
+        <div class="itv-study-body">
+            <h3 id="itvStudyKo" class="kr" lang="ko"></h3>
+            <span id="itvStudyGloss" class="itv-gloss"></span>
+            <div id="itvStudyReveal" class="itv-study-reveal" hidden>
+                <p id="itvStudyVi"></p>
+            </div>
+        </div>
+        <div class="itv-study-actions">
+            <button type="button" id="itvRevealBtn" class="dv-cta block">Hiện nghĩa</button>
+            <div id="itvGradeBtns" class="itv-grade" hidden>
+                <button type="button" class="dv-cta ghost" data-grade="again">Ôn lại</button>
+                <button type="button" class="dv-cta" data-grade="good">Nhớ rồi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="itv-initial" type="application/json">{{ it_initial|tojson }}</script>
+<script id="itv-meta" type="application/json">{{ { "total": it_total, "query": it_query, "filter": it_filter }|tojson }}</script>
+<script type="module" src="/static/js/itVocab/itVocabPage.js?v={{ asset_v('js/itVocab/itVocabPage.js') }}"></script>
+{% endblock %}

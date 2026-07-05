@@ -11,6 +11,7 @@ const { ensureStreakRewardSchema } = require("./services/streakRewardService");
 const { ensureSrsSchema } = require("./services/srsService");
 const { ensureWritingSchema } = require("./services/writingService");
 const { ensureReminderSchema, startReminderScheduler } = require("./services/reminderService");
+const { ensureItTermsSchema, seedItTerms } = require("./services/itTermsService");
 const { initEnergySocket } = require("./services/energySocket");
 
 async function start() {
@@ -22,6 +23,8 @@ async function start() {
   await ensureSrsSchema();
   await ensureWritingSchema();
   await ensureReminderSchema();
+  await ensureItTermsSchema();
+  await seedItTerms(); // an toàn: chưa có assets/it-terms.json.gz thì tự bỏ qua
   const server = http.createServer(app);
   const io = new Server(server);
   initEnergySocket(io, sessionMiddleware, authService);

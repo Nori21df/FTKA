@@ -28,3 +28,4 @@ public/audio/*.mp3
 test-results/
 playwright-report/
 tests/.auth/
+scripts/

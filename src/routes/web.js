@@ -14,6 +14,8 @@ const energy = require("../services/energyService");
 const daily = require("../services/dailyService");
 const streakRewards = require("../services/streakRewardService");
 const writing = require("../services/writingService");
+const itTerms = require("../services/itTermsService");
+const { SPECIALTIES } = require("../config/specialties");
 const { emitEnergyUpdate } = require("../services/energySocket");
 
 const router = express.Router();
@@ -413,6 +415,26 @@ router.get("/daily", ...named("daily", loginRequired, asyncHandler(async (req, r
 })));
 
 router.get("/hangul", ...named("hangul", loginRequired, (req, res) => res.render("hangul.html")));
+
+router.get("/chuyen-nganh", ...named("specialties", loginRequired, asyncHandler(async (req, res) => {
+  // Hub chọn chuyên ngành. Gom mọi lĩnh vực vào 1 tab nav. CNTT kèm tiến độ user.
+  const cnttStats = await itTerms.userStats(req.currentUser.id);
+  res.render("specialties.html", { specialties: SPECIALTIES, cntt_stats: cnttStats });
+})));
+
+router.get("/it-vocab", ...named("it_vocab", loginRequired, asyncHandler(async (req, res) => {
+  // Từ vựng chuyên ngành CNTT (bộ TTA ~19.6k thuật ngữ). Trang trả sẵn 40 mục đầu; còn lại
+  // tải dần qua /api/it-terms (infinite scroll). Bộ lọc: tất cả / đã học / yêu thích.
+  const userId = req.currentUser.id;
+  const filter = ["all", "learned", "favorite"].includes(req.query.filter) ? req.query.filter : "all";
+  const q = String(req.query.q || "").slice(0, 80);
+  const [terms, total, stats] = await Promise.all([
+    itTerms.searchTerms({ userId, q, filter, offset: 0, limit: 40 }),
+    itTerms.countTerms({ userId, q, filter }),
+    itTerms.userStats(userId),
+  ]);
+  res.render("it-vocab.html", { it_initial: terms, it_total: total, it_query: q, it_filter: filter, it_stats: stats });
+})));
 
 router.get("/writing", ...named("writing", loginRequired, asyncHandler(async (req, res) => {
   const submissions = await writing.listSubmissions(req.currentUser.id, 5);

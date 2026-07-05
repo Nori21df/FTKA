@@ -11,6 +11,7 @@ const ai = require("../services/aiService");
 const daily = require("../services/dailyService");
 const srsService = require("../services/srsService");
 const writingService = require("../services/writingService");
+const itTerms = require("../services/itTermsService");
 const settings = require("../services/settingsService");
 const tts = require("../services/ttsService");
 const learning = require("../services/learningService");
@@ -227,6 +228,48 @@ router.post("/srs_review", loginRequired, asyncHandler(async (req, res) => {
   const result = await srsService.reviewWord(req.currentUser.id, req.body.id, grade);
   if (!result) return res.status(404).json({ error: "Word not found" });
   res.json({ success: true, due: result.due, interval_days: result.interval_days, reps: result.reps });
+}));
+
+// ── Từ vựng chuyên ngành CNTT (bộ TTA) ─────────────────────────────────
+// Tìm/phân trang catalog dùng chung + tiến độ user. Không tốn energy (chỉ đọc catalog có sẵn).
+router.get("/it-terms", loginRequired, asyncHandler(async (req, res) => {
+  const filter = ["all", "learned", "favorite", "untranslated"].includes(req.query.filter) ? req.query.filter : "all";
+  const q = String(req.query.q || "").slice(0, 80);
+  const offset = Math.max(Number(req.query.offset) || 0, 0);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 40, 1), 60);
+  const [terms, total] = await Promise.all([
+    itTerms.searchTerms({ userId: req.currentUser.id, q, filter, offset, limit }),
+    itTerms.countTerms({ userId: req.currentUser.id, q, filter }),
+  ]);
+  res.json({ success: true, terms, total, offset, limit, has_more: offset + terms.length < total });
+}));
+
+router.post("/it-terms/favorite", loginRequired, asyncHandler(async (req, res) => {
+  const key = String(req.body.key || "").trim();
+  if (!key) return res.status(400).json({ error: "key required" });
+  const favorite = await itTerms.toggleFavorite(req.currentUser.id, key);
+  res.json({ success: true, favorite });
+}));
+
+router.post("/it-terms/learned", loginRequired, asyncHandler(async (req, res) => {
+  const key = String(req.body.key || "").trim();
+  if (!key) return res.status(400).json({ error: "key required" });
+  await itTerms.setLearned(req.currentUser.id, key, parseBooleanInput(req.body.learned));
+  res.json({ success: true });
+}));
+
+// SRS cho thuật ngữ IT (good/again) — flashcard gọi fire-and-forget.
+router.post("/it-terms/review", loginRequired, asyncHandler(async (req, res) => {
+  const key = String(req.body.key || "").trim();
+  if (!key) return res.status(400).json({ error: "key required" });
+  const grade = req.body.grade === "again" ? "again" : "good";
+  const next = await itTerms.reviewTerm(req.currentUser.id, key, grade);
+  res.json({ success: true, due: next.due, interval_days: next.interval_days, reps: next.reps });
+}));
+
+router.get("/it-terms/deck", loginRequired, asyncHandler(async (req, res) => {
+  const deck = await itTerms.getStudyDeck(req.currentUser.id, 12);
+  res.json({ success: true, deck });
 }));
 
 router.post("/reset_learned", loginRequired, asyncHandler(async (req, res) => {

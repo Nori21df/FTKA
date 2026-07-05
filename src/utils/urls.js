@@ -30,6 +30,8 @@ const routes = {
   grammar_quiz: "/grammar-quiz",
   daily: "/daily",
   hangul: "/hangul",
+  specialties: "/chuyen-nganh",
+  it_vocab: "/it-vocab",
   api_export_anki: "/api/export_anki",
   writing: "/writing",
   speak: "/speak",
