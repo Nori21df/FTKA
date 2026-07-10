@@ -322,6 +322,75 @@ body[data-style="vietnam"] {
   background-attachment:fixed, fixed, fixed, fixed, fixed;
 }
 
+/* ── Chi tiết COMPONENT theo 5 skin đặc biệt ─────────────────────────────
+   Nút, nav, thẻ, sidebar mang chất liệu riêng của từng chủ đề. Chỉ dùng
+   box-shadow / gradient / pseudo position:absolute — KHÔNG đổi layout. */
+
+/* Forest: nút gradient lá, vân rêu mép trên thẻ, gờ thân cây ở nav active, cỏ đáy sidebar */
+body[data-style="forest"] .dv-cta:not(.ghost):not(.danger) { background:linear-gradient(165deg,#4a8f45,#33682f); }
+body[data-style="forest"] .nav-item.active { box-shadow:inset 3px 0 0 #1e4a1c, var(--shadow-sm); }
+body[data-style="forest"] .dv-card, body[data-style="forest"] .spec-card, body[data-style="forest"] .itv-card { box-shadow:inset 0 3px 0 rgba(62,124,58,.22), var(--shadow-sm); }
+body[data-style="forest"] .sidebar {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='46'%3E%3Cg fill='%232f622c' fill-opacity='.10'%3E%3Cpath d='M28 46V33l-8 3 10-17-6 2 11-20 11 20-6-2 10 17-8-3v13z'/%3E%3Ccircle cx='74' cy='40' r='9'/%3E%3Cpath d='M118 46V36l-6 2 8-13-4 1 8-15 8 15-4-1 8 13-6-2v10z'/%3E%3C/g%3E%3Cpath d='M0 45h160' stroke='%232f622c' stroke-opacity='.12' stroke-width='2'/%3E%3C/svg%3E");
+  background-position:center bottom; background-repeat:repeat-x;
+}
+
+/* Minecraft: nút/thẻ vát khối 3D kiểu UI game (sáng trên-trái, tối dưới-phải), bấm = lún, cỏ đáy sidebar */
+body[data-style="minecraft"] .dv-cta { text-transform:uppercase; letter-spacing:.02em; border-color:#262626;
+  box-shadow:inset 2px 2px 0 rgba(255,255,255,.35), inset -2px -3px 0 rgba(0,0,0,.28), 3px 3px 0 #2b2b2b; }
+body[data-style="minecraft"] .dv-cta.ghost { box-shadow:inset 2px 2px 0 rgba(255,255,255,.65), inset -2px -3px 0 rgba(0,0,0,.14), 3px 3px 0 #2b2b2b; }
+body[data-style="minecraft"] .dv-cta:active { transform:translate(2px,2px);
+  box-shadow:inset 2px 3px 0 rgba(0,0,0,.28), inset -2px -2px 0 rgba(255,255,255,.2), 1px 1px 0 #2b2b2b; }
+body[data-style="minecraft"] .nav-item.active { box-shadow:inset 2px 2px 0 rgba(255,255,255,.3), inset -2px -3px 0 rgba(0,0,0,.3); }
+body[data-style="minecraft"] .dv-card, body[data-style="minecraft"] .spec-card, body[data-style="minecraft"] .itv-card, body[data-style="minecraft"] .style-card {
+  box-shadow:inset 2px 2px 0 rgba(255,255,255,.5), inset -2px -2px 0 rgba(0,0,0,.06), var(--shadow-sm); }
+body[data-style="minecraft"] .sidebar {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40'%3E%3Crect y='6' width='64' height='8' fill='%235d9c3f' fill-opacity='.20'/%3E%3Cg fill='%234a8332' fill-opacity='.18'%3E%3Crect x='4' y='12' width='6' height='6'/%3E%3Crect x='28' y='12' width='6' height='6'/%3E%3Crect x='50' y='12' width='6' height='6'/%3E%3C/g%3E%3Crect y='14' width='64' height='26' fill='%237a5230' fill-opacity='.09'/%3E%3Crect x='16' y='24' width='8' height='8' fill='%236b4726' fill-opacity='.11'/%3E%3Crect x='44' y='20' width='8' height='8' fill='%236b4726' fill-opacity='.11'/%3E%3C/svg%3E");
+  background-position:center bottom; background-repeat:repeat-x;
+}
+
+/* Ocean: nút gradient nước + sóng trắng ở đáy nút, gợn sóng đáy thẻ, sóng+bọt đáy sidebar */
+body[data-style="ocean"] .dv-cta:not(.ghost):not(.danger) {
+  background-color:#0288a7;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='8'%3E%3Cpath d='M0 5Q6 1 12 5T24 5T36 5T48 5V8H0z' fill='%23ffffff' fill-opacity='.22'/%3E%3C/svg%3E"), linear-gradient(180deg,#05a3c4,#027089);
+  background-position:left bottom, center; background-repeat:repeat-x, no-repeat; background-size:48px 8px, cover;
+}
+body[data-style="ocean"] .nav-item.active {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='7'%3E%3Cpath d='M0 4Q6 1 12 4T24 4T36 4T48 4V7H0z' fill='%23ffffff' fill-opacity='.25'/%3E%3C/svg%3E");
+  background-position:left bottom; background-repeat:repeat-x; background-size:48px 7px;
+}
+body[data-style="ocean"] .dv-card, body[data-style="ocean"] .spec-card, body[data-style="ocean"] .itv-card { box-shadow:inset 0 -3px 0 rgba(2,136,167,.16), var(--shadow-sm); }
+body[data-style="ocean"] .sidebar {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='44'%3E%3Cpath d='M0 26Q20 14 40 26T80 26T120 26T160 26V44H0z' fill='%230288a7' fill-opacity='.10'/%3E%3Cpath d='M0 34Q20 24 40 34T80 34T120 34T160 34V44H0z' fill='%23026e88' fill-opacity='.10'/%3E%3Cg fill='none' stroke='%230288a7' stroke-opacity='.16' stroke-width='2'%3E%3Ccircle cx='34' cy='12' r='4'/%3E%3Ccircle cx='120' cy='8' r='3'/%3E%3C/g%3E%3C/svg%3E");
+  background-position:center bottom; background-repeat:repeat-x;
+}
+
+/* Hàn Quốc: nút xanh taegeuk viền vàng đồng dưới, ngoặc góc dancheong trên thẻ, chấm thái cực ở nav active, núi đáy sidebar */
+body[data-style="korea"] .dv-cta:not(.ghost):not(.danger) { background:linear-gradient(165deg,#2a62b8,#173f80);
+  box-shadow:var(--shadow-sm), inset 0 -2px 0 rgba(184,134,11,.5); }
+body[data-style="korea"] .nav-item { position:relative; }
+body[data-style="korea"] .nav-item.active::after { content:""; position:absolute; right:12px; top:50%; width:9px; height:9px; margin-top:-5px;
+  border-radius:50%; background:linear-gradient(180deg,#e85560 50%,#3f74c9 50%); opacity:.95; pointer-events:none; }
+body[data-style="korea"] .dv-card, body[data-style="korea"] .spec-card { position:relative; }
+body[data-style="korea"] .dv-card::after, body[data-style="korea"] .spec-card::after { content:""; position:absolute; top:7px; right:7px; width:16px; height:16px;
+  border-top:2px solid rgba(205,46,58,.34); border-right:2px solid rgba(29,79,158,.34); pointer-events:none; }
+body[data-style="korea"] .sidebar {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='48'%3E%3Cg fill='%235a4b37' fill-opacity='.08'%3E%3Cpath d='M0 48L30 18l30 30z'/%3E%3Cpath d='M44 48L84 8l40 40z'/%3E%3Cpath d='M112 48l30-24 28 24z'/%3E%3C/g%3E%3C/svg%3E");
+  background-position:center bottom; background-repeat:repeat-x;
+}
+
+/* Việt Nam: nút đỏ cờ viền vàng dưới, sao vàng ở nav active, lụa đỏ mép trên thẻ, sen đáy sidebar */
+body[data-style="vietnam"] .dv-cta:not(.ghost):not(.danger) { background:linear-gradient(165deg,#d41b38,#a30d26);
+  box-shadow:var(--shadow-sm), inset 0 -2px 0 rgba(217,154,6,.6); }
+body[data-style="vietnam"] .nav-item { position:relative; }
+body[data-style="vietnam"] .nav-item.active::after { content:"★"; position:absolute; right:11px; top:50%; transform:translateY(-50%);
+  font-size:10px; line-height:1; color:#ffcd00; opacity:.95; pointer-events:none; }
+body[data-style="vietnam"] .dv-card, body[data-style="vietnam"] .spec-card, body[data-style="vietnam"] .itv-card { box-shadow:inset 0 3px 0 rgba(200,16,46,.15), var(--shadow-sm); }
+body[data-style="vietnam"] .sidebar {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='50'%3E%3Cg stroke='%231a6b8a' stroke-opacity='.10' stroke-width='2' fill='none'%3E%3Cpath d='M10 44q22-6 44 0'/%3E%3Cpath d='M100 46q26-7 52 0'/%3E%3C/g%3E%3Cg fill='%23c8102e' fill-opacity='.11'%3E%3Cpath d='M60 40c-4-11-4-22 0-33 4 11 4 22 0 33z'/%3E%3Cpath d='M60 40c-10-5-16-15-18-26 10 5 16 15 18 26z'/%3E%3Cpath d='M60 40c10-5 16-15 18-26-10 5-16 15-18 26z'/%3E%3C/g%3E%3Ccircle cx='118' cy='38' r='12' fill='%2333691e' fill-opacity='.10'/%3E%3C/svg%3E");
+  background-position:center bottom; background-repeat:repeat-x;
+}
+
 /* Khung chờ (skeleton) khi đang soạn nội dung — dùng chung */
 .ftka-skeleton { display: grid; gap: 12px; }
 .ftka-skel-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 16px; box-shadow: var(--shadow-sm); }
