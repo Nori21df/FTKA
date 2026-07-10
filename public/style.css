@@ -213,15 +213,19 @@ body[data-style="forest"] {
   --shadow-sm:0 1px 2px rgba(37,58,30,.08); --shadow-md:0 6px 18px rgba(37,58,30,.12); --shadow-lg:0 16px 40px rgba(37,58,30,.18);
   --radius-sm:12px; --radius:18px; --radius-lg:24px;
   --font-display:"Plus Jakarta Sans","Inter","Noto Sans KR",sans-serif;
-  /* hoạ tiết: rặng thông + bụi cây (đáy trái) và cành lá rủ (góc phải trên) */
+  /* khung cảnh rừng: tán xa mờ + rặng thông + bụi + nấm + dương xỉ (dải đáy lặp),
+     cành lá rủ 2 góc trên, đàn chim, lá rơi rải rác */
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='200'%3E%3Cg fill='%232f622c' fill-opacity='.10'%3E%3Cpath d='M60 200v-30l-16 6 20-34-12 4 22-40 22 40-12-4 20 34-16-6v30z'/%3E%3Cpath d='M140 200v-22l-12 5 15-26-9 3 17-30 17 30-9-3 15 26-12-5v22z'/%3E%3Ccircle cx='210' cy='185' r='24'/%3E%3Ccircle cx='243' cy='192' r='15'/%3E%3Cpath d='M330 200v-34l-18 7 22-38-13 5 24-44 24 44-13-5 22 38-18-7v34z'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='90'%3E%3Cg stroke='%232f622c' stroke-opacity='.16' stroke-width='3' fill='none' stroke-linecap='round'%3E%3Cpath d='M20 50q11-14 22 0q11-14 22 0'/%3E%3Cpath d='M110 30q9-11 18 0q9-11 18 0'/%3E%3Cpath d='M170 62q7-9 14 0q7-9 14 0'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='170'%3E%3Cpath d='M0 8q90 6 150 58' stroke='%233e7c3a' stroke-opacity='.12' stroke-width='5' fill='none'/%3E%3Cg fill='%233e7c3a' fill-opacity='.10'%3E%3Cellipse cx='64' cy='34' rx='30' ry='11' transform='rotate(28 64 34)'/%3E%3Cellipse cx='104' cy='52' rx='26' ry='10' transform='rotate(38 104 52)'/%3E%3Cellipse cx='137' cy='74' rx='22' ry='9' transform='rotate(46 137 74)'/%3E%3C/g%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='170'%3E%3Cpath d='M300 8q-90 6-150 58' stroke='%233e7c3a' stroke-opacity='.12' stroke-width='5' fill='none'/%3E%3Cg fill='%233e7c3a' fill-opacity='.10'%3E%3Cellipse cx='236' cy='34' rx='30' ry='11' transform='rotate(-28 236 34)'/%3E%3Cellipse cx='196' cy='52' rx='26' ry='10' transform='rotate(-38 196 52)'/%3E%3Cellipse cx='163' cy='74' rx='22' ry='9' transform='rotate(-46 163 74)'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='320'%3E%3Cg fill='%233e7c3a' fill-opacity='.06'%3E%3Cpath d='M40 60q10-16 24-18q-2 16-14 24q-6-2-10-6z'/%3E%3Cpath d='M190 140q12-14 26-14q-4 16-17 22q-6-3-9-8z'/%3E%3Cpath d='M90 260q8-16 22-19q-1 15-12 24q-7-2-10-5z'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='220'%3E%3Cg fill='%233e7c3a' fill-opacity='.05'%3E%3Ccircle cx='30' cy='205' r='45'/%3E%3Ccircle cx='120' cy='210' r='55'/%3E%3Ccircle cx='250' cy='208' r='48'/%3E%3Ccircle cx='400' cy='212' r='60'/%3E%3Ccircle cx='530' cy='206' r='50'/%3E%3C/g%3E%3Cg fill='%232f622c' fill-opacity='.12'%3E%3Cpath d='M70 220v-36l-18 7 22-40-13 5 24-46 24 46-13-5 22 40-18-7v36z'/%3E%3Cpath d='M180 220v-26l-14 6 18-32-10 4 20-36 20 36-10-4 18 32-14-6v26z'/%3E%3Cpath d='M420 220v-40l-20 8 24-44-14 5 26-50 26 50-14-5 24 44-20-8v40z'/%3E%3Cpath d='M530 220v-24l-12 5 15-28-9 3 17-32 17 32-9-3 15 28-12-5v24z'/%3E%3Ccircle cx='280' cy='204' r='18'/%3E%3Ccircle cx='310' cy='210' r='12'/%3E%3C/g%3E%3Cg fill='%23a1740f' fill-opacity='.14'%3E%3Crect x='347' y='200' width='7' height='16'/%3E%3Cpath d='M336 202a15 15 0 0 1 30 0z'/%3E%3C/g%3E%3Cg stroke='%232f622c' stroke-opacity='.10' stroke-width='3' fill='none'%3E%3Cpath d='M560 218q-6-26 10-44'/%3E%3Cpath d='M560 218q-16-20-8-40'/%3E%3Cpath d='M560 218q4-22 22-30'/%3E%3C/g%3E%3C/svg%3E"),
     linear-gradient(165deg,#f0f5e9,#e5efdc 65%,#e9f2e0);
-  background-position:left bottom, right top, center;
-  background-repeat:no-repeat, no-repeat, no-repeat;
-  background-size:auto, auto, cover;
-  background-attachment:fixed, fixed, fixed;
+  background-position:right 16% top 64px, left top, right top, 0 0, left bottom, center;
+  background-repeat:no-repeat, no-repeat, no-repeat, repeat, repeat-x, no-repeat;
+  background-size:auto, auto, auto, 260px 320px, 600px 220px, cover;
+  background-attachment:fixed, fixed, fixed, fixed, fixed, fixed;
 }
 /* Minecraft — khối vuông, viền chunky, bóng cứng, palette cỏ/đất/trời */
 body[data-style="minecraft"] {
@@ -233,17 +237,20 @@ body[data-style="minecraft"] {
   --shadow-sm:3px 3px 0 #2b2b2b; --shadow-md:5px 5px 0 #2b2b2b; --shadow-lg:8px 8px 0 #2b2b2b;
   --radius-sm:0px; --radius:0px; --radius-lg:0px;
   --font-display:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
-  /* hoạ tiết: mây pixel (trên), mặt creeper (góc phải dưới), dải đất+cỏ khối (đáy), lưới pixel mờ */
+  /* thế giới khối: mây pixel + mặt trời vuông (trên), cây oak + mặt creeper (đứng trên đất),
+     địa hình grass/dirt/đá + quặng kim cương lặp ở đáy, lưới pixel mờ toàn nền */
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='80' viewBox='0 0 24 8'%3E%3Cg fill='%23ffffff' fill-opacity='.6'%3E%3Crect x='2' y='3' width='6' height='2'/%3E%3Crect x='3' y='2' width='4' height='1'/%3E%3Crect x='15' y='4' width='7' height='2'/%3E%3Crect x='16' y='3' width='5' height='1'/%3E%3C/g%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110' viewBox='0 0 8 8'%3E%3Cg fill='%233f7d2c' fill-opacity='.16'%3E%3Crect x='1' y='1' width='2' height='2'/%3E%3Crect x='5' y='1' width='2' height='2'/%3E%3Crect x='3' y='3' width='2' height='2'/%3E%3Crect x='2' y='4' width='1' height='3'/%3E%3Crect x='5' y='4' width='1' height='3'/%3E%3Crect x='3' y='6' width='2' height='1'/%3E%3C/g%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='44'%3E%3Crect width='64' height='12' fill='%235d9c3f' fill-opacity='.16'/%3E%3Crect y='12' width='64' height='32' fill='%237a5230' fill-opacity='.08'/%3E%3Crect x='8' y='16' width='10' height='10' fill='%236b4726' fill-opacity='.10'/%3E%3Crect x='40' y='26' width='10' height='10' fill='%236b4726' fill-opacity='.10'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Crect width='56' height='56' fill='%23f2c94c' fill-opacity='.30'/%3E%3Crect x='12' y='12' width='32' height='32' fill='%23f7dd7a' fill-opacity='.35'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='130'%3E%3Cg fill='%233f8f2c' fill-opacity='.16'%3E%3Crect x='20' y='10' width='60' height='22'/%3E%3Crect x='8' y='32' width='84' height='34'/%3E%3Crect x='20' y='66' width='60' height='14'/%3E%3C/g%3E%3Crect x='42' y='80' width='16' height='50' fill='%236b4726' fill-opacity='.18'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 8 8'%3E%3Cg fill='%233f7d2c' fill-opacity='.18'%3E%3Crect x='1' y='1' width='2' height='2'/%3E%3Crect x='5' y='1' width='2' height='2'/%3E%3Crect x='3' y='3' width='2' height='2'/%3E%3Crect x='2' y='4' width='1' height='3'/%3E%3Crect x='5' y='4' width='1' height='3'/%3E%3Crect x='3' y='6' width='2' height='1'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='88'%3E%3Crect width='128' height='14' fill='%235d9c3f' fill-opacity='.22'/%3E%3Cg fill='%234a8332' fill-opacity='.20'%3E%3Crect x='8' y='10' width='8' height='8'/%3E%3Crect x='44' y='10' width='8' height='8'/%3E%3Crect x='84' y='10' width='8' height='8'/%3E%3Crect x='112' y='10' width='8' height='8'/%3E%3C/g%3E%3Crect y='14' width='128' height='74' fill='%237a5230' fill-opacity='.10'/%3E%3Cg fill='%236b4726' fill-opacity='.12'%3E%3Crect x='12' y='26' width='10' height='10'/%3E%3Crect x='58' y='40' width='10' height='10'/%3E%3Crect x='30' y='62' width='10' height='10'/%3E%3Crect x='104' y='30' width='10' height='10'/%3E%3C/g%3E%3Crect x='78' y='58' width='26' height='18' fill='%23808891' fill-opacity='.14'/%3E%3Crect x='84' y='62' width='8' height='8' fill='%236d757e' fill-opacity='.14'/%3E%3Cg fill='%2340c8d0' fill-opacity='.30'%3E%3Crect x='20' y='76' width='5' height='5'/%3E%3Crect x='27' y='81' width='5' height='5'/%3E%3Crect x='27' y='71' width='5' height='5'/%3E%3Crect x='34' y='76' width='5' height='5'/%3E%3C/g%3E%3C/svg%3E"),
     linear-gradient(rgba(0,0,0,0) 96%, rgba(43,74,32,.05) 96%),
     linear-gradient(90deg, rgba(0,0,0,0) 96%, rgba(43,74,32,.05) 96%);
-  background-position:left 12% top 28px, right 30px bottom 64px, left bottom, 0 0, 0 0;
-  background-repeat:no-repeat, no-repeat, repeat-x, repeat, repeat;
-  background-size:240px 80px, 110px 110px, 64px 44px, 26px 26px, 26px 26px;
-  background-attachment:fixed, fixed, fixed, fixed, fixed;
+  background-position:left 12% top 28px, right 9% top 30px, left 8% bottom 82px, right 36px bottom 92px, left bottom, 0 0, 0 0;
+  background-repeat:no-repeat, no-repeat, no-repeat, no-repeat, repeat-x, repeat, repeat;
+  background-size:240px 80px, 56px 56px, 100px 130px, 120px 120px, 128px 88px, 26px 26px, 26px 26px;
+  background-attachment:fixed, fixed, fixed, fixed, fixed, fixed, fixed;
 }
 /* Ocean — biển: aqua/teal thoáng, nhấn san hô */
 body[data-style="ocean"] {
@@ -255,15 +262,18 @@ body[data-style="ocean"] {
   --shadow-sm:0 1px 2px rgba(7,64,80,.08); --shadow-md:0 8px 22px rgba(7,64,80,.12); --shadow-lg:0 18px 44px rgba(7,64,80,.18);
   --radius-sm:12px; --radius:18px; --radius-lg:26px;
   --font-display:"Sora","Inter",sans-serif;
-  /* hoạ tiết: hai lớp sóng lặp ở đáy + chuỗi bọt khí nổi bên phải */
+  /* đáy biển: sóng 2 lớp + rong + san hô + sao biển + vỏ sò + đàn cá (dải đáy lặp),
+     sứa lơ lửng bên phải, bọt khí, thuyền buồm + mặt trời góc trái trên */
   background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='120'%3E%3Ccircle cx='36' cy='34' r='16' fill='%23f2c94c' fill-opacity='.25'/%3E%3Cg fill='%23026e88' fill-opacity='.12'%3E%3Cpath d='M150 74h56l-10 14h-36z'/%3E%3Cpath d='M176 30v40h-24z'/%3E%3Cpath d='M182 34v36h20z'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='150'%3E%3Cpath d='M25 52a30 30 0 0 1 60 0q0 10-8 10h-44q-8 0-8-10z' fill='%230288a7' fill-opacity='.11'/%3E%3Cg stroke='%230288a7' stroke-opacity='.11' stroke-width='3' fill='none' stroke-linecap='round'%3E%3Cpath d='M38 64q-6 22 4 40q-8 16 2 34'/%3E%3Cpath d='M55 64q6 24-2 44q6 18-2 34'/%3E%3Cpath d='M72 64q8 20-2 38q8 18 0 34'/%3E%3C/g%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='340'%3E%3Cg fill='none' stroke='%230288a7' stroke-opacity='.16' stroke-width='2'%3E%3Ccircle cx='60' cy='300' r='9'/%3E%3Ccircle cx='84' cy='240' r='5'/%3E%3Ccircle cx='48' cy='180' r='7'/%3E%3Ccircle cx='76' cy='110' r='4'/%3E%3Ccircle cx='58' cy='50' r='6'/%3E%3C/g%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='120'%3E%3Cpath d='M0 70Q45 40 90 70T180 70T270 70T360 70V120H0z' fill='%230288a7' fill-opacity='.08'/%3E%3Cpath d='M0 92Q45 66 90 92T180 92T270 92T360 92V120H0z' fill='%23026e88' fill-opacity='.10'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='170'%3E%3Cpath d='M0 60Q75 30 150 60T300 60T450 60T600 60V170H0z' fill='%230288a7' fill-opacity='.07'/%3E%3Cpath d='M0 92Q75 64 150 92T300 92T450 92T600 92V170H0z' fill='%23026e88' fill-opacity='.09'/%3E%3Cg stroke='%230d9477' stroke-opacity='.14' stroke-width='4' fill='none' stroke-linecap='round'%3E%3Cpath d='M48 168q-8-24 4-46q-10-18 2-34'/%3E%3Cpath d='M66 168q8-22-2-42q10-16 0-32'/%3E%3Cpath d='M84 168q-6-20 4-38'/%3E%3C/g%3E%3Cg stroke='%23e0533f' stroke-opacity='.13' stroke-width='5' fill='none' stroke-linecap='round'%3E%3Cpath d='M300 168v-28m0 12l-14-18m14 6l16-22m-16 8l-6-10'/%3E%3C/g%3E%3Cpath d='M430 140l6 12 13 2-9 9 2 13-12-6-12 6 2-13-9-9 13-2z' fill='%23e0533f' fill-opacity='.15'/%3E%3Cpath d='M520 168a16 16 0 0 1 32 0z' fill='%230288a7' fill-opacity='.12'/%3E%3Cg fill='%23026e88' fill-opacity='.12'%3E%3Cpath d='M190 36q12-9 26 0-14 9-26 0zm26 0 9-7v14z'/%3E%3Cpath d='M245 22q12-9 26 0-14 9-26 0zm26 0 9-7v14z'/%3E%3Cpath d='M295 46q12-9 26 0-14 9-26 0zm26 0 9-7v14z'/%3E%3Cpath d='M340 28q12-9 26 0-14 9-26 0zm26 0 9-7v14z'/%3E%3C/g%3E%3C/svg%3E"),
     linear-gradient(180deg,#ecf8fb,#dff0f5 70%,#e3f3f1);
-  background-position:right 36px center, left bottom, center;
-  background-repeat:no-repeat, repeat-x, no-repeat;
-  background-size:auto, 360px 120px, cover;
-  background-attachment:fixed, fixed, fixed;
+  background-position:left 6% top 24px, right 12% top 32%, left 28px center, left bottom, center;
+  background-repeat:no-repeat, no-repeat, no-repeat, repeat-x, no-repeat;
+  background-size:auto, auto, auto, 600px 170px, cover;
+  background-attachment:fixed, fixed, fixed, fixed, fixed;
 }
 /* Hàn Quốc — giấy hanji ấm, xanh taegeuk + nhấn đỏ dancheong, serif truyền thống */
 body[data-style="korea"] {
@@ -275,15 +285,18 @@ body[data-style="korea"] {
   --shadow-sm:0 1px 2px rgba(64,48,24,.08); --shadow-md:0 6px 18px rgba(64,48,24,.12); --shadow-lg:0 16px 40px rgba(64,48,24,.18);
   --radius-sm:8px; --radius:12px; --radius-lg:16px;
   --font-display:"Fraunces","Noto Sans KR",Georgia,serif;
-  /* hoạ tiết: thái cực (góc phải trên), mây 구름무늬 (trái trên), rặng núi minhwa (đáy) */
+  /* tranh phong cảnh: thái cực (phải trên), cành anh đào nở (trái trên), mây 구름무늬 (giữa trên),
+     cánh hoa rơi rải rác, dải đáy lặp = núi minhwa + chùa tháp + tùng cong */
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%230047a0' fill-opacity='.09'/%3E%3Cpath d='M2 50a48 48 0 0 1 96 0 24 24 0 0 1-48 0 24 24 0 1 0-48 0z' fill='%23cd2e3a' fill-opacity='.11'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='200'%3E%3Cg stroke='%235a4b37' stroke-opacity='.14' stroke-width='5' fill='none' stroke-linecap='round'%3E%3Cpath d='M0 16q110 10 180 74'/%3E%3Cpath d='M96 44q30 8 44 34'/%3E%3Cpath d='M150 78q26 2 40 22'/%3E%3C/g%3E%3Cg fill='%23cd2e3a' fill-opacity='.10'%3E%3Ccircle cx='122' cy='39' r='4'/%3E%3Ccircle cx='127' cy='43' r='4'/%3E%3Ccircle cx='125' cy='49' r='4'/%3E%3Ccircle cx='119' cy='49' r='4'/%3E%3Ccircle cx='117' cy='43' r='4'/%3E%3Ccircle cx='168' cy='65' r='4'/%3E%3Ccircle cx='173' cy='69' r='4'/%3E%3Ccircle cx='171' cy='75' r='4'/%3E%3Ccircle cx='165' cy='75' r='4'/%3E%3Ccircle cx='163' cy='69' r='4'/%3E%3Ccircle cx='204' cy='95' r='4'/%3E%3Ccircle cx='209' cy='99' r='4'/%3E%3Ccircle cx='207' cy='105' r='4'/%3E%3Ccircle cx='201' cy='105' r='4'/%3E%3Ccircle cx='199' cy='99' r='4'/%3E%3Ccircle cx='240' cy='123' r='4'/%3E%3Ccircle cx='245' cy='127' r='4'/%3E%3Ccircle cx='243' cy='133' r='4'/%3E%3Ccircle cx='237' cy='133' r='4'/%3E%3Ccircle cx='235' cy='127' r='4'/%3E%3C/g%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='120'%3E%3Cg fill='none' stroke='%231d4f9e' stroke-opacity='.10' stroke-width='6' stroke-linecap='round'%3E%3Cpath d='M30 84q30-50 72-28q10-26 44-18q30 6 26 34'/%3E%3Cpath d='M52 104q46-32 118-22'/%3E%3C/g%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='110'%3E%3Cg fill='%235a4b37' fill-opacity='.07'%3E%3Cpath d='M0 110L70 40l70 70z'/%3E%3Cpath d='M100 110L190 20l90 90z'/%3E%3Cpath d='M240 110l80-60 80 60z'/%3E%3C/g%3E%3C/svg%3E");
-  background-position:right 34px top 90px, left 20px top 70px, right bottom;
-  background-repeat:no-repeat, no-repeat, no-repeat;
-  background-size:auto, auto, auto;
-  background-attachment:fixed, fixed, fixed;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='340'%3E%3Cg fill='%23cd2e3a' fill-opacity='.06'%3E%3Cellipse cx='60' cy='70' rx='7' ry='4' transform='rotate(-24 60 70)'/%3E%3Cellipse cx='200' cy='150' rx='7' ry='4' transform='rotate(30 200 150)'/%3E%3Cellipse cx='110' cy='260' rx='7' ry='4' transform='rotate(-40 110 260)'/%3E%3Cellipse cx='240' cy='310' rx='6' ry='4' transform='rotate(16 240 310)'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='190'%3E%3Cg fill='%235a4b37' fill-opacity='.07'%3E%3Cpath d='M0 190L90 96l90 94z'/%3E%3Cpath d='M140 190L250 60l110 130z'/%3E%3Cpath d='M340 190l100-84 100 84z'/%3E%3Cpath d='M500 190l80-64 60 64z'/%3E%3C/g%3E%3Cg fill='%235a4b37' fill-opacity='.13'%3E%3Cpath d='M560 190v-18h24v18z'/%3E%3Cpath d='M544 172q28-8 56 0l-8-12h-40z'/%3E%3Crect x='566' y='148' width='12' height='12'/%3E%3Cpath d='M552 148q20-6 40 0l-7-10h-26z'/%3E%3Crect x='570' y='132' width='4' height='6'/%3E%3C/g%3E%3Cpath d='M84 190q-4-30 14-48' stroke='%235a4b37' stroke-opacity='.14' stroke-width='6' fill='none'/%3E%3Cg fill='%233a7d44' fill-opacity='.12'%3E%3Cellipse cx='104' cy='132' rx='30' ry='12'/%3E%3Cellipse cx='78' cy='150' rx='22' ry='9'/%3E%3C/g%3E%3C/svg%3E");
+  background-position:right 34px top 90px, left top 6px, center top 34px, 0 0, left bottom;
+  background-repeat:no-repeat, no-repeat, no-repeat, repeat, repeat-x;
+  background-size:auto, auto, auto, 280px 340px, 640px 190px;
+  background-attachment:fixed, fixed, fixed, fixed, fixed;
 }
 /* Việt Nam — lụa ngà ấm, đỏ cờ + vàng sao, serif thanh lịch */
 body[data-style="vietnam"] {
@@ -295,15 +308,18 @@ body[data-style="vietnam"] {
   --shadow-sm:0 1px 2px rgba(84,42,20,.08); --shadow-md:0 6px 18px rgba(84,42,20,.12); --shadow-lg:0 16px 40px rgba(84,42,20,.18);
   --radius-sm:10px; --radius:14px; --radius-lg:18px;
   --font-display:"Fraunces",Georgia,serif;
-  /* hoạ tiết: hoa sen (đáy trái) + sao vàng (góc phải trên) */
+  /* bức tranh quê: đầm sen (2 hoa + nụ + lá sen + gợn nước, đáy trái), đàn chim Lạc bay
+     (giữa trên), vịnh Hạ Long + thuyền buồm (đáy phải), sao vàng (phải trên) */
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='170'%3E%3Cg fill='%23c8102e' fill-opacity='.09'%3E%3Cpath d='M150 160c-12-32-12-66 0-98 12 32 12 66 0 98z'/%3E%3Cpath d='M150 160c-28-16-46-44-54-76 28 16 46 44 54 76z'/%3E%3Cpath d='M150 160c28-16 46-44 54-76-28 16-46 44-54 76z'/%3E%3Cpath d='M150 160c-38-2-72-14-94-32 36-4 70 8 94 32z'/%3E%3Cpath d='M150 160c38-2 72-14 94-32-36-4-70 8-94 32z'/%3E%3C/g%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130' viewBox='0 0 100 100'%3E%3Cpath d='M50 8 61 39h33L67 58l10 32-27-20-27 20 10-32L6 39h33z' fill='%23d99a06' fill-opacity='.14'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='110'%3E%3Cg stroke='%23c8102e' stroke-opacity='.10' stroke-width='4' fill='none' stroke-linecap='round'%3E%3Cpath d='M40 62q22-18 48-8l24-12'/%3E%3Cpath d='M86 54q10 12 2 24'/%3E%3Cpath d='M170 34q18-14 38-6l19-10'/%3E%3Cpath d='M206 28q8 10 1 20'/%3E%3Cpath d='M280 66q16-12 34-6l17-8'/%3E%3Cpath d='M312 60q7 9 1 18'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='140'%3E%3Cg fill='%2360452e' fill-opacity='.08'%3E%3Cpath d='M20 140q6-56 44-64q34 8 38 64z'/%3E%3Cpath d='M110 140q4-38 30-46q24 8 28 46z'/%3E%3Cpath d='M180 140q6-64 40-74q30 12 34 74z'/%3E%3C/g%3E%3Cg fill='%23c8102e' fill-opacity='.10'%3E%3Cpath d='M96 128h34l-6 8h-22z'/%3E%3Cpath d='M112 106v20h-14z'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='230'%3E%3Cg stroke='%231a6b8a' stroke-opacity='.08' stroke-width='3' fill='none'%3E%3Cpath d='M20 214q40-10 80 0'/%3E%3Cpath d='M150 222q50-12 100 0'/%3E%3Cpath d='M300 216q40-10 80 0'/%3E%3C/g%3E%3Cg fill='%2333691e' fill-opacity='.09'%3E%3Ccircle cx='120' cy='176' r='44'/%3E%3Ccircle cx='330' cy='190' r='32'/%3E%3C/g%3E%3Cg stroke='%2333691e' stroke-opacity='.10' stroke-width='5' fill='none'%3E%3Cpath d='M212 226q-4-56 0-96'/%3E%3Cpath d='M282 226q2-42-2-70'/%3E%3Cpath d='M400 224q0-28 0-44'/%3E%3C/g%3E%3Cg fill='%23c8102e' fill-opacity='.11'%3E%3Cpath d='M212 130c-10-26-10-54 0-80 10 26 10 54 0 80z'/%3E%3Cpath d='M212 130c-23-13-38-36-44-62 23 13 38 36 44 62z'/%3E%3Cpath d='M212 130c23-13 38-36 44-62-23 13-38 36-44 62z'/%3E%3Cpath d='M212 130c-31-2-59-11-77-26 30-3 58 7 77 26z'/%3E%3Cpath d='M212 130c31-2 59-11 77-26-30-3-58 7-77 26z'/%3E%3Cpath d='M400 180c-5-13-5-27 0-40 5 13 5 27 0 40z'/%3E%3Cpath d='M400 180c-12-7-19-18-22-31 12 7 19 18 22 31z'/%3E%3Cpath d='M400 180c12-7 19-18 22-31-12 7-19 18-22 31z'/%3E%3Cpath d='M282 156c-7-14-7-30 0-44 7 14 7 30 0 44z'/%3E%3C/g%3E%3C/svg%3E"),
     linear-gradient(165deg,#fdf7ed,#fbeeda 70%,#fcf3e4);
-  background-position:left 24px bottom, right 40px top 84px, center;
-  background-repeat:no-repeat, no-repeat, no-repeat;
-  background-size:auto, auto, cover;
-  background-attachment:fixed, fixed, fixed;
+  background-position:right 40px top 84px, center top 26px, right bottom, left 16px bottom, center;
+  background-repeat:no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size:auto, auto, auto, auto, cover;
+  background-attachment:fixed, fixed, fixed, fixed, fixed;
 }
 
 /* Khung chờ (skeleton) khi đang soạn nội dung — dùng chung */

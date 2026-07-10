@@ -2,12 +2,15 @@
 //  - /static/* : cache-first (asset có thể cache lâu; đổi CACHE_VERSION khi cần xả).
 //  - còn lại   : network-only (HTML server-render + API không được cache để tránh stale).
 // Được serve từ /sw.js (route riêng) để scope phủ toàn origin.
-const CACHE_VERSION = "ftka-static-v1";
+// KHÔNG precache style.css/JS: template link chúng kèm ?v=<mtime> (asset_v) — mỗi lần đổi file
+// là URL mới → cache-first tự miss → luôn tươi. Precache bản KHÔNG query từng làm CSS đóng băng
+// vĩnh viễn (bug đã gặp). Chỉ precache asset thật sự bất biến (icon, manifest).
+const CACHE_VERSION = "ftka-static-v2";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION).then((cache) =>
-      cache.addAll(["/static/style.css", "/static/manifest.webmanifest", "/static/icons/icon-192.png", "/static/icons/icon-512.png"])
+      cache.addAll(["/static/manifest.webmanifest", "/static/icons/icon-192.png", "/static/icons/icon-512.png"])
     ).then(() => self.skipWaiting())
   );
 });
