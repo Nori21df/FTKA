@@ -213,7 +213,15 @@ body[data-style="forest"] {
   --shadow-sm:0 1px 2px rgba(37,58,30,.08); --shadow-md:0 6px 18px rgba(37,58,30,.12); --shadow-lg:0 16px 40px rgba(37,58,30,.18);
   --radius-sm:12px; --radius:18px; --radius-lg:24px;
   --font-display:"Plus Jakarta Sans","Inter","Noto Sans KR",sans-serif;
-  background-image:linear-gradient(165deg,#f0f5e9,#e5efdc 65%,#e9f2e0);
+  /* hoạ tiết: rặng thông + bụi cây (đáy trái) và cành lá rủ (góc phải trên) */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='200'%3E%3Cg fill='%232f622c' fill-opacity='.10'%3E%3Cpath d='M60 200v-30l-16 6 20-34-12 4 22-40 22 40-12-4 20 34-16-6v30z'/%3E%3Cpath d='M140 200v-22l-12 5 15-26-9 3 17-30 17 30-9-3 15 26-12-5v22z'/%3E%3Ccircle cx='210' cy='185' r='24'/%3E%3Ccircle cx='243' cy='192' r='15'/%3E%3Cpath d='M330 200v-34l-18 7 22-38-13 5 24-44 24 44-13-5 22 38-18-7v34z'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='170'%3E%3Cpath d='M300 8q-90 6-150 58' stroke='%233e7c3a' stroke-opacity='.12' stroke-width='5' fill='none'/%3E%3Cg fill='%233e7c3a' fill-opacity='.10'%3E%3Cellipse cx='236' cy='34' rx='30' ry='11' transform='rotate(-28 236 34)'/%3E%3Cellipse cx='196' cy='52' rx='26' ry='10' transform='rotate(-38 196 52)'/%3E%3Cellipse cx='163' cy='74' rx='22' ry='9' transform='rotate(-46 163 74)'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(165deg,#f0f5e9,#e5efdc 65%,#e9f2e0);
+  background-position:left bottom, right top, center;
+  background-repeat:no-repeat, no-repeat, no-repeat;
+  background-size:auto, auto, cover;
+  background-attachment:fixed, fixed, fixed;
 }
 /* Minecraft — khối vuông, viền chunky, bóng cứng, palette cỏ/đất/trời */
 body[data-style="minecraft"] {
@@ -225,10 +233,17 @@ body[data-style="minecraft"] {
   --shadow-sm:3px 3px 0 #2b2b2b; --shadow-md:5px 5px 0 #2b2b2b; --shadow-lg:8px 8px 0 #2b2b2b;
   --radius-sm:0px; --radius:0px; --radius-lg:0px;
   --font-display:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
+  /* hoạ tiết: mây pixel (trên), mặt creeper (góc phải dưới), dải đất+cỏ khối (đáy), lưới pixel mờ */
   background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='80' viewBox='0 0 24 8'%3E%3Cg fill='%23ffffff' fill-opacity='.6'%3E%3Crect x='2' y='3' width='6' height='2'/%3E%3Crect x='3' y='2' width='4' height='1'/%3E%3Crect x='15' y='4' width='7' height='2'/%3E%3Crect x='16' y='3' width='5' height='1'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110' viewBox='0 0 8 8'%3E%3Cg fill='%233f7d2c' fill-opacity='.16'%3E%3Crect x='1' y='1' width='2' height='2'/%3E%3Crect x='5' y='1' width='2' height='2'/%3E%3Crect x='3' y='3' width='2' height='2'/%3E%3Crect x='2' y='4' width='1' height='3'/%3E%3Crect x='5' y='4' width='1' height='3'/%3E%3Crect x='3' y='6' width='2' height='1'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='44'%3E%3Crect width='64' height='12' fill='%235d9c3f' fill-opacity='.16'/%3E%3Crect y='12' width='64' height='32' fill='%237a5230' fill-opacity='.08'/%3E%3Crect x='8' y='16' width='10' height='10' fill='%236b4726' fill-opacity='.10'/%3E%3Crect x='40' y='26' width='10' height='10' fill='%236b4726' fill-opacity='.10'/%3E%3C/svg%3E"),
     linear-gradient(rgba(0,0,0,0) 96%, rgba(43,74,32,.05) 96%),
     linear-gradient(90deg, rgba(0,0,0,0) 96%, rgba(43,74,32,.05) 96%);
-  background-size:26px 26px;
+  background-position:left 12% top 28px, right 30px bottom 64px, left bottom, 0 0, 0 0;
+  background-repeat:no-repeat, no-repeat, repeat-x, repeat, repeat;
+  background-size:240px 80px, 110px 110px, 64px 44px, 26px 26px, 26px 26px;
+  background-attachment:fixed, fixed, fixed, fixed, fixed;
 }
 /* Ocean — biển: aqua/teal thoáng, nhấn san hô */
 body[data-style="ocean"] {
@@ -240,7 +255,15 @@ body[data-style="ocean"] {
   --shadow-sm:0 1px 2px rgba(7,64,80,.08); --shadow-md:0 8px 22px rgba(7,64,80,.12); --shadow-lg:0 18px 44px rgba(7,64,80,.18);
   --radius-sm:12px; --radius:18px; --radius-lg:26px;
   --font-display:"Sora","Inter",sans-serif;
-  background-image:linear-gradient(180deg,#ecf8fb,#dff0f5 70%,#e3f3f1);
+  /* hoạ tiết: hai lớp sóng lặp ở đáy + chuỗi bọt khí nổi bên phải */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='340'%3E%3Cg fill='none' stroke='%230288a7' stroke-opacity='.16' stroke-width='2'%3E%3Ccircle cx='60' cy='300' r='9'/%3E%3Ccircle cx='84' cy='240' r='5'/%3E%3Ccircle cx='48' cy='180' r='7'/%3E%3Ccircle cx='76' cy='110' r='4'/%3E%3Ccircle cx='58' cy='50' r='6'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='120'%3E%3Cpath d='M0 70Q45 40 90 70T180 70T270 70T360 70V120H0z' fill='%230288a7' fill-opacity='.08'/%3E%3Cpath d='M0 92Q45 66 90 92T180 92T270 92T360 92V120H0z' fill='%23026e88' fill-opacity='.10'/%3E%3C/svg%3E"),
+    linear-gradient(180deg,#ecf8fb,#dff0f5 70%,#e3f3f1);
+  background-position:right 36px center, left bottom, center;
+  background-repeat:no-repeat, repeat-x, no-repeat;
+  background-size:auto, 360px 120px, cover;
+  background-attachment:fixed, fixed, fixed;
 }
 /* Hàn Quốc — giấy hanji ấm, xanh taegeuk + nhấn đỏ dancheong, serif truyền thống */
 body[data-style="korea"] {
@@ -252,7 +275,15 @@ body[data-style="korea"] {
   --shadow-sm:0 1px 2px rgba(64,48,24,.08); --shadow-md:0 6px 18px rgba(64,48,24,.12); --shadow-lg:0 16px 40px rgba(64,48,24,.18);
   --radius-sm:8px; --radius:12px; --radius-lg:16px;
   --font-display:"Fraunces","Noto Sans KR",Georgia,serif;
-  background-image:none;
+  /* hoạ tiết: thái cực (góc phải trên), mây 구름무늬 (trái trên), rặng núi minhwa (đáy) */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%230047a0' fill-opacity='.09'/%3E%3Cpath d='M2 50a48 48 0 0 1 96 0 24 24 0 0 1-48 0 24 24 0 1 0-48 0z' fill='%23cd2e3a' fill-opacity='.11'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='120'%3E%3Cg fill='none' stroke='%231d4f9e' stroke-opacity='.10' stroke-width='6' stroke-linecap='round'%3E%3Cpath d='M30 84q30-50 72-28q10-26 44-18q30 6 26 34'/%3E%3Cpath d='M52 104q46-32 118-22'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='110'%3E%3Cg fill='%235a4b37' fill-opacity='.07'%3E%3Cpath d='M0 110L70 40l70 70z'/%3E%3Cpath d='M100 110L190 20l90 90z'/%3E%3Cpath d='M240 110l80-60 80 60z'/%3E%3C/g%3E%3C/svg%3E");
+  background-position:right 34px top 90px, left 20px top 70px, right bottom;
+  background-repeat:no-repeat, no-repeat, no-repeat;
+  background-size:auto, auto, auto;
+  background-attachment:fixed, fixed, fixed;
 }
 /* Việt Nam — lụa ngà ấm, đỏ cờ + vàng sao, serif thanh lịch */
 body[data-style="vietnam"] {
@@ -264,7 +295,15 @@ body[data-style="vietnam"] {
   --shadow-sm:0 1px 2px rgba(84,42,20,.08); --shadow-md:0 6px 18px rgba(84,42,20,.12); --shadow-lg:0 16px 40px rgba(84,42,20,.18);
   --radius-sm:10px; --radius:14px; --radius-lg:18px;
   --font-display:"Fraunces",Georgia,serif;
-  background-image:linear-gradient(165deg,#fdf7ed,#fbeeda 70%,#fcf3e4);
+  /* hoạ tiết: hoa sen (đáy trái) + sao vàng (góc phải trên) */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='170'%3E%3Cg fill='%23c8102e' fill-opacity='.09'%3E%3Cpath d='M150 160c-12-32-12-66 0-98 12 32 12 66 0 98z'/%3E%3Cpath d='M150 160c-28-16-46-44-54-76 28 16 46 44 54 76z'/%3E%3Cpath d='M150 160c28-16 46-44 54-76-28 16-46 44-54 76z'/%3E%3Cpath d='M150 160c-38-2-72-14-94-32 36-4 70 8 94 32z'/%3E%3Cpath d='M150 160c38-2 72-14 94-32-36-4-70 8-94 32z'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130' viewBox='0 0 100 100'%3E%3Cpath d='M50 8 61 39h33L67 58l10 32-27-20-27 20 10-32L6 39h33z' fill='%23d99a06' fill-opacity='.14'/%3E%3C/svg%3E"),
+    linear-gradient(165deg,#fdf7ed,#fbeeda 70%,#fcf3e4);
+  background-position:left 24px bottom, right 40px top 84px, center;
+  background-repeat:no-repeat, no-repeat, no-repeat;
+  background-size:auto, auto, cover;
+  background-attachment:fixed, fixed, fixed;
 }
 
 /* Khung chờ (skeleton) khi đang soạn nội dung — dùng chung */
