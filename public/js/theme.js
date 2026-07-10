@@ -7,7 +7,7 @@
 // module này dùng cho bộ chọn giao diện (áp NGAY khi bấm, không cần reload).
 // Cấm đọc/ghi cookie ftka_style trực tiếp ở nơi khác — luôn qua đây.
 (function (global) {
-  const VALID_STYLES = ["studio", "warm", "midnight", "glass", "clay", "neo"];
+  const VALID_STYLES = ["studio", "warm", "midnight", "glass", "clay", "neo", "forest", "minecraft", "ocean", "korea", "vietnam"];
   const DEFAULT_STYLE = "neo";
   const DARK_STYLES = new Set(["midnight"]);
   const COOKIE = "ftka_style";

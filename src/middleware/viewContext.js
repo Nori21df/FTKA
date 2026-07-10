@@ -55,7 +55,7 @@ function pageUrl(req, targetPage, basePath) {
   return `${basePath || req.path}?${query.toString()}`;
 }
 
-const VALID_STYLES = ["studio", "warm", "midnight", "glass", "clay", "neo"];
+const VALID_STYLES = ["studio", "warm", "midnight", "glass", "clay", "neo", "forest", "minecraft", "ocean", "korea", "vietnam"];
 
 // Đọc style giao diện từ cookie (do người dùng chọn ở trang "Giao diện"); null nếu chưa đặt/không hợp lệ.
 function parseStyleCookie(req) {

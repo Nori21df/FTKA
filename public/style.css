@@ -203,6 +203,69 @@ body[data-style="neo"] {
   --font-display:"Space Grotesk","Inter",sans-serif;
   background-image:none;
 }
+/* Forest — rừng, cây lá, thiên nhiên: xanh lá + nâu đất, bo góc hữu cơ */
+body[data-style="forest"] {
+  --bg:#eef3e8; --surface:#fdfefb; --surface-soft:#f3f7ee; --surface-blue:#e6f0e0;
+  --line:#dbe7d2; --line-strong:#c0d3b3; --text:#1f2d1b; --text-soft:#47583e; --muted:#748568;
+  --primary:#3e7c3a; --primary-strong:#2f622c; --primary-soft:#e1f0dc;
+  --success:#2e7d32; --success-soft:#ddf0dd; --warning:#a1740f; --warning-soft:#f5ecce;
+  --danger:#bf4433; --danger-soft:#f7e2dd; --info:#33707e; --info-soft:#ddeef2;
+  --shadow-sm:0 1px 2px rgba(37,58,30,.08); --shadow-md:0 6px 18px rgba(37,58,30,.12); --shadow-lg:0 16px 40px rgba(37,58,30,.18);
+  --radius-sm:12px; --radius:18px; --radius-lg:24px;
+  --font-display:"Plus Jakarta Sans","Inter","Noto Sans KR",sans-serif;
+  background-image:linear-gradient(165deg,#f0f5e9,#e5efdc 65%,#e9f2e0);
+}
+/* Minecraft — khối vuông, viền chunky, bóng cứng, palette cỏ/đất/trời */
+body[data-style="minecraft"] {
+  --bg:#dcefff; --surface:#fffef8; --surface-soft:#f1f7e9; --surface-blue:#e2f2d8;
+  --line:#4a4a4a; --line-strong:#262626; --text:#1c1c1c; --text-soft:#3d3d3d; --muted:#5f5f5f;
+  --primary:#5d9c3f; --primary-strong:#4a8332; --primary-soft:#dff0d1;
+  --success:#3f8f2f; --success-soft:#dcf2d4; --warning:#a9760a; --warning-soft:#f7ecc7;
+  --danger:#c43c2c; --danger-soft:#f8ded9; --info:#2b6fb0; --info-soft:#dcebf9;
+  --shadow-sm:3px 3px 0 #2b2b2b; --shadow-md:5px 5px 0 #2b2b2b; --shadow-lg:8px 8px 0 #2b2b2b;
+  --radius-sm:0px; --radius:0px; --radius-lg:0px;
+  --font-display:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
+  background-image:
+    linear-gradient(rgba(0,0,0,0) 96%, rgba(43,74,32,.05) 96%),
+    linear-gradient(90deg, rgba(0,0,0,0) 96%, rgba(43,74,32,.05) 96%);
+  background-size:26px 26px;
+}
+/* Ocean — biển: aqua/teal thoáng, nhấn san hô */
+body[data-style="ocean"] {
+  --bg:#e5f4f8; --surface:#ffffff; --surface-soft:#eff8fa; --surface-blue:#def0f5;
+  --line:#d2e8ed; --line-strong:#b2d6de; --text:#0f2b33; --text-soft:#3b5a63; --muted:#6a8a93;
+  --primary:#0288a7; --primary-strong:#026e88; --primary-soft:#d8f1f6;
+  --success:#0d9477; --success-soft:#d7f3ec; --warning:#c07b2a; --warning-soft:#f9ecd8;
+  --danger:#e0533f; --danger-soft:#fbe4df; --info:#0277bd; --info-soft:#ddf0fb;
+  --shadow-sm:0 1px 2px rgba(7,64,80,.08); --shadow-md:0 8px 22px rgba(7,64,80,.12); --shadow-lg:0 18px 44px rgba(7,64,80,.18);
+  --radius-sm:12px; --radius:18px; --radius-lg:26px;
+  --font-display:"Sora","Inter",sans-serif;
+  background-image:linear-gradient(180deg,#ecf8fb,#dff0f5 70%,#e3f3f1);
+}
+/* Hàn Quốc — giấy hanji ấm, xanh taegeuk + nhấn đỏ dancheong, serif truyền thống */
+body[data-style="korea"] {
+  --bg:#faf5ec; --surface:#fffdf7; --surface-soft:#f7f1e3; --surface-blue:#efe7d6;
+  --line:#e8dcc6; --line-strong:#d3c4a3; --text:#2b2118; --text-soft:#5a4b37; --muted:#89785e;
+  --primary:#1d4f9e; --primary-strong:#16407f; --primary-soft:#e2eaf7;
+  --success:#3a7d44; --success-soft:#e2efe1; --warning:#b8860b; --warning-soft:#f6ecc9;
+  --danger:#cd2e3a; --danger-soft:#f9e0e2; --info:#2f6f7d; --info-soft:#dceef1;
+  --shadow-sm:0 1px 2px rgba(64,48,24,.08); --shadow-md:0 6px 18px rgba(64,48,24,.12); --shadow-lg:0 16px 40px rgba(64,48,24,.18);
+  --radius-sm:8px; --radius:12px; --radius-lg:16px;
+  --font-display:"Fraunces","Noto Sans KR",Georgia,serif;
+  background-image:none;
+}
+/* Việt Nam — lụa ngà ấm, đỏ cờ + vàng sao, serif thanh lịch */
+body[data-style="vietnam"] {
+  --bg:#fdf6ec; --surface:#fffdf8; --surface-soft:#faf2e4; --surface-blue:#f7ecd7;
+  --line:#f0e1c6; --line-strong:#dfca9e; --text:#331f14; --text-soft:#60452e; --muted:#927559;
+  --primary:#c8102e; --primary-strong:#a30d26; --primary-soft:#fbe2e1;
+  --success:#33691e; --success-soft:#e4efd9; --warning:#d99a06; --warning-soft:#faefcd;
+  --danger:#8f1d22; --danger-soft:#f4dfdd; --info:#1a6b8a; --info-soft:#def0f6;
+  --shadow-sm:0 1px 2px rgba(84,42,20,.08); --shadow-md:0 6px 18px rgba(84,42,20,.12); --shadow-lg:0 16px 40px rgba(84,42,20,.18);
+  --radius-sm:10px; --radius:14px; --radius-lg:18px;
+  --font-display:"Fraunces",Georgia,serif;
+  background-image:linear-gradient(165deg,#fdf7ed,#fbeeda 70%,#fcf3e4);
+}
 
 /* Khung chờ (skeleton) khi đang soạn nội dung — dùng chung */
 .ftka-skeleton { display: grid; gap: 12px; }
