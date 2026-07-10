@@ -9,7 +9,10 @@ KHÔNG có React/Vue/Vite/Tailwind — đừng thêm framework/bundler.
 bấm-từ-tra-nghĩa, nghe từng câu, quiz đọc hiểu, lịch sử), **Bảng chữ cái Hangul** (+quiz ghép âm),
 ôn tập/kiểm tra, **Luyện viết** (AI chấm), **Luyện phát âm** (Web Speech, client-only), **TOPIK**
 theo cấp, luyện nghe AI, tra từ nhanh topbar (`/api/dict`, LRU cache), xuất Anki TSV, PWA
-(manifest + `/sw.js` cache-first chỉ `/static/*`), email nhắc học (scheduler, 19–22h VN).
+(manifest + `/sw.js` cache-first chỉ `/static/*`), email nhắc học (scheduler, 19–22h VN),
+**Chuyên ngành** (`/chuyen-nganh` hub → `/chuyen-nganh/:slug`): catalog từ vựng DÙNG CHUNG theo
+`domain` (bảng `it_terms` + tiến độ user `it_term_progress`, seed từ `assets/*.json.gz` lúc boot;
+registry `src/config/specialties.js` — thêm ngành = 1 entry + 1 asset; service `itTermsService`).
 
 ## Chạy dev
 ```bash
