@@ -17,13 +17,22 @@ const limitArg = process.argv.indexOf("--limit");
 const LIMIT = limitArg >= 0 ? Number(process.argv[limitArg + 1]) : Infinity;
 
 const SYSTEM =
-  "Bạn là dịch giả kỹ thuật (cơ khí, ô tô, và thuật ngữ chuyên ngành nói chung) Anh/Hàn → Việt. " +
-  "Dịch chính xác, ngắn gọn, dùng thuật ngữ tiếng Việt chuẩn; giữ nguyên ký hiệu/đơn vị/tên riêng khi hợp lý. CHỈ trả JSON.";
+  "Bạn là dịch giả chuyên ngành (kinh tế, kỹ thuật, cơ khí…) Hàn/Anh → Việt. " +
+  "Dịch chính xác, tự nhiên, dùng thuật ngữ tiếng Việt chuẩn; giữ nguyên ký hiệu/đơn vị/tên riêng khi hợp lý. CHỈ trả JSON.";
+
+// Nguồn dịch mỗi mục: ƯU TIÊN definition_kr (định nghĩa đầy đủ — vd bộ kinh tế Hankyung);
+// không có thì dịch tên thuật ngữ (gloss_en/korean — vd bộ ô tô KSAE).
+function sourceOf(t) {
+  const def = String(t.definition_kr || "").trim();
+  if (def) return def.slice(0, 1200); // định nghĩa rất dài → cắt bớt cho vừa batch
+  return `${t.gloss_en || t.korean}${t.gloss_en && t.korean ? `  (KO: ${t.korean})` : ""}`;
+}
 
 function buildPrompt(items) {
-  const lines = items.map((t, i) => `${i + 1}. ${t.gloss_en || t.korean}${t.gloss_en && t.korean ? `  (KO: ${t.korean})` : ""}`).join("\n");
+  const isDef = items.some((t) => String(t.definition_kr || "").trim());
+  const lines = items.map((t, i) => `${i + 1}. ${sourceOf(t)}`).join("\n");
   return (
-    `Dịch sang tiếng Việt ${items.length} thuật ngữ kỹ thuật sau (GIỮ NGUYÊN thứ tự).\n` +
+    `Dịch sang tiếng Việt ${items.length} ${isDef ? "định nghĩa thuật ngữ" : "thuật ngữ"} sau (GIỮ NGUYÊN thứ tự).\n` +
     `Trả JSON đúng dạng: {"vi": ["bản dịch 1", ...]} — mảng ĐÚNG ${items.length} phần tử.\n\n` +
     lines
   );
