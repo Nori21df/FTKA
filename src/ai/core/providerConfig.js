@@ -39,14 +39,13 @@ const PROVIDERS_CONFIG = {
     name: "groq",
     taskPriority: [TASK_TYPES.GRAMMAR, TASK_TYPES.TOPIK_ANSWER, TASK_TYPES.SIMPLE],
     tier: MODEL_TIER.LIGHT,
-    avgLatencyMs: 1000,
-    // light = Llama 4 Scout (đa ngôn ngữ tốt hơn Llama 3, ~1s)
-    // heavy = Llama 3.3 70B (nhanh ~1s, JSON sạch, KHÔNG có reasoning token → không đốt token/phút của Groq).
-    // Lưu ý: KHÔNG dùng model reasoning cho tác vụ hàng loạt:
-    //   - gpt-oss-120b: chạy được nhưng đốt nhiều reasoning token → dễ dính 429 (TPM) khi tạo lại hàng loạt,
-    //     rồi rớt xuống provider chậm hơn.
-    //   - qwen3.6-27b: rò rỉ token <think> làm hỏng JSON.
-    models: { light: "meta-llama/llama-4-scout-17b-16e-instruct", heavy: "llama-3.3-70b-versatile" },
+    avgLatencyMs: 1200,
+    // CHỈ dùng gpt-oss trên Groq (quyết định của user 2026-07-15): llama-3.3/llama-4 tiếng Hàn
+    // KÉM — từng chấm bài viết sửa ĐÚNG thành SAI (지하철을 탔어요 → "지하철에", trong khi 타다
+    // đi với 을/를). gpt-oss reasoning đốt token hơn (TPM 429 khi chạy hàng loạt → khi batch
+    // lớn hãy dùng script với provider khác), đổi lại chất lượng tiếng Hàn tốt hơn hẳn.
+    //   - qwen3.6-27b: rò rỉ token <think> làm hỏng JSON — vẫn tránh.
+    models: { light: "openai/gpt-oss-20b", heavy: "openai/gpt-oss-120b" },
   },
   nvidia: {
     name: "nvidia",
@@ -97,7 +96,7 @@ const FALLBACK_CHAIN = [
 // chỉ các bước nhanh, bỏ gemma (4.6s) + groq heavy — mục tiêu p50 ~1-1.7s.
 const FALLBACK_CHAIN_LIGHT = [
   { provider: "google", tier: "heavy" },      // gemini-3.5-flash ~1.7s (có responseSchema)
-  { provider: "groq", tier: "light" },        // llama-4-scout ~0.9s
+  { provider: "groq", tier: "light" },        // gpt-oss-20b trên Groq (nhanh, tiếng Hàn tốt hơn llama)
   { provider: "cloudflare", tier: "light" },  // llama-3.3-70b-fp8-fast ~0.4s
   { provider: "nvidia", tier: "heavy" },      // gpt-oss-120b ~0.8s
   { provider: "openrouter", tier: "light" },  // phương án cuối
