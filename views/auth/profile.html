@@ -23,7 +23,17 @@
             <tr><th>Xác minh email</th><td>{{ 'Có' if user.email_verified else 'Không' }}</td></tr>
             <tr><th>Ngày tạo</th><td>{{ user.created_at }}</td></tr>
             <tr><th>Đăng nhập gần nhất</th><td>{{ user.last_login or 'Chưa có' }}</td></tr>
+            <tr><th>Gói</th><td>{% if premium_active %}<span class="pk-badge">★ Premium</span> đến {{ premium_until_label }}{% else %}Free{% endif %}</td></tr>
         </tbody>
     </table>
+
+    <div class="pk-redeem">
+        <h3>Nhập key Premium</h3>
+        <p class="auth-copy">Có key trong tay? Nhập vào đây để kích hoạt (ngày Premium cộng nối tiếp hạn hiện tại).</p>
+        <form method="post" action="{{ url_for('redeem_key') }}" class="pk-redeem-form">
+            <input type="text" name="code" class="listening-select pk-redeem-input" placeholder="FTKA-XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off" required>
+            <button type="submit" class="dv-cta">Kích hoạt</button>
+        </form>
+    </div>
 </section>
 {% endblock %}

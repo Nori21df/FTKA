@@ -32,7 +32,9 @@
     "quiz_example_vi_pool",
     "failed_items",
     "updated_ids",
-    "provider_stats"
+    "provider_stats",
+    "keys",
+    "new_codes"
   ],
   "allow": [
     "energy_status",

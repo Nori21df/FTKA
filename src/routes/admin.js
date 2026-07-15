@@ -10,6 +10,7 @@ const tts = require("../services/ttsService");
 const groups = require("../services/vocabGroupService");
 const sepay = require("../services/sepay.service");
 const aiLogService = require("../services/aiLogService");
+const premiumKeys = require("../services/premiumKeyService");
 const activityLogService = require("../services/activityLogService");
 
 const router = express.Router();
@@ -58,6 +59,28 @@ function backTo(req, fallback) {
 }
 
 router.use(adminRequired);
+
+// ── Key Premium (bán thủ công) ──────────────────────────────────────────
+router.get("/keys", ...named("admin.keys", asyncHandler(async (req, res) => {
+  const keys = await premiumKeys.listKeys();
+  const newCodes = req.session.new_key_codes || [];
+  delete req.session.new_key_codes;
+  res.render("admin/keys.html", { keys, new_codes: newCodes });
+})));
+
+router.post("/keys/generate", ...named("admin.keys_generate", asyncHandler(async (req, res) => {
+  const codes = await premiumKeys.generateKeys(adminId(req), req.body.days, req.body.count, req.body.note);
+  await admin.logAdminAction(db, adminId(req), "premium_keys_generate", "premium_key", "", null, { days: req.body.days, count: codes.length }, req.body.note);
+  req.session.new_key_codes = codes; // hiện nổi bật 1 lần để copy đem bán
+  req.flash("success", `Đã tạo ${codes.length} key.`);
+  res.redirect("/admin/keys");
+})));
+
+router.post("/keys/:id/delete", ...named("admin.keys_delete", asyncHandler(async (req, res) => {
+  const ok = await premiumKeys.deleteUnusedKey(req.params.id);
+  if (ok) flashDeleted(req); else req.flash("warning", "Chỉ xoá được key chưa dùng.");
+  res.redirect("/admin/keys");
+})));
 
 router.get("/", ...named("admin.dashboard", asyncHandler(async (req, res) => {
   res.render("admin/dashboard.html", {

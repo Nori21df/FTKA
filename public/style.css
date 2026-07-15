@@ -1138,6 +1138,13 @@ body.ftka-dark-ui .sun-pill {
 .sun-pop-row .dv-cta { min-height: 34px; padding: 6px 12px; font-size: 12.5px; flex-shrink: 0; }
 @media (max-width: 640px) { .sun-popover { position: fixed; right: 10px; left: 10px; top: 64px; width: auto; } }
 
+/* Key Premium: badge + form nhập key ở Hồ sơ */
+.pk-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; background: linear-gradient(135deg, #f6c344, #e59b0e); color: #4a3403; font-weight: 800; font-size: 12.5px; }
+.pk-redeem { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+.pk-redeem h3 { margin: 0 0 4px; font-size: 16px; }
+.pk-redeem-form { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.pk-redeem-input { flex: 1 1 280px; font-family: ui-monospace, Consolas, monospace; letter-spacing: .04em; text-transform: uppercase; }
+
 .energy-card small {
     display: block;
     margin-top: 6px;

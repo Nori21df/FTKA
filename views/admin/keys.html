@@ -1,0 +1,81 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <div>
+        <span class="gen-kicker">Quản trị · Doanh thu</span>
+        <h2>Key Premium</h2>
+        <p class="admin-muted">Tạo key theo số ngày rồi bán thủ công (chat/chuyển khoản). Người mua nhập key ở trang Hồ sơ để kích hoạt.</p>
+    </div>
+</div>
+
+<section class="admin-panel">
+    <h3>Tạo key mới</h3>
+    <form class="admin-filters" method="post" action="{{ url_for('admin.keys_generate') }}">
+        <label>Số ngày
+            <select class="admin-input" name="days">
+                <option value="30">30 ngày</option>
+                <option value="90">90 ngày</option>
+                <option value="365">365 ngày</option>
+            </select>
+        </label>
+        <label>Số lượng <input class="admin-input" type="number" name="count" value="1" min="1" max="100"></label>
+        <label>Ghi chú <input class="admin-input" name="note" placeholder="vd: bán FB nhóm XYZ" maxlength="200"></label>
+        <button class="dv-cta" type="submit">Tạo key</button>
+    </form>
+
+    {% if new_codes|length %}
+    <div class="pk-new-codes">
+        <strong>Key vừa tạo — copy ngay (chỉ hiện nổi bật một lần):</strong>
+        <ul>
+            {% for code in new_codes %}
+            <li><code>{{ code }}</code></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</section>
+
+<section class="admin-panel">
+    <h3>Danh sách key</h3>
+    {% if keys|length %}
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>Key</th><th>Ngày</th><th>Ghi chú</th><th>Tạo lúc</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+                {% for k in keys %}
+                <tr>
+                    <td><code>{{ k.code }}</code></td>
+                    <td>{{ k.days }}</td>
+                    <td>{{ k.note or '' }}</td>
+                    <td>{{ k.created_at|datetime }}</td>
+                    <td>
+                        {% if k.used_at %}
+                        <span class="admin-badge">Đã dùng · {{ k.used_by_username or k.used_by }}</span>
+                        {% else %}
+                        <span class="admin-badge success">Chưa dùng</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not k.used_at %}
+                        <form method="post" action="{{ url_for('admin.keys_delete', id=k.id) }}" class="admin-actions">
+                            <button class="dv-cta danger" type="submit" title="Xoá key chưa dùng">Xoá</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="admin-muted">Chưa có key nào — tạo ở trên.</p>
+    {% endif %}
+</section>
+
+<style>
+.pk-new-codes { margin-top: 14px; padding: 12px 16px; border: 1px dashed var(--primary); border-radius: var(--radius-sm); background: var(--primary-soft); }
+.pk-new-codes ul { margin: 8px 0 0; padding-left: 18px; }
+.pk-new-codes code { font-size: 14px; font-weight: 700; user-select: all; }
+</style>
+{% endblock %}

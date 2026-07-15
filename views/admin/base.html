@@ -25,6 +25,7 @@
 
         <span class="admin-nav-label">Tài chính</span>
         <a href="{{ url_for('admin.energy') }}">Sun (năng lượng)</a>
+        <a href="{{ url_for('admin.keys') }}">Key Premium</a>
         <a href="{{ url_for('admin.transactions') }}">Giao dịch</a>
         <a href="{{ url_for('admin.purchases') }}" class="{% if request.endpoint == 'admin.purchases' %}active{% endif %}">Thanh toán</a>
     </nav>

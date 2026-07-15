@@ -16,6 +16,8 @@ const streakRewards = require("../services/streakRewardService");
 const writing = require("../services/writingService");
 const itTerms = require("../services/itTermsService");
 const referral = require("../services/referralService");
+const premiumKeys = require("../services/premiumKeyService");
+const { isPremiumUser } = require("../middleware/requirePremium");
 const { SPECIALTIES, getSpecialty } = require("../config/specialties");
 const { emitEnergyUpdate } = require("../services/energySocket");
 
@@ -202,7 +204,25 @@ router.get("/auth/google/callback", ...named("google_callback", (req, res, next)
     });
 }));
 
-router.get("/profile", ...named("profile", loginRequired, (req, res) => res.render("auth/profile.html", { user: req.currentUser })));
+router.get("/profile", ...named("profile", loginRequired, (req, res) => {
+  const premiumActive = isPremiumUser(req.currentUser);
+  res.render("auth/profile.html", {
+    user: req.currentUser,
+    premium_active: premiumActive,
+    premium_until_label: premiumActive ? new Date(req.currentUser.premium_until).toLocaleDateString("vi-VN") : "",
+  });
+}));
+
+// Nhập key Premium (bán key thủ công — không cần cổng thanh toán). authLimiter chống dò key.
+router.post("/profile/redeem-key", authLimiter, ...named("redeem_key", loginRequired, asyncHandler(async (req, res) => {
+  const result = await premiumKeys.redeemKey(req.currentUser.id, req.body.code);
+  if (result.ok) {
+    req.flash("success", `Kích hoạt thành công +${result.days} ngày Premium! Hạn mới: ${new Date(result.premium_until).toLocaleDateString("vi-VN")} 🎉`);
+  } else {
+    req.flash("error", result.error);
+  }
+  res.redirect("/profile");
+})));
 router.get("/preferences", ...named("preferences", loginRequired, (req, res) => res.render("auth/preferences.html", { user: req.currentUser })));
 
 router.get("/dashboard", ...named("dashboard", loginRequired, asyncHandler(async (req, res) => {
