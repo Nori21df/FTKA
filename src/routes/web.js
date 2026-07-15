@@ -217,7 +217,10 @@ router.get("/profile", ...named("profile", loginRequired, (req, res) => {
 router.post("/profile/redeem-key", authLimiter, ...named("redeem_key", loginRequired, asyncHandler(async (req, res) => {
   const result = await premiumKeys.redeemKey(req.currentUser.id, req.body.code);
   if (result.ok) {
-    req.flash("success", `Kích hoạt thành công +${result.days} ngày Premium! Hạn mới: ${new Date(result.premium_until).toLocaleDateString("vi-VN")} 🎉`);
+    // Lên gói = nạp ĐẦY Sun theo trần Premium (90/90 → 600/600) + đẩy realtime lên pill.
+    await energy.fillToMax(req.currentUser.id, "premium_bonus", "key").catch(() => {});
+    await emitEnergyUpdate(req.currentUser.id).catch(() => {});
+    req.flash("success", `Kích hoạt thành công +${result.days} ngày Premium! Sun đã nạp đầy ☀️ Hạn mới: ${new Date(result.premium_until).toLocaleDateString("vi-VN")} 🎉`);
   } else {
     req.flash("error", result.error);
   }

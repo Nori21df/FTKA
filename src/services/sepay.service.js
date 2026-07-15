@@ -453,6 +453,8 @@ async function activatePremiumFromWebhook(event, payload) {
       );
 
       await clientDb.commit();
+      // Lên gói = nạp đầy Sun theo trần Premium (ngoài transaction — lỗi cũng không hỏng đơn).
+      try { await require("./energyService").fillToMax(order.user_id, "premium_bonus", `sepay-${order.id}`); } catch (_e) { /* im lặng */ }
       return { ok: true, order_id: order.id, premium_until: premiumUntil };
     } catch (error) {
       await clientDb.rollback();

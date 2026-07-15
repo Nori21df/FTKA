@@ -147,6 +147,16 @@ async function grantEnergy(userId, amount, reason, ref = "") {
   });
 }
 
+// Nạp ĐẦY Sun theo trần hiện tại (dùng khi kích hoạt Premium: trần mới 600 → tặng đầy bình
+// cho cảm giác lên gói ngay lập tức). getEnergyStatus tự sync trần theo plan trước khi tính.
+async function fillToMax(userId, reason = "premium_bonus", ref = "") {
+  const status = await getEnergyStatus(userId);
+  if (status.isUnlimitedEnergy) return { ok: true, status };
+  const missing = Number(status.max_energy) - Number(status.current_energy);
+  if (missing <= 0) return { ok: true, status };
+  return grantEnergy(userId, missing, reason, ref);
+}
+
 async function claimDailyEnergy(userId) {
   const status = await getEnergyStatus(userId);
   if (status.isUnlimitedEnergy) return { ok: true, already_claimed: false, status };
@@ -159,4 +169,4 @@ async function claimDailyEnergy(userId) {
   return { ok: true, status: result.status };
 }
 
-module.exports = { ensureEnergySchema, getOrCreateEnergy, refillEnergy, getEnergyStatus, hasEnoughEnergy, spendEnergy, grantEnergy, claimDailyEnergy };
+module.exports = { ensureEnergySchema, getOrCreateEnergy, refillEnergy, getEnergyStatus, hasEnoughEnergy, spendEnergy, grantEnergy, fillToMax, claimDailyEnergy };
