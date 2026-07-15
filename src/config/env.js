@@ -46,5 +46,7 @@ module.exports = {
   sepayEnv: process.env.SEPAY_ENV || "sandbox",
   sepayMerchantId: (process.env.SEPAY_MERCHANT_ID || "").trim(),
   sepaySecretKey: (process.env.SEPAY_SECRET_KEY || "").trim(),
-  sepayIpnSecret: (process.env.SEPAY_IPN_SECRET || "").trim()
+  sepayIpnSecret: (process.env.SEPAY_IPN_SECRET || "").trim(),
+  // AppLixir rewarded video (xem quảng cáo +Sun). Chưa set → nút ẩn.
+  applixirZoneId: (process.env.APPLIXIR_ZONE_ID || "").trim()
 };

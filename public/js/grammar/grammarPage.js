@@ -146,7 +146,7 @@ function setRegenAllStatus(message, tone) {
 
 async function regenerateAllGrammarQuizzes() {
     const button = document.getElementById('regenAllQuizBtn');
-    if (!confirm('Soạn lại câu hỏi cho TẤT CẢ bài ngữ pháp?\nMỗi bài tốn 3 năng lượng và có thể mất một lát.')) {
+    if (!confirm('Soạn lại câu hỏi cho TẤT CẢ bài ngữ pháp?\nMỗi bài tốn 3 ☀️ Sun và có thể mất một lát.')) {
         return;
     }
 
@@ -200,7 +200,7 @@ async function regenerateAllGrammarQuizzes() {
 
         const parts = [];
         if (stoppedForEnergy) {
-            parts.push(`Đã soạn lại ${totalUpdated}/${grandTotal} bài rồi tạm dừng vì hết năng lượng — chờ hồi lại rồi bấm tiếp nhé.`);
+            parts.push(`Đã soạn lại ${totalUpdated}/${grandTotal} bài rồi tạm dừng vì hết Sun ☀️ — chờ hồi lại rồi bấm tiếp nhé.`);
         } else {
             parts.push(`Xong rồi: đã soạn lại ${totalUpdated}/${grandTotal} bài.`);
         }

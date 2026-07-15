@@ -1103,7 +1103,8 @@ body.ftka-dark-ui .topbar {
     font-weight: 700;
 }
 
-.energy-pill {
+.energy-pill,
+.sun-pill {
     border: 1px solid rgba(245, 158, 11, .35);
     border-radius: 999px;
     padding: 7px 12px;
@@ -1111,12 +1112,31 @@ body.ftka-dark-ui .topbar {
     background: rgba(251, 191, 36, .16);
     font-weight: 800;
     cursor: pointer;
+    white-space: nowrap;
+    transition: box-shadow .15s, transform .12s;
 }
+.sun-pill:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
 
-body.ftka-dark-ui .energy-pill {
+body.ftka-dark-ui .energy-pill,
+body.ftka-dark-ui .sun-pill {
     color: #fde68a;
     background: rgba(245, 158, 11, .14);
 }
+
+/* Popover Sun: nhận hằng ngày + mời bạn + xem quảng cáo */
+.sun-widget { position: relative; }
+.sun-popover { position: absolute; right: 0; top: calc(100% + 10px); width: min(330px, 86vw); padding: 14px; z-index: 90; display: grid; gap: 10px; box-shadow: var(--shadow-lg); }
+.sun-popover[hidden] { display: none; }
+.sun-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sun-pop-head strong { font-size: 15px; }
+.sun-pop-refill { font-size: 12px; color: var(--muted); }
+.sun-pop-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-soft); }
+.sun-pop-row[hidden] { display: none; }
+.sun-pop-row-text { display: grid; gap: 2px; min-width: 0; }
+.sun-pop-row-text strong { font-size: 13.5px; }
+.sun-pop-row-text span { font-size: 12px; color: var(--text-soft); }
+.sun-pop-row .dv-cta { min-height: 34px; padding: 6px 12px; font-size: 12.5px; flex-shrink: 0; }
+@media (max-width: 640px) { .sun-popover { position: fixed; right: 10px; left: 10px; top: 64px; width: auto; } }
 
 .energy-card small {
     display: block;

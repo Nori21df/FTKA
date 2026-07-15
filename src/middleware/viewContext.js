@@ -96,6 +96,7 @@ async function viewContext(req, res, next) {
   res.locals.min = Math.min;
   res.locals.admin_page_url = (targetPage, basePath) => pageUrl(req, targetPage, basePath);
   res.locals.energy_status = null;
+  res.locals.applixir_zone = require("../config/env").applixirZoneId; // nút "xem quảng cáo +Sun" (rỗng = ẩn)
   if (req.currentUser) {
     try { res.locals.energy_status = await energyService.getEnergyStatus(req.currentUser.id); } catch (error) { res.locals.energy_status = null; }
   }

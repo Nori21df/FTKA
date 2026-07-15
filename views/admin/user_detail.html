@@ -30,7 +30,7 @@
                 <tr><th>Email</th><td>{{ user.email }}</td></tr>
                 <tr><th>Vai trò</th><td><span class="admin-badge">{{ user.role }}</span></td></tr>
                 <tr><th>Premium</th><td>{{ user.plan or 'free' }}{% if user.premium_until %} · {{ user.premium_until }}{% endif %}</td></tr>
-                <tr><th>Năng lượng</th><td>{{ user.current_energy or 0 }} / {{ user.max_energy or 0 }}</td></tr>
+                <tr><th>Sun</th><td>{{ user.current_energy or 0 }} / {{ user.max_energy or 0 }}</td></tr>
                 <tr><th>Trạng thái</th><td><span class="admin-badge {% if user.status != 'active' %}danger{% endif %}">{{ user.status }}</span></td></tr>
                 <tr><th>Ngày tạo</th><td>{{ user.created_at }}</td></tr>
                 <tr><th>Đăng nhập gần nhất</th><td>{{ user.last_login or 'Chưa có' }}</td></tr>

@@ -222,9 +222,31 @@
                 </div>
                 {% endif %}
                 <div class="topbar-status">
-                    {# TEMP: Năng lượng tạm tắt — bỏ "false and" để bật lại #}
-                    {% if false and energy_status %}
-                    <button type="button" class="energy-pill" id="energyPill" title="Năng lượng AI">⚡ <span id="energyLabel">{% if energy_status.isUnlimitedEnergy %}Năng lượng: Không giới hạn{% else %}<span id="energyCurrent">{{ energy_status.current_energy }}</span>/<span id="energyMax">{{ energy_status.max_energy }}</span>{% endif %}</span></button>
+                    {% if energy_status %}
+                    <div class="sun-widget" id="sunWidget" data-applixir-zone="{{ applixir_zone }}">
+                        <button type="button" class="sun-pill" id="sunPill" title="Sun — năng lượng học với AI" aria-haspopup="true" aria-expanded="false">☀️ <span id="sunLabel">{% if energy_status.isUnlimitedEnergy %}∞{% else %}{{ energy_status.current_energy }}/{{ energy_status.max_energy }}{% endif %}</span></button>
+                        <div class="sun-popover dv-card" id="sunPopover" hidden>
+                            <div class="sun-pop-head">
+                                <strong>☀️ Sun</strong>
+                                <span class="sun-pop-refill" id="sunRefillNote"></span>
+                            </div>
+                            <button type="button" class="dv-cta block" id="sunClaimBtn">Nhận Sun hằng ngày</button>
+                            <div class="sun-pop-row" id="sunReferralRow" hidden>
+                                <div class="sun-pop-row-text">
+                                    <strong>Mời bạn bè</strong>
+                                    <span>Bạn ấy xác minh email → cả hai <b>+30 ☀️</b> · đã mời <b id="sunRefCount">0</b></span>
+                                </div>
+                                <button type="button" class="dv-cta ghost" id="sunRefCopyBtn">Chép link</button>
+                            </div>
+                            <div class="sun-pop-row" id="sunAdRow" hidden>
+                                <div class="sun-pop-row-text">
+                                    <strong>Xem quảng cáo</strong>
+                                    <span>+10 ☀️ mỗi lượt · hôm nay còn <b id="sunAdLeft">5</b> lượt</span>
+                                </div>
+                                <button type="button" class="dv-cta ghost" id="sunAdBtn">Xem</button>
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
                     <span class="status-dot" aria-hidden="true"></span>
                     <span>Học với AI</span>
@@ -243,7 +265,8 @@
         </main>
     </div>
     {% if current_user %}<script src="/socket.io/socket.io.js"></script>
-    <script type="module" src="/static/js/shared/dictBar.js"></script>{% endif %}
+    <script type="module" src="/static/js/shared/dictBar.js"></script>
+    <script type="module" src="/static/js/shared/sunWidget.js?v={{ asset_v('js/shared/sunWidget.js') }}"></script>{% endif %}
     <script type="module" src="/static/js/shared/ttsPlayer.js?v={{ asset_v('js/shared/ttsPlayer.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -255,43 +278,8 @@
                 }
             });
 
-            // TEMP: Năng lượng tạm tắt — đổi thành true để bật lại
-            const ENERGY_UI_ENABLED = false;
-
-            function renderEnergyStatus(energy) {
-                const label = document.getElementById('energyLabel');
-                if (!label || !energy) return;
-                if (energy.isUnlimitedEnergy) {
-                    label.textContent = 'Năng lượng: Không giới hạn';
-                    return;
-                }
-                label.innerHTML = `<span id="energyCurrent">${energy.currentEnergy ?? energy.current_energy}</span>/<span id="energyMax">${energy.maxEnergy ?? energy.max_energy}</span>`;
-            }
-
-            if (ENERGY_UI_ENABLED && document.body.dataset.authenticated === 'true') {
-                fetch('/api/me/energy', { headers: { 'Accept': 'application/json' } })
-                    .then((res) => res.ok ? res.json() : null)
-                    .then((data) => { if (data && data.energy) renderEnergyStatus(data.energy); })
-                    .catch(() => {});
-            }
-
-            if (ENERGY_UI_ENABLED && document.body.dataset.authenticated === 'true' && window.io) {
-                const energySocket = window.io();
-                energySocket.on('energy:update', renderEnergyStatus);
-            }
-
-            const energyPill = document.getElementById('energyPill');
-            if (energyPill) {
-                energyPill.addEventListener('click', async () => {
-                    try {
-                        const res = await fetch('/api/energy/claim-daily', { method: 'POST', headers: { 'Accept': 'application/json' } });
-                        const data = await res.json();
-                        if (data.energy) renderEnergyStatus(data.energy);
-                        window.showToast(data.success ? 'Đã nhận thưởng năng lượng hằng ngày!' : (data.error || 'Không thể nhận thưởng.'), data.success ? 'success' : 'error');
-                    } catch (e) { window.showToast('Không thể cập nhật năng lượng.', 'error'); }
-                });
-            }
-            window.showEnergyError = function(message) { window.showToast(message || 'Không đủ năng lượng cho thao tác AI này.', 'error'); };
+            // Sun (năng lượng): toàn bộ logic ở module shared/sunWidget.js (quy ước b)
+            window.showEnergyError = function(message) { window.showToast(message || 'Không đủ Sun ☀️ cho thao tác AI này.', 'error'); };
 
             // Custom confirmation modal
             window.showConfirm = function(options) {

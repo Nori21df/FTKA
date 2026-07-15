@@ -4,8 +4,8 @@
 <div class="admin-header">
     <div>
         <span class="gen-kicker">Quản trị · Tài chính</span>
-        <h2>Giao dịch năng lượng</h2>
-        <p class="admin-muted">Lịch sử cộng/trừ năng lượng của người dùng (refill, tiêu dùng, thưởng).</p>
+        <h2>Giao dịch Sun</h2>
+        <p class="admin-muted">Lịch sử cộng/trừ Sun của người dùng (refill, tiêu dùng, thưởng).</p>
     </div>
     {% if page_info %}<span class="admin-count">{{ page_info.total }} giao dịch</span>{% endif %}
 </div>
@@ -26,7 +26,7 @@
                     <td>{{ tx.created_at }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="7">Chưa có giao dịch năng lượng.</td></tr>
+                <tr><td colspan="7">Chưa có giao dịch Sun.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

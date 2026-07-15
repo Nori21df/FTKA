@@ -35,6 +35,7 @@
     "provider_stats"
   ],
   "allow": [
+    "energy_status",
     "exists",
     "stats",
     "success",

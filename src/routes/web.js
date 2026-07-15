@@ -15,6 +15,7 @@ const daily = require("../services/dailyService");
 const streakRewards = require("../services/streakRewardService");
 const writing = require("../services/writingService");
 const itTerms = require("../services/itTermsService");
+const referral = require("../services/referralService");
 const { SPECIALTIES, getSpecialty } = require("../config/specialties");
 const { emitEnergyUpdate } = require("../services/energySocket");
 
@@ -45,6 +46,8 @@ router.get("/favicon.ico", (req, res) => res.status(204).send(""));
 
 router.route("/register")
   .get(...named("register", (req, res) => {
+    // Link mời bạn bè: /register?ref=<userId> → nhớ vào cookie 30 ngày (thưởng khi user mới verify email)
+    if (req.query.ref && /^\d+$/.test(String(req.query.ref))) referral.setRefCookie(res, Number(req.query.ref));
     if (req.currentUser && !auth.isEmailVerified(req.currentUser)) return res.redirect("/verify-email-required");
     if (req.currentUser) return res.redirect(safeNextUrl(req.query.next));
     if (req.query.next === "/" || req.query.next === "/home") return res.redirect("/");
@@ -58,6 +61,7 @@ router.route("/register")
     try {
       const user = await auth.createUser(req.body.username, req.body.email, req.body.password);
       await auth.loginSession(req, user, "register");
+      await referral.recordPendingFromCookie(req, user.id).catch(() => {}); // thưởng khi verify email
       return res.redirect("/verify-email-required");
     } catch (error) {
       return res.render("auth/register.html", {
@@ -141,6 +145,8 @@ router.get("/verify-email", ...named("verify_email", asyncHandler(async (req, re
       message: result.reason
     });
   }
+  // Verify xong = lúc thưởng referral (nếu user này được mời) — cả hai +30 Sun.
+  if (result.user_id) referral.rewardIfPending(result.user_id).catch(() => {});
   return res.render("auth/verify_email_result.html", {
     success: true,
     title: "Email đã được xác minh",
@@ -183,8 +189,11 @@ router.get("/auth/google/callback", ...named("google_callback", (req, res, next)
 }, (req, res) => {
   const nextUrl = req.session.oauth_next || "/dashboard";
   return auth.loginSession(req, req.user, "google")
-    .then(() => {
+    .then(async () => {
       daily.prewarmToday(req.user.id).catch(() => {}); // B2: prewarm nền, không chặn
+      // User Google mới + có cookie mời: ghi nhận rồi thưởng luôn (Google = email đã verify).
+      // recordPendingFromCookie tự bỏ qua nếu tài khoản cũ (>15 phút) hoặc đã ghi nhận.
+      try { if (await referral.recordPendingFromCookie(req, req.user.id)) await referral.rewardIfPending(req.user.id); } catch (_e) { /* im lặng */ }
       res.redirect(safeNextUrl(nextUrl));
     })
     .catch((error) => {
@@ -344,10 +353,10 @@ router.post("/listening-practice/generate", aiLimiter, ...named("generate_listen
   const wantsJson = req.is("application/json");
   try {
     const status = await energy.hasEnoughEnergy(req.currentUser.id, 10);
-    if (!status.ok) return wantsJson ? res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: status.status, required_energy: 10 }) : res.redirect(`/listening-practice?error=${encodeURIComponent("Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.")}`);
+    if (!status.ok) return wantsJson ? res.status(402).json({ success: false, error: "Không đủ Sun ☀️. Chờ hồi hoặc mở ví Sun trên topbar để nhận thêm.", energy: status.status, required_energy: 10 }) : res.redirect(`/listening-practice?error=${encodeURIComponent("Không đủ Sun ☀️. Chờ hồi hoặc mở ví Sun trên topbar để nhận thêm.")}`);
     const lesson = await listening.createLesson(db, wantsJson ? req.body : req.body, req.currentUser.id);
     const spent = await energy.spendEnergy(req.currentUser.id, 10, "generate_listening_practice", lesson.id);
-    if (!spent.ok) return wantsJson ? res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: spent.status, required_energy: 10 }) : res.redirect(`/listening-practice?error=${encodeURIComponent("Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.")}`);
+    if (!spent.ok) return wantsJson ? res.status(402).json({ success: false, error: "Không đủ Sun ☀️. Chờ hồi hoặc mở ví Sun trên topbar để nhận thêm.", energy: spent.status, required_energy: 10 }) : res.redirect(`/listening-practice?error=${encodeURIComponent("Không đủ Sun ☀️. Chờ hồi hoặc mở ví Sun trên topbar để nhận thêm.")}`);
     await emitEnergyUpdate(req.currentUser.id);
     const detailUrl = `/listening-practice?lesson_id=${encodeURIComponent(lesson.id)}`;
     return wantsJson ? res.json({ success: true, lesson, redirect_url: detailUrl }) : res.redirect(detailUrl);

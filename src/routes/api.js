@@ -79,7 +79,7 @@ function wordCount(items) {
 async function spendOr402(res, userId, amount, reason, ref) {
   const result = await energy.spendEnergy(userId, amount, reason, ref);
   if (result.ok) { await emitEnergyUpdate(userId); return true; }
-  res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: result.status, required_energy: amount });
+  res.status(402).json({ success: false, error: "Không đủ Sun ☀️. Chờ hồi hoặc mở ví Sun trên topbar để nhận thêm.", energy: result.status, required_energy: amount });
   return false;
 }
 
@@ -87,7 +87,7 @@ async function requireEnergyOr402(res, userId, amount) {
   const result = await energy.hasEnoughEnergy(userId, amount);
   const status = result.status;
   if (result.ok) return true;
-  res.status(402).json({ success: false, error: "Không đủ năng lượng. Vui lòng chờ hồi phục hoặc nhận thưởng hằng ngày.", energy: status, required_energy: amount });
+  res.status(402).json({ success: false, error: "Không đủ Sun ☀️. Chờ hồi hoặc mở ví Sun trên topbar để nhận thêm.", energy: status, required_energy: amount });
   return false;
 }
 
@@ -99,10 +99,49 @@ router.get("/me/energy", loginRequired, asyncHandler(async (req, res) => {
   res.json({ success: true, energy: await energy.getEnergyStatus(req.currentUser.id) });
 }));
 
+// ── Sun (tên gọi user-facing của energy) ────────────────────────────────
+const AD_REWARD_AMOUNT = 10;
+const AD_REWARD_DAILY_MAX = 5;
+const AD_REWARD_MIN_GAP_MS = 60 * 1000;
+
+// Tổng quan cho widget Sun: link mời, số bạn đã mời thành công, lượt quảng cáo hôm nay.
+router.get("/sun/summary", loginRequired, asyncHandler(async (req, res) => {
+  const referralService = require("../services/referralService");
+  const stats = await referralService.referralStats(req.currentUser.id);
+  const adsToday = Number(await db.scalar(
+    "SELECT COUNT(*) FROM energy_transactions WHERE user_id=? AND reason='ad_reward' AND created_at >= date_trunc('day', NOW())",
+    [req.currentUser.id]
+  ).catch(() => 0));
+  res.json({
+    success: true,
+    referral: { link: `/register?ref=${req.currentUser.id}`, rewarded: stats.rewarded, amount: stats.reward_amount },
+    ads: { today: adsToday, max: AD_REWARD_DAILY_MAX, amount: AD_REWARD_AMOUNT },
+  });
+}));
+
+// Xem quảng cáo (AppLixir) xong → +10 Sun. Trần 5 lượt/ngày + giãn cách 60s giữa 2 lượt.
+// Ghi chú: xác thực dựa trên callback client của AppLixir SDK; trần + giãn cách chặn farm thô.
+router.post("/sun/ad-reward", loginRequired, asyncHandler(async (req, res) => {
+  const userId = req.currentUser.id;
+  const rows = await db.query(
+    "SELECT created_at FROM energy_transactions WHERE user_id=? AND reason='ad_reward' AND created_at >= date_trunc('day', NOW()) ORDER BY created_at DESC",
+    [userId]
+  ).catch(() => []);
+  if (rows.length >= AD_REWARD_DAILY_MAX) {
+    return res.status(429).json({ success: false, error: `Hết lượt hôm nay (${AD_REWARD_DAILY_MAX}/ngày) — mai xem tiếp nhé.` });
+  }
+  if (rows.length && Date.now() - new Date(rows[0].created_at).getTime() < AD_REWARD_MIN_GAP_MS) {
+    return res.status(429).json({ success: false, error: "Chậm lại chút — mỗi lượt cách nhau 1 phút." });
+  }
+  const result = await energy.grantEnergy(userId, AD_REWARD_AMOUNT, "ad_reward", "applixir");
+  await emitEnergyUpdate(userId);
+  res.json({ success: true, amount: AD_REWARD_AMOUNT, remaining: AD_REWARD_DAILY_MAX - rows.length - 1, energy: result.status });
+}));
+
 router.post("/energy/claim-daily", loginRequired, asyncHandler(async (req, res) => {
   const result = await energy.claimDailyEnergy(req.currentUser.id);
   await emitEnergyUpdate(req.currentUser.id);
-  res.status(result.ok ? 200 : 400).json({ success: result.ok, already_claimed: Boolean(result.already_claimed), energy: result.status, error: result.ok ? "" : "Bạn đã nhận thưởng năng lượng hôm nay." });
+  res.status(result.ok ? 200 : 400).json({ success: result.ok, already_claimed: Boolean(result.already_claimed), energy: result.status, error: result.ok ? "" : "Hôm nay bạn nhận Sun rồi — mai quay lại nhé." });
 }));
 
 router.post("/vocab_groups", loginRequired, asyncHandler(async (req, res) => {

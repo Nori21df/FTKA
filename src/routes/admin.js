@@ -16,7 +16,7 @@ const router = express.Router();
 
 const unavailable = {
   writing: ["Bài viết", "Chưa có bảng bài viết hoặc dịch vụ chấm bài trong mã nguồn hiện tại."],
-  energy: ["Năng lượng", "Chưa có bảng năng lượng hoặc dịch vụ năng lượng."],
+  energy: ["Sun", "Chưa có bảng năng lượng hoặc dịch vụ năng lượng."],
   transactions: ["Giao dịch", "Chưa có bảng giao dịch năng lượng hoặc tiền."],
   purchases: ["Thanh toán", "Chưa cấu hình hệ thống thanh toán."],
   streaks: ["Chuỗi học", "Hiện chỉ có hoạt động học từ vựng toàn cục, chưa có bảng chuỗi học theo người dùng."],

@@ -271,7 +271,7 @@ async function verifyEmailToken(rawToken) {
       await clientDb.run("UPDATE users SET email_verified=TRUE, email_verified_at=COALESCE(email_verified_at, ?), updated_at=? WHERE id=?", [now, now, row.user_id]);
       await clientDb.run("UPDATE email_verification_tokens SET used_at=? WHERE id=?", [now, row.id]);
       await clientDb.commit();
-      return { ok: true };
+      return { ok: true, user_id: row.user_id };
     } catch (error) {
       await clientDb.rollback();
       throw error;
