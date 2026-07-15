@@ -15,7 +15,7 @@
         </div>
     </header>
 
-    <form class="ls-createbar dv-card" method="post" action="{{ url_for('generate_listening_practice') }}">
+    <form class="ls-createbar dv-card" method="post" action="{{ url_for('generate_listening_practice') }}" data-ls-generate-form>
         <div class="listening-field">
             <label for="levelInput">Cấp độ</label>
             <select id="levelInput" name="level" class="listening-select" required>
@@ -51,12 +51,13 @@
 
         <div class="listening-field ls-createbar-submit">
             <label aria-hidden="true">&nbsp;</label>
-            <button class="dv-cta" type="submit">
+            <button class="dv-cta" type="submit" data-generate-btn>
                 <span class="material-icons-outlined">auto_awesome</span>
                 Tạo bài nghe
             </button>
         </div>
 
+        <div class="ls-wait ls-createbar-msg" data-generate-wait hidden aria-live="polite"></div>
         {% if request.args["message"] %}
         <div class="listening-status success ls-createbar-msg" aria-live="polite">{{ request.args["message"] }}</div>
         {% endif %}
@@ -92,7 +93,6 @@
                         class="saved-lesson-delete-form"
                         method="post"
                         action="{{ url_for('delete_listening_practice_lesson', lesson_id=lesson.id) }}"
-                        onsubmit="return confirm('Xoá bài nghe đã lưu này?');"
                     >
                         <button class="saved-lesson-delete-button" type="submit" title="Xoá bài nghe" aria-label="Xoá bài nghe">
                             <span class="material-icons-outlined">delete_outline</span>
@@ -130,8 +130,11 @@
                 {% endif %}
 
                 <section class="lesson-section">
-                    <h4>Transcript tiếng Hàn</h4>
-                    <div class="listening-text-block listening-korean" lang="ko">{{ selected_lesson.korean_text }}</div>
+                    <div class="ls-section-head">
+                        <h4>Transcript tiếng Hàn</h4>
+                        <button type="button" class="dv-cta ghost ls-toggle-btn" data-ls-toggle="lsTranscript" data-show-label="Hiện transcript" data-hide-label="Ẩn transcript"></button>
+                    </div>
+                    <div id="lsTranscript" class="listening-text-block listening-korean" lang="ko">{{ selected_lesson.korean_text }}</div>
                 </section>
 
                 {% if selected_lesson.sentences|length %}
@@ -159,9 +162,10 @@
                         <div class="sentence-status" data-sentence-status aria-live="polite"></div>
                         <div class="sentence-list">
                             {% for sentence in selected_lesson.sentences %}
-                            <div class="sentence-line" data-sentence-line data-audio-path="{{ sentence.audio_path }}" data-sentence-index="{{ sentence.index }}">
+                            <div class="sentence-line" data-sentence-line data-audio-path="{{ sentence.audio_path }}" data-sentence-index="{{ sentence.index }}" title="Bấm để nghe câu này" role="button" tabindex="0">
                                 <span class="sentence-number">{{ sentence.index }}</span>
                                 <span lang="ko" class="sentence-text">{{ sentence.text }}</span>
+                                <span class="ls-eq" aria-hidden="true"><i></i><i></i><i></i></span>
                                 {% if not sentence.audio_path %}
                                 <span class="sentence-error">{{ sentence.audio_error or 'Chưa có âm thanh cho câu này.' }}</span>
                                 {% endif %}
@@ -173,8 +177,12 @@
                 {% endif %}
 
                 <section class="lesson-section">
-                    <h4>Bản dịch tiếng Việt</h4>
-                    <div class="listening-text-block">{{ selected_lesson.vietnamese_translation }}</div>
+                    <div class="ls-section-head">
+                        <h4>Bản dịch tiếng Việt</h4>
+                        <button type="button" class="dv-cta ghost ls-toggle-btn" data-ls-toggle="lsTranslation" data-show-label="Hiện bản dịch" data-hide-label="Ẩn bản dịch"></button>
+                    </div>
+                    {# Mặc định GIẤU bản dịch: nghe trước, đối chiếu sau — không spoil #}
+                    <div id="lsTranslation" class="listening-text-block" hidden>{{ selected_lesson.vietnamese_translation }}</div>
                 </section>
 
                 {% if selected_lesson.vocabulary|length %}
@@ -195,18 +203,23 @@
 
                 {% if selected_lesson.questions|length %}
                 <section class="lesson-section">
-                    <h4>Câu hỏi luyện nghe</h4>
-                    <div class="lesson-grid">
+                    <div class="ls-section-head">
+                        <h4>Câu hỏi luyện nghe</h4>
+                        <span class="ls-hint">Nghe xong hãy chọn đáp án — chọn rồi mới hiện đúng/sai</span>
+                    </div>
+                    <div class="ls-quiz-list">
                         {% for item in selected_lesson.questions %}
-                        <div class="lesson-mini-card">
+                        <div class="lesson-mini-card ls-question" data-ls-question>
                             <strong>{{ loop.index }}. {{ item.question }}</strong>
-                            <ul class="choice-list">
+                            <div class="ls-choices">
                                 {% for choice in item.choices %}
-                                <li class="{% if choice == item.answer %}is-answer{% endif %}">{{ choice }}</li>
+                                <button type="button" class="ls-choice" data-correct="{% if choice == item.answer %}1{% else %}0{% endif %}">{{ choice }}</button>
                                 {% endfor %}
-                            </ul>
-                            <span>Đáp án: {{ item.answer }}</span>
-                            {% if item.explanation_vi %}<span>{{ item.explanation_vi }}</span>{% endif %}
+                            </div>
+                            <div class="ls-reveal" data-ls-reveal hidden>
+                                <span class="ls-reveal-answer">Đáp án: {{ item.answer }}</span>
+                                {% if item.explanation_vi %}<span class="ls-reveal-why">{{ item.explanation_vi }}</span>{% endif %}
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
@@ -222,113 +235,5 @@
     </div>
 </div>
 
-<script>
-function initializeSentencePlayers(scope = document) {
-    scope.querySelectorAll('[data-sentence-player]').forEach((player) => {
-        if (player.dataset.initialized === 'true') {
-            return;
-        }
-        player.dataset.initialized = 'true';
-
-        const lines = Array.from(player.querySelectorAll('[data-sentence-line]'));
-        const status = player.querySelector('[data-sentence-status]');
-        const audio = new Audio();
-        let currentIndex = 0;
-
-        function setStatus(message) {
-            if (!status) {
-                return;
-            }
-            status.textContent = message || '';
-            status.classList.toggle('is-visible', Boolean(message));
-        }
-
-        function setActive(index) {
-            lines.forEach((line, lineIndex) => {
-                line.classList.toggle('active', lineIndex === index);
-            });
-        }
-
-        function clearActive() {
-            lines.forEach((line) => line.classList.remove('active'));
-        }
-
-        function playAt(index) {
-            if (!lines.length) {
-                setStatus('Chưa có âm thanh cho câu này.');
-                return;
-            }
-            if (index < 0 || index >= lines.length) {
-                audio.pause();
-                clearActive();
-                setStatus('');
-                currentIndex = 0;
-                return;
-            }
-
-            const line = lines[index];
-            const audioPath = line.dataset.audioPath || '';
-            currentIndex = index;
-            setActive(index);
-
-            if (!audioPath) {
-                audio.pause();
-                setStatus('Chưa có âm thanh cho câu này.');
-                return;
-            }
-
-            setStatus('');
-            audio.src = audioPath;
-            audio.currentTime = 0;
-            audio.play().catch(() => {
-                setStatus('Không phát được âm thanh cho câu này.');
-            });
-        }
-
-        audio.addEventListener('ended', () => {
-            if (currentIndex + 1 < lines.length) {
-                playAt(currentIndex + 1);
-                return;
-            }
-            clearActive();
-            currentIndex = 0;
-            setStatus('');
-        });
-
-        audio.addEventListener('error', () => {
-            setStatus('Không tải được âm thanh cho câu này.');
-        });
-
-        player.querySelector('[data-sentence-action="play"]')?.addEventListener('click', () => {
-            const currentLine = lines[currentIndex];
-            if (audio.src && audio.paused && currentLine?.dataset.audioPath) {
-                audio.play().catch(() => setStatus('Không phát tiếp được âm thanh cho câu này.'));
-                setActive(currentIndex);
-                return;
-            }
-            playAt(currentIndex);
-        });
-
-        player.querySelector('[data-sentence-action="pause"]')?.addEventListener('click', () => {
-            audio.pause();
-        });
-
-        player.querySelector('[data-sentence-action="stop"]')?.addEventListener('click', () => {
-            audio.pause();
-            audio.removeAttribute('src');
-            audio.load();
-            currentIndex = 0;
-            clearActive();
-            setStatus('');
-        });
-
-        player.querySelector('[data-sentence-action="next"]')?.addEventListener('click', () => {
-            audio.pause();
-            playAt(currentIndex + 1);
-        });
-    });
-}
-
-initializeSentencePlayers();
-</script>
+<script type="module" src="/static/js/listening/listeningPage.js?v={{ asset_v('js/listening/listeningPage.js') }}"></script>
 {% endblock %}

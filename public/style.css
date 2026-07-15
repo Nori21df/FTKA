@@ -5655,3 +5655,54 @@ body.ftka-dark-ui .anki-shortcuts kbd {
     .itv-actions { align-self: flex-end; }
     .itv-study-body .kr { font-size: 24px; }
 }
+
+/* ── Luyện nghe: nâng cấp UI/UX (token-based → ăn theo mọi theme) ────── */
+.ls-section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.ls-section-head h4 { margin: 0; }
+.ls-toggle-btn { min-height: 34px; padding: 6px 12px; font-size: 12.5px; }
+.ls-hint { font-size: 12.5px; color: var(--muted); }
+
+/* Trạng thái chờ khi tạo bài (AI + TTS 15-30s) */
+.ls-wait { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--primary-soft); color: var(--text-soft); font-weight: 600; font-size: 13.5px; }
+.ls-wait::before { content: ""; width: 14px; height: 14px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--primary); border-top-color: transparent; animation: ls-spin .8s linear infinite; }
+.ls-spinner { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,.75); border-top-color: transparent; animation: ls-spin .8s linear infinite; }
+@keyframes ls-spin { to { transform: rotate(360deg); } }
+.dv-cta.is-loading { opacity: .85; pointer-events: none; }
+
+/* Câu bấm-để-nghe: hover rõ, câu đang phát có sóng nhạc */
+.listening-shell .sentence-line { cursor: pointer; display: flex; align-items: center; gap: 10px; transition: border-color .15s, background .15s, box-shadow .15s; }
+.listening-shell .sentence-line:hover { border-color: var(--line-strong); background: var(--surface); box-shadow: var(--shadow-sm); }
+.listening-shell .sentence-line:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.listening-shell .sentence-line.active { border-color: var(--primary); background: var(--primary-soft); }
+.listening-shell .sentence-line .sentence-text { flex: 1; min-width: 0; }
+.ls-eq { display: none; align-items: flex-end; gap: 2px; height: 14px; flex-shrink: 0; }
+.ls-eq i { width: 3px; border-radius: 2px; background: var(--primary); animation: ls-eq 1s ease-in-out infinite; }
+.ls-eq i:nth-child(1) { height: 60%; animation-delay: 0s; }
+.ls-eq i:nth-child(2) { height: 100%; animation-delay: .2s; }
+.ls-eq i:nth-child(3) { height: 75%; animation-delay: .4s; }
+@keyframes ls-eq { 0%, 100% { transform: scaleY(.5); } 50% { transform: scaleY(1); } }
+.listening-shell .sentence-line.is-playing .ls-eq { display: inline-flex; }
+
+/* Quiz câu hỏi: giấu đáp án, chọn mới hiện đúng/sai */
+.ls-quiz-list { display: grid; gap: 12px; }
+.ls-question strong { display: block; margin-bottom: 10px; }
+.ls-choices { display: grid; gap: 8px; }
+.ls-choice { display: block; width: 100%; text-align: left; padding: 11px 14px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: border-color .15s, background .15s, transform .12s; }
+.ls-choice:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-soft); transform: translateY(-1px); }
+.ls-choice:disabled { cursor: default; opacity: .85; }
+.ls-choice.is-correct { border-color: var(--success); background: var(--success-soft); color: var(--success); opacity: 1; }
+.ls-choice.is-wrong { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); opacity: 1; }
+.ls-choice.is-correct::after { content: " ✓"; font-weight: 800; }
+.ls-choice.is-wrong::after { content: " ✗"; font-weight: 800; }
+.ls-reveal { margin-top: 10px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--surface-soft); border: 1px dashed var(--line-strong); display: grid; gap: 4px; }
+.ls-reveal-answer { font-weight: 700; color: var(--success); font-size: 13.5px; }
+.ls-reveal-why { color: var(--text-soft); font-size: 13.5px; line-height: 1.55; }
+
+/* Danh sách bài đã lưu: hover + active rõ ràng */
+.listening-shell .saved-lesson-row { transition: border-color .15s, box-shadow .15s; }
+.listening-shell .saved-lesson-row:hover { border-color: var(--line-strong); box-shadow: var(--shadow-sm); }
+.listening-shell .saved-lesson-item.active { box-shadow: inset 3px 0 0 var(--primary); }
+
+@media (prefers-reduced-motion: reduce) {
+    .ls-eq i, .ls-wait::before, .ls-spinner { animation: none; }
+}

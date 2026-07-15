@@ -50,13 +50,33 @@ function splitSentences(koreanText) {
   return matches.map((text, index) => ({ index: index + 1, text: clean(text), audio_path: "", audio_error: "" })).filter((s) => s.text);
 }
 
+// AI có lúc trả "answer" là CHỈ SỐ ("1", 0-based hoặc 1-based) thay vì text đáp án →
+// template so sánh choice == answer trượt hết. Chuẩn hoá về ĐÚNG text của choice
+// (áp lúc đọc nên bài đã lưu từ trước cũng được sửa).
+function normalizeQuestion(q) {
+  if (!q || !Array.isArray(q.choices)) return q;
+  const choices = q.choices.map((c) => clean(String(c)));
+  let answer = clean(String(q.answer == null ? "" : q.answer));
+  if (!choices.includes(answer)) {
+    const idx = Number(answer);
+    if (Number.isInteger(idx)) {
+      if (idx >= 0 && idx < choices.length) answer = choices[idx];            // 0-based
+      else if (idx >= 1 && idx <= choices.length) answer = choices[idx - 1];  // 1-based
+    } else {
+      const hit = choices.find((c) => c.toLowerCase() === answer.toLowerCase());
+      if (hit) answer = hit;
+    }
+  }
+  return { ...q, choices, answer };
+}
+
 function serializeRow(row) {
   if (!row) return null;
   const sentences = loadsList(row.sentences);
   return {
     ...row,
     vocabulary: loadsList(row.vocabulary),
-    questions: loadsList(row.questions),
+    questions: loadsList(row.questions).map(normalizeQuestion),
     sentences: (sentences.length ? sentences : splitSentences(row.korean_text)).map((s, index) => ({
       index: s.index || index + 1,
       text: clean(s.text),
@@ -99,7 +119,7 @@ Chủ đề: ${topic}
 Số câu hỏi luyện nghe: ${questionCount}
 Chỉ trả về JSON object với keys: title, korean_text, vietnamese_translation, vocabulary, questions.
 Vocabulary items cần korean, meaning_vi, example_kr, example_vi.
-Questions cần question, choices, answer, explanation_vi.`;
+Questions cần question, choices, answer, explanation_vi — "answer" phải là NGUYÊN VĂN text của một phần tử trong "choices" (KHÔNG dùng chỉ số/số thứ tự).`;
 }
 
 async function listLessonSummaries(db, ownerUserId, limit = 50) {
