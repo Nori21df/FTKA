@@ -5657,6 +5657,9 @@ body.ftka-dark-ui .anki-shortcuts kbd {
 }
 
 /* ── Luyện nghe: nâng cấp UI/UX (token-based → ăn theo mọi theme) ────── */
+/* Card chi tiết bài bị THIẾU padding (không nằm trong nhóm padding:20px chung) → nội dung dính mép */
+.lesson-detail-card { padding: 22px; }
+@media (max-width: 640px) { .lesson-detail-card { padding: 16px; } }
 .ls-section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
 .ls-section-head h4 { margin: 0; }
 .ls-toggle-btn { min-height: 34px; padding: 6px 12px; font-size: 12.5px; }
@@ -5664,6 +5667,7 @@ body.ftka-dark-ui .anki-shortcuts kbd {
 
 /* Trạng thái chờ khi tạo bài (AI + TTS 15-30s) */
 .ls-wait { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--primary-soft); color: var(--text-soft); font-weight: 600; font-size: 13.5px; }
+.ls-wait[hidden] { display: none; } /* display:flex đè attr hidden nếu không có rule này */
 .ls-wait::before { content: ""; width: 14px; height: 14px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--primary); border-top-color: transparent; animation: ls-spin .8s linear infinite; }
 .ls-spinner { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,.75); border-top-color: transparent; animation: ls-spin .8s linear infinite; }
 @keyframes ls-spin { to { transform: rotate(360deg); } }
@@ -5682,6 +5686,11 @@ body.ftka-dark-ui .anki-shortcuts kbd {
 .ls-eq i:nth-child(3) { height: 75%; animation-delay: .4s; }
 @keyframes ls-eq { 0%, 100% { transform: scaleY(.5); } 50% { transform: scaleY(1); } }
 .listening-shell .sentence-line.is-playing .ls-eq { display: inline-flex; }
+/* Bài chỉ có audio toàn bài: giấu lỗi lặp từng dòng + nút phát từng câu (đã có 1 thông báo chung) */
+.ls-no-sentence-audio .sentence-error { display: none; }
+.ls-no-sentence-audio .sentence-controls { display: none; }
+.ls-no-sentence-audio .sentence-line { cursor: default; }
+.ls-no-sentence-audio .sentence-status.is-visible { margin-bottom: 10px; }
 
 /* Quiz câu hỏi: giấu đáp án, chọn mới hiện đúng/sai */
 .ls-quiz-list { display: grid; gap: 12px; }

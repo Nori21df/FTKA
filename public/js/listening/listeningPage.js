@@ -62,6 +62,13 @@ function initSentencePlayer(player) {
     line.addEventListener("click", () => playAt(i));
   });
 
+  // Bài cũ không có audio TỪNG CÂU (chỉ có audio toàn bài): thay vì lặp
+  // "Chưa có âm thanh" ở mọi dòng, gom thành MỘT thông báo + giấu lỗi từng dòng.
+  if (lines.length && lines.every((l) => !l.dataset.audioPath)) {
+    player.classList.add("ls-no-sentence-audio");
+    setStatus("Bài này chỉ có âm thanh toàn bài (nghe ở trình phát phía trên) — chưa có âm thanh tách từng câu.");
+  }
+
   const on = (action, fn) => player.querySelector(`[data-sentence-action="${action}"]`)?.addEventListener("click", fn);
   on("play", () => {
     const line = lines[currentIndex];
