@@ -502,6 +502,35 @@ router.get("/speak", ...named("speak", loginRequired, asyncHandler(async (req, r
   res.render("speak.html", { speak_sentences: sentences });
 })));
 
+router.get("/shadowing", ...named("shadowing", loginRequired, asyncHandler(async (req, res) => {
+  // Shadowing: nghe câu → nhại theo → máy chấm độ giống. Nguồn câu: ví dụ trong từ vựng
+  // của user + đoạn "Học hôm nay" (nếu có) + câu mặc định — trộn, bỏ trùng, tối đa 20 câu.
+  const ownerId = req.currentUser.id;
+  const rows = await db.query(
+    `SELECT example_kr, example_vi FROM vocab
+     WHERE owner_user_id=? AND example_kr IS NOT NULL AND TRIM(example_kr) != ''
+     ORDER BY created_at DESC, id DESC LIMIT 10`,
+    [ownerId]
+  );
+  const sentences = rows.map((r) => ({ kr: String(r.example_kr).trim(), vi: String(r.example_vi || "").trim() }));
+  const passage = await daily.getPassageForDate(ownerId, daily.todayStr()).catch(() => null);
+  if (passage && passage.korean_text && passage.vietnamese_text) {
+    const krLines = String(passage.korean_text).split(/\n+/).map((s) => s.trim()).filter(Boolean);
+    const viLines = String(passage.vietnamese_text).split(/\n+/).map((s) => s.trim()).filter(Boolean);
+    krLines.forEach((kr, i) => sentences.push({ kr, vi: viLines[i] || "" }));
+  }
+  const defaults = [
+    { kr: "안녕하세요. 만나서 반갑습니다.", vi: "Xin chào. Rất vui được gặp bạn." },
+    { kr: "저는 한국어를 공부하고 있어요.", vi: "Tôi đang học tiếng Hàn." },
+    { kr: "천천히 말씀해 주세요.", vi: "Xin hãy nói chậm thôi ạ." },
+  ];
+  const seen = new Set();
+  const deck = sentences.concat(defaults)
+    .filter((s) => s.kr && !seen.has(s.kr) && seen.add(s.kr))
+    .slice(0, 20);
+  res.render("shadowing.html", { shadow_deck: deck });
+})));
+
 router.get("/topik", ...named("topik", loginRequired, asyncHandler(async (req, res) => {
   const ownerId = req.currentUser.id;
   const rows = await db.query("SELECT * FROM grammar WHERE owner_user_id=? ORDER BY created_at DESC, id DESC", [ownerId]);

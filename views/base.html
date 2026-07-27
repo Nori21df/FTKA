@@ -133,6 +133,10 @@
                     <span class="material-icons-outlined">mic</span>
                     <span class="nav-label">Luyện phát âm</span>
                 </a>
+                <a href="{{ url_for('shadowing') }}" class="nav-item {% if request.endpoint == 'shadowing' %}active{% endif %}">
+                    <span class="material-icons-outlined">graphic_eq</span>
+                    <span class="nav-label">Shadowing</span>
+                </a>
                 <a href="{{ url_for('topik') }}" class="nav-item {% if request.endpoint == 'topik' %}active{% endif %}">
                     <span class="material-icons-outlined">workspace_premium</span>
                     <span class="nav-label">Luyện thi TOPIK</span>

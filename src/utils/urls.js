@@ -40,6 +40,7 @@ const routes = {
   api_export_anki: "/api/export_anki",
   writing: "/writing",
   speak: "/speak",
+  shadowing: "/shadowing",
   topik: "/topik",
   api_writing_grade: "/api/writing/grade",
   api_daily_generate: "/api/daily/generate",

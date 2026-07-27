@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="sh-wrap">
+    <header class="rv-head">
+        <div>
+            <span class="gen-kicker">Ôn luyện</span>
+            <h2>Shadowing — nghe và nhại theo</h2>
+            <p>Nghe câu tiếng Hàn rồi nói theo NGAY LẬP TỨC, máy chấm độ giống. Lặp nhiều vòng mỗi câu để bắt chước ngữ điệu — kỹ thuật luyện nói hiệu quả nhất.</p>
+        </div>
+    </header>
+
+    {% if shadow_deck|length %}
+    <section class="dv-card sh-card" id="shStage">
+        <div class="sh-top">
+            <span id="shProgress"></span>
+            <div class="sh-settings">
+                <label>Tốc độ
+                    <select id="shSpeed" class="listening-select sh-select">
+                        <option value="0.75">0.75×</option>
+                        <option value="1" selected>1×</option>
+                    </select>
+                </label>
+                <label>Vòng/câu
+                    <select id="shRounds" class="listening-select sh-select">
+                        <option value="1">1</option>
+                        <option value="3" selected>3</option>
+                        <option value="5">5</option>
+                    </select>
+                </label>
+                <label class="sh-auto"><input type="checkbox" id="shAutoChk"> Tự động</label>
+            </div>
+        </div>
+
+        <div class="sh-sentence-box">
+            <p id="shSentence" class="kr" lang="ko"></p>
+            <p id="shVi" hidden></p>
+            <button type="button" class="dv-cta ghost sh-vi-toggle" id="shViToggle">Hiện nghĩa</button>
+        </div>
+
+        <div class="sh-controls">
+            <button type="button" class="dv-cta" id="shPlayBtn"><span class="material-icons-outlined" aria-hidden="true">volume_up</span> Nghe</button>
+            <button type="button" class="dv-cta" id="shMicBtn"><span class="material-icons-outlined" aria-hidden="true">mic</span> Nói theo</button>
+        </div>
+
+        <div id="shResult" class="sh-result" aria-live="polite"></div>
+
+        <div class="sh-nav">
+            <button type="button" class="dv-cta ghost" id="shPrevBtn"><span class="material-icons-outlined" aria-hidden="true">arrow_back</span> Câu trước</button>
+            <button type="button" class="dv-cta ghost" id="shNextBtn">Câu kế <span class="material-icons-outlined" aria-hidden="true">arrow_forward</span></button>
+        </div>
+
+        <div id="shDone" class="sh-done" hidden></div>
+    </section>
+    <div id="shUnsupported" class="dv-card sh-unsupported" hidden></div>
+    {% else %}
+    <section class="dv-card sh-empty">
+        Chưa có câu để luyện — hãy tạo vài từ vựng (có câu ví dụ) hoặc mở tab "Học hôm nay" trước nhé.
+    </section>
+    {% endif %}
+</div>
+
+{% if shadow_deck|length %}
+<script id="shadow-data" type="application/json">{{ shadow_deck|tojson }}</script>
+<script type="module" src="/static/js/shadowing/shadowingPage.js?v={{ asset_v('js/shadowing/shadowingPage.js') }}"></script>
+{% endif %}
+{% endblock %}

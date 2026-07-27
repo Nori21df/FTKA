@@ -50,7 +50,8 @@ const AUTHED_PAGES = [
 // kết nối, dòng "+x hôm nay" (đổi khi sang ngày), cột "Đăng nhập gần nhất" (đổi mỗi lần
 // global-setup đăng nhập user test).
 const ADMIN_PAGES = [
-  { name: "admin-dashboard", path: "/admin", mask: ["#rcConsole", "#consoleStatus", ".admin-kpi p"] },
+  // mask thêm .admin-card strong: "Số dư Sun" hồi theo thời gian thực → số đổi giữa 2 lần chạy
+  { name: "admin-dashboard", path: "/admin", mask: ["#rcConsole", "#consoleStatus", ".admin-kpi p", ".admin-card strong"] },
   { name: "admin-users", path: "/admin/users", mask: [".admin-table td:nth-child(7)"] },
   { name: "admin-vocab", path: "/admin/vocab" },
   { name: "settings", path: "/settings" }

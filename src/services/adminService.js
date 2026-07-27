@@ -60,9 +60,23 @@ async function getUserDetail(userId, db = dbGlobal) {
 async function updateUser(userId, form, db = dbGlobal) {
   const oldValue = await getUserDetail(userId, db);
   if (!oldValue) return [null, null];
+  const plan = String(form.plan || "free").trim().toLowerCase();
+  // premium_until từ form có thể là chuỗi Date.toString() ("Wed Sep 13 2026 ... GMT+0900 (…)")
+  // — Postgres không parse được → 500. Parse qua JS Date rồi ghi ISO; đổi sang gói khác
+  // (free…) thì xoá hạn luôn. Chuỗi hỏng → giữ giá trị cũ (không phá dữ liệu).
+  let premiumUntil = null;
+  if (plan === "premium") {
+    const raw = String(form.premium_until || "").trim();
+    if (raw) {
+      const d = new Date(raw);
+      premiumUntil = Number.isNaN(d.getTime())
+        ? (oldValue.premium_until ? new Date(oldValue.premium_until).toISOString() : null)
+        : d.toISOString();
+    }
+  }
   await db.run("UPDATE users SET username=?, email=?, role=?, status=?, plan=?, premium_until=? WHERE id=?", [
     String(form.username || "").trim(), String(form.email || "").trim(), String(form.role || "user").trim(),
-    String(form.status || "active").trim(), String(form.plan || "free").trim(), String(form.premium_until || "").trim() || null, oldValue.id
+    String(form.status || "active").trim(), plan, premiumUntil, oldValue.id
   ]);
   return [oldValue, await getUserDetail(oldValue.id, db)];
 }

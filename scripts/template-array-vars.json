@@ -34,7 +34,8 @@
     "updated_ids",
     "provider_stats",
     "keys",
-    "new_codes"
+    "new_codes",
+    "shadow_deck"
   ],
   "allow": [
     "energy_status",

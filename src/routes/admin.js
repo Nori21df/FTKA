@@ -136,6 +136,8 @@ router.post("/users/:user_id/energy/add", ...named("admin.add_user_energy", (req
 router.get("/users/:user_id/edit", ...named("admin.edit_user", asyncHandler(async (req, res) => {
   const user = await admin.getUserDetail(req.params.user_id);
   if (!user) return redirectNotFound(req, res, "/admin/users");
+  // Ô input premium_until: đưa ISO gọn thay vì Date.toString() dài ngoằng (và không parse lại được)
+  if (user.premium_until) user.premium_until = new Date(user.premium_until).toISOString();
   res.render("admin/user_edit.html", { user });
 })));
 
