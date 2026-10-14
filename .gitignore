@@ -29,3 +29,7 @@ test-results/
 playwright-report/
 tests/.auth/
 script/
+
+# env backups (chua secrets)
+.env.bak.*
+.env.bak
